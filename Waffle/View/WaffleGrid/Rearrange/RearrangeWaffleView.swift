@@ -40,6 +40,10 @@ struct RearrangeWaffleView: View {
                     ContentUnavailableView("No Cells", systemImage: "square.grid.3x3", description: Text("There are no cells to rearrange yet."))
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
+                    Text("Tap and hold, then drag the cell when it lifts from the waffle to rearrange.")
+                        .font(.subheadline)
+                        .bold()
+                    
                     ScrollView {
                         LazyVGrid(columns: columns, spacing: 12) {
                             ForEach(viewModel.tiles) { tile in

@@ -58,7 +58,7 @@ struct OnboardingView: View {
                         .padding(20)
                 }
                 .padding(.horizontal, 24)
-                .frame(maxWidth: 740, minHeight: 420)
+                .frame(height: 700)
                 .animation(.spring(response: 0.55, dampingFraction: 0.9), value: pageIndex)
 
                 Spacer(minLength: 0)
@@ -71,10 +71,10 @@ struct OnboardingView: View {
                         }
                     } label: {
                         Label("Back", systemImage: "chevron.left")
-                        
+                            .foregroundStyle(.white)
+
                     }
                     .disabled(pageIndex == 0)
-                    .opacity(pageIndex == 0 ? 0.35 : 1)
 
                     Spacer()
 
@@ -151,7 +151,7 @@ struct OnboardingView: View {
             FeatureCard(
                 icon: "square.grid.3x3",
                 title: "Presets & Bookmarks",
-                subtitle: "Save favorite pages and entire waffle layouts for quick recall.",
+                subtitle: "Save favorite pages and entire waffle layouts for quick recall.\n\n\nAll users can also save bookmarks of their favorite sites to quickly apply to the selected cell.",
                 premium: true,
                 heroIconID: "icon-presets",
                 heroTitleID: "title-presets",
@@ -452,7 +452,8 @@ private struct FullscreenAnimation: View {
                 RoundedRectangle(cornerRadius: 16)
                     .stroke(Color.primary.opacity(0.25), lineWidth: 2)
             )
-            .frame(height: expand ? 240 : 160)
+            .frame(height: expand ? 550 : 160)
+            .frame(width: expand ? 550 : 250)
             .animation(.spring(response: 0.7, dampingFraction: 0.75).repeatForever(autoreverses: true), value: expand)
             .onAppear { expand = true }
     }
@@ -471,7 +472,7 @@ private struct PresetsBookmarksVisual: View {
                     }
                     .font(.headline)
                 )
-                .frame(width: 160, height: 120)
+                .frame(width: 200, height: 120)
                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.primary.opacity(blink ? 0.45 : 0.2), lineWidth: 2))
                 .animation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true), value: blink)
 
@@ -484,7 +485,7 @@ private struct PresetsBookmarksVisual: View {
                     }
                     .font(.headline)
                 )
-                .frame(width: 160, height: 120)
+                .frame(width: 200, height: 120)
                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.primary.opacity(0.2), lineWidth: 2))
         }
         .onAppear { blink = true }

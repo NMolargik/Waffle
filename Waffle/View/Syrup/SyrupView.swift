@@ -44,7 +44,7 @@ struct SyrupView: View {
                     .foregroundStyle(.secondary)
                 
                 VStack(alignment: .leading, spacing: 10) {
-                    Label("Up to 5x5 waffles (no 2x2 limit)", systemImage: "square.grid.3x3")
+                    Label("Up to 4x4 waffles (double the 2x2 limit)", systemImage: "square.grid.3x3")
                     Label("Rearrange waffles", systemImage: "arrow.left.arrow.right.square")
                     Label("Pop out cells into their own windows", systemImage: "rectangle.on.rectangle")
                     Label("Fullscreen a single cell", systemImage: "arrow.up.left.and.arrow.down.right.rectangle")

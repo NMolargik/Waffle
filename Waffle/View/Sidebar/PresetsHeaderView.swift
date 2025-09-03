@@ -46,7 +46,7 @@ struct PresetsHeaderView: View {
         .padding(10)
         .background {
             Rectangle()
-                .foregroundStyle(.waffleTertiary.opacity(0.4))
+                .foregroundStyle(.wafflePrimary.opacity(0.4))
                 .cornerRadius(20)
         }
     }

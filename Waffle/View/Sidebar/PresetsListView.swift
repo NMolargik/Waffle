@@ -59,7 +59,7 @@ struct PresetsListView: View {
                                 Image(systemName: "square.grid.3x3.fill")
                                 Text("\(preset.rows)x\(preset.cols)")
                             }
-                            .foregroundStyle(Color.wafflePrimary)
+                            .foregroundStyle(Color.waffleTertiary)
                             .font(.caption)
                         }
                         Spacer()

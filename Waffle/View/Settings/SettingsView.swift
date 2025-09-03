@@ -21,7 +21,9 @@ struct SettingsView: View {
             Form {
                 Section {
                     Button {
-                        coordinator.presentSyrupSheet = true
+                        if !coordinator.isSyrupEnabled {
+                            coordinator.presentSyrupSheet = true
+                        }
                     } label: {
                         HStack {
                             Label("Syrup", systemImage: "drop.fill")
@@ -31,7 +33,7 @@ struct SettingsView: View {
                                 HStack(spacing: 6) {
                                     Image(systemName: "checkmark.seal.fill")
                                         .foregroundStyle(.green)
-                                    Text("Purchased")
+                                    Text("Purchased. Thank you!")
                                         .foregroundStyle(.secondary)
                                 }
                             } else {
@@ -41,12 +43,14 @@ struct SettingsView: View {
                                     Text("Not Purchased")
                                         .foregroundStyle(.secondary)
                                 }
+
+                                Image(systemName: "chevron.right")
+                                    .foregroundStyle(.tertiary)
                             }
-                            Image(systemName: "chevron.right")
-                                .foregroundStyle(.tertiary)
                         }
                     }
                     .buttonStyle(.plain)
+                    .disabled(coordinator.isSyrupEnabled) // Prevent interaction when already purchased
                 }
 
                 Section("Search") {

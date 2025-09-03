@@ -24,7 +24,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		EB0E1CCF2E64CD1D0060F834 /* Exceptions for "Waffle" folder in "Waffle" target */ = {
+		EB89662F2E68DFE2006F567A /* Exceptions for "Waffle" folder in "Waffle" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -37,7 +37,7 @@
 		EB0E1C932E63B51E0060F834 /* Waffle */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				EB0E1CCF2E64CD1D0060F834 /* Exceptions for "Waffle" folder in "Waffle" target */,
+				EB89662F2E68DFE2006F567A /* Exceptions for "Waffle" folder in "Waffle" target */,
 			);
 			path = Waffle;
 			sourceTree = "<group>";
@@ -280,7 +280,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Waffle/Waffle.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = R8Q8DM58C6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -319,7 +319,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Waffle/Waffle.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = R8Q8DM58C6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;

@@ -14,6 +14,7 @@ struct MainView: View {
     @Environment(\.dismissWindow) private var dismissWindow
     @Environment(\.modelContext) private var modelContext
     @Environment(WaffleCoordinator.self) private var coordinator
+    @Environment(\.scenePhase) private var scenePhase
     
     @AppStorage("poppedCellAddress") private var poppedCellAddress: String = ""
     @AppStorage("lastGridSnapshot") private var lastGridSnapshotData: Data = Data()
@@ -47,6 +48,7 @@ struct MainView: View {
                         return
                     }
                     viewModel.saveCurrentGridAsPreset(withName: providedName, modelContext: modelContext)
+                    persistGridSnapshot()
                 },
                 applyBookmark: { bookmark in
                     viewModel.applyBookmark(bookmark)
@@ -65,6 +67,7 @@ struct MainView: View {
                         return
                     }
                     viewModel.overwritePresetWithCurrentGrid(preset, modelContext: modelContext)
+                    persistGridSnapshot()
                 }
             )
             .navigationTitle("Waffle")
@@ -85,11 +88,24 @@ struct MainView: View {
                     },
                     fullscreenCell: viewModel.fullScreenCell
                 )
+                .padding(.horizontal, 4)
                 .animation(.snappy, value: coordinator.waffleState.poppedCell)
                 .animation(.snappy, value: coordinator.waffleState.selectedCell)
                 .ignoresSafeArea()
                 // Persist when any cell URLs change
                 .onChange(of: coordinator.waffleState.flattenedAddresses()) { _, _ in
+                    persistGridSnapshot()
+                }
+                // Persist when the structural identity of cells changes (rows/cols adjustments)
+                .onChange(of: coordinator.waffleState.waffleRows.map { $0.map(\.id) }) { _, _ in
+                    persistGridSnapshot()
+                }
+                .onAppear {
+                    viewModel.configure(coordinator: coordinator)
+                    restoreGridSnapshotIfAvailable()
+                    // Ensure we start with the sidebar hidden
+                    columnVisibility = .detailOnly
+                    // Write a baseline snapshot so there is always something to restore next launch
                     persistGridSnapshot()
                 }
                 
@@ -101,10 +117,12 @@ struct MainView: View {
                 ToolbarItemGroup(placement: .topBarLeading) {
                     Button("Back", systemImage: "chevron.backward") {
                         viewModel.goBack()
+                        persistGridSnapshot()
                     }
                     
                     Button("Forward", systemImage: "chevron.forward") {
                         viewModel.goForward()
+                        persistGridSnapshot()
                     }
                 }
                 ToolbarItem(placement: .principal) {
@@ -122,6 +140,7 @@ struct MainView: View {
                             .frame(idealWidth: 300)
                         Button {
                             viewModel.reloadSelected()
+                            persistGridSnapshot()
                         } label: {
                             Image(systemName: "arrow.clockwise")
                                 .frame(maxHeight: .infinity)
@@ -140,6 +159,7 @@ struct MainView: View {
                                 coordinator.requestSyrup()
                                 viewModel.showSyrupSheet = true
                             }
+                            persistGridSnapshot()
                         }
                         
                         if (viewModel.fullScreenCell == nil) {
@@ -170,7 +190,7 @@ struct MainView: View {
                                         persistGridSnapshot()
                                     }
                                 ),
-                                in: 1...5
+                                in: 1...4
                             ) {
                                 Label("Rows: \(coordinator.waffleState.rowCount)", systemImage: "rectangle.split.1x2")
                                     .padding(.leading, 5)
@@ -183,7 +203,7 @@ struct MainView: View {
                                         persistGridSnapshot()
                                     }
                                 ),
-                                in: 1...5
+                                in: 1...4
                             ) {
                                 Label("Columns: \(coordinator.waffleState.colCount)", systemImage: "rectangle.split.2x1")
                             }
@@ -226,6 +246,12 @@ struct MainView: View {
             .onChange(of: coordinator.waffleState.colCount) { _, _ in
                 persistGridSnapshot()
             }
+            .onChange(of: scenePhase) { _, newPhase in
+                // Extra safety: persist on lifecycle changes
+                if newPhase == .inactive || newPhase == .background {
+                    persistGridSnapshot()
+                }
+            }
             .sheet(isPresented: $viewModel.showSyrupSheet, onDismiss: {
                 coordinator.presentSyrupSheet = false
             }) {
@@ -265,24 +291,26 @@ struct MainView: View {
                 }
                 .frame(minWidth: 500, minHeight: 400)
             }
-            .onAppear {
-                viewModel.configure(coordinator: coordinator)
-                restoreGridSnapshotIfAvailable()
-                // Ensure we start with the sidebar hidden
-                columnVisibility = .detailOnly
-            }
         }
     }
 
     private func persistGridSnapshot() {
-        if let data = viewModel.makeGridSnapshotData() {
+        let snapshot = coordinator.waffleState.makeSnapshot()
+        if let data = try? JSONEncoder().encode(snapshot) {
             lastGridSnapshotData = data
         }
     }
     
     private func restoreGridSnapshotIfAvailable() {
-        let addr = viewModel.applyGridSnapshotData(lastGridSnapshotData)
-        viewModel.addressBarString = addr
+        guard !lastGridSnapshotData.isEmpty,
+              let snapshot = try? JSONDecoder().decode(WaffleState.Snapshot.self, from: lastGridSnapshotData) else {
+            return
+        }
+        coordinator.waffleState.apply(snapshot: snapshot)
+        // Update address bar to selected cell’s address if available
+        if let sel = coordinator.waffleState.selectedCell {
+            viewModel.addressBarString = sel.address
+        }
     }
 }
 
