@@ -78,8 +78,8 @@
             filePath = "Waffle/View/MainView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "310"
-            endingLineNumber = "310"
+            startingLineNumber = "311"
+            endingLineNumber = "311"
             landmarkName = "restoreGridSnapshotIfAvailable()"
             landmarkType = "7">
          </BreakpointContent>

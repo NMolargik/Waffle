@@ -26,8 +26,9 @@ struct BookmarksHeaderView: View {
             Spacer()
             
             Menu {
-                Button("Quick Save Current Tab", systemImage: "square.and.arrow.down.fill") { onQuickSaveCurrent() }
                 Button("Save As…", systemImage: "square.and.pencil") { onSaveAs() }
+
+                Button("Quick Save", systemImage: "square.and.arrow.down.fill") { onQuickSaveCurrent() }
             } label: {
                 HStack {
                     Image(systemName: "plus")
@@ -44,8 +45,8 @@ struct BookmarksHeaderView: View {
         .padding(10)
         .background {
             Rectangle()
-                .foregroundStyle(.wafflePrimary.opacity(0.4))
-                .cornerRadius(20)
+                .foregroundStyle(.wafflePrimary.opacity(0.2))
+                .cornerRadius(15)
         }
     }
 }

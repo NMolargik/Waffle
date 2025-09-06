@@ -108,7 +108,7 @@ final class WaffleState {
     func flattenedAddresses() -> [String] {
         waffleRows.flatMap { row in
             row.map { cell in
-                cell.address.isEmpty ? "https://apple.com" : cell.address
+                return cell.address.isEmpty ? "https://www.molargiksoftware.com/#/wafflelanding" : cell.address
             }
         }
     }

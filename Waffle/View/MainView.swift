@@ -88,7 +88,7 @@ struct MainView: View {
                     },
                     fullscreenCell: viewModel.fullScreenCell
                 )
-                .padding(.horizontal, 4)
+                .padding(4)
                 .animation(.snappy, value: coordinator.waffleState.poppedCell)
                 .animation(.snappy, value: coordinator.waffleState.selectedCell)
                 .ignoresSafeArea()
@@ -127,7 +127,7 @@ struct MainView: View {
                 }
                 ToolbarItem(placement: .principal) {
                     HStack {
-                        TextField("Address", text: $viewModel.addressBarString)
+                        TextField("Search or enter a URL", text: $viewModel.addressBarString)
                             .padding(10)
                             .glassEffect(.regular, in: .capsule)
                             .textContentType(.URL)
@@ -218,6 +218,7 @@ struct MainView: View {
                                 }
                                 DispatchQueue.main.async {
                                     let current = coordinator.waffleState.flattenedAddresses()
+                                    
                                     viewModel.pendingReorderedURLs = current.isEmpty ? ["https://apple.com"] : current
                                     viewModel.showRearrangeSheet = true
                                 }

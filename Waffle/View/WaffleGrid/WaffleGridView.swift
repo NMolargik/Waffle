@@ -29,14 +29,15 @@ struct WaffleGridView: View {
                                         Rectangle()
                                             .strokeBorder(.waffleSecondary, lineWidth: 4)
                                             .padding(-4)
-                                            .ignoresSafeArea()
+                                            
                                     }
                                 }
                         } else {
                             WebView(waffleColumn.page)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
                                 .onAppear {
                                     if waffleColumn.address.isEmpty {
-                                        waffleColumn.address = "https://apple.com"
+                                        waffleColumn.address = "https://www.molargiksoftware.com/#/wafflelanding"
                                     }
 
                                     waffleColumn.loadURL(urlString: waffleColumn.address)
@@ -82,9 +83,8 @@ struct WaffleGridView: View {
                                     }
                                     else if isSelected {
                                         Rectangle()
-                                            .strokeBorder(Color.accentColor, lineWidth: 4)
+                                            .strokeBorder(Color.waffleTertiary, lineWidth: 4)
                                             .padding(-4)
-                                            .ignoresSafeArea()
                                     } else {
                                         Button {
                                             waffleState.select(waffleColumn)
@@ -99,7 +99,6 @@ struct WaffleGridView: View {
                 }
             }
         }
-        .background(Color(white: 0.9))
         .onAppear(perform: waffleState.makeInitialItem)
     }
 }

@@ -32,7 +32,8 @@ struct DetachedWaffleCellView: View {
             WebView(waffleCell.page)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .onAppear {
-                    let addr = waffleCell.address.isEmpty ? "https://apple.com" : waffleCell.address
+                    let defaultAddr = "https://www.molargiksoftware.com/#/wafflelanding"
+                    let addr = waffleCell.address.isEmpty ? defaultAddr : waffleCell.address
                     viewModel.addressBarString = addr
                     waffleCell.loadURL(urlString: addr)
                 }
@@ -108,3 +109,4 @@ struct DetachedWaffleCellView: View {
     return DetachedWaffleCellView(waffleCell: previewCell)
         .environment(WaffleCoordinator(store: StoreManager()))
 }
+
