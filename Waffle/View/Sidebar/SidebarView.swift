@@ -11,20 +11,25 @@ import SwiftData
 struct SidebarView: View {
     @Environment(\.modelContext) private var context
     
+    // Sort by user-defined order; as a fallback for legacy data where sortIndex may be equal,
+    // also sort by createdAt to keep a stable order.
+    @Query(sort: [
+        SortDescriptor(\Bookmark.sortIndex, order: .forward),
+        SortDescriptor(\Bookmark.createdAt, order: .reverse)
+    ])
+    private var bookmarks: [Bookmark]
     @Query(sort: \Preset.createdAt, order: .reverse) private var presets: [Preset]
-    @Query(sort: \Bookmark.createdAt, order: .reverse) private var bookmarks: [Bookmark]
     
     var applyPreset: (Preset) -> Void
     var savePreset: (_ withName: String?) -> Void
     var applyBookmark: (Bookmark) -> Void
     var saveBookmark: (_ urlString: String, _ withTitle: String?) -> Void
-    var showSettingsSheet: () -> Void
     var overwritePreset: (Preset) -> Void
 
     @State private var viewModel = SidebarView.ViewModel()
 
     var body: some View {
-        NavigationStack {
+        VStack {
             BookmarksHeaderView(
                 onQuickSaveCurrent: { saveBookmark("", nil) },
                 onSaveAs: { viewModel.beginBookmarkCreation() }
@@ -37,7 +42,9 @@ struct SidebarView: View {
                 onDelete: { bm in
                     context.delete(bm)
                     try? context.save()
-                }
+                    normalizeSortIndexesIfNeeded()
+                },
+                onMove: handleMove
             )
             
             PresetsHeaderView(
@@ -55,15 +62,8 @@ struct SidebarView: View {
                     try? context.save()
                 }
             )
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Settings", systemImage: "gearshape.fill") {
-                        showSettingsSheet()
-                    }
-                }
-            }
+
         }
-        .padding()
         // Inline "Save Preset" alert
         .alert("Save Preset", isPresented: $viewModel.showingPresetNamePrompt) {
             TextField("Name", text: $viewModel.newPresetName)
@@ -92,14 +92,45 @@ struct SidebarView: View {
                     editing.urlString = viewModel.newBookmarkURLString
                     try? context.save()
                 } else {
-                    // Create new bookmark
-                    saveBookmark(viewModel.newBookmarkURLString, viewModel.newBookmarkTitle.isEmpty ? nil : viewModel.newBookmarkTitle)
+                    // Create new bookmark at the end of the current order
+                    let new = Bookmark(
+                        url: URL(string: viewModel.newBookmarkURLString) ?? URL(string: "https://apple.com")!,
+                        title: viewModel.newBookmarkTitle
+                    )
+                    new.sortIndex = (bookmarks.map(\.sortIndex).max() ?? -1) + 1
+                    context.insert(new)
+                    try? context.save()
                 }
                 viewModel.resetBookmarkPrompt()
             }
         } message: {
             Text(viewModel.bookmarkToEdit == nil ? "Enter a title and URL for this bookmark." : "Edit the title and URL for this bookmark.")
         }
+        .onAppear {
+            normalizeSortIndexesIfNeeded()
+        }
+    }
+
+    // Ensure sortIndex is a contiguous 0...(n-1) sequence to keep moves predictable,
+    // especially if some items were created before sortIndex existed.
+    private func normalizeSortIndexesIfNeeded() {
+        // Current order is already sorted by sortIndex (and createdAt fallback).
+        for (idx, bm) in bookmarks.enumerated() where bm.sortIndex != idx {
+            bm.sortIndex = idx
+        }
+        try? context.save()
+    }
+
+    // Persist reordering by updating sortIndex based on the drag result.
+    private func handleMove(from source: IndexSet, to destination: Int) {
+        // Make a working copy in current display order
+        var ordered = bookmarks
+        ordered.move(fromOffsets: source, toOffset: destination)
+        // Reassign contiguous sortIndex by new order
+        for (idx, bm) in ordered.enumerated() {
+            bm.sortIndex = idx
+        }
+        try? context.save()
     }
 }
 
@@ -133,6 +164,10 @@ private enum SidebarPreviewData {
         let b2 = Bookmark(url: URL(string: "https://developer.apple.com/documentation")!, title: "Documentation")
         let b3 = Bookmark(url: URL(string: "https://news.ycombinator.com")!, title: "Hacker News")
         let b4 = Bookmark(url: URL(string: "https://github.com")!, title: "GitHub")
+        b1.sortIndex = 0
+        b2.sortIndex = 1
+        b3.sortIndex = 2
+        b4.sortIndex = 3
         
         context.insert(p1); context.insert(p2); context.insert(p3)
         context.insert(b1); context.insert(b2); context.insert(b3); context.insert(b4)
@@ -147,10 +182,10 @@ private enum SidebarPreviewData {
         savePreset: { _ in },
         applyBookmark: { _ in },
         saveBookmark: { _, _ in },
-        showSettingsSheet: {},
         overwritePreset: { _ in }
     )
     .frame(width: 500)
     .modelContainer(SidebarPreviewData.makePreviewContainer())
     .environment(WaffleCoordinator(store: StoreManager()))
 }
+

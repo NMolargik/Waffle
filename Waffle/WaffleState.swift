@@ -71,6 +71,7 @@ final class WaffleState {
     
     func popBack(poppedCellAddress: String) {
         poppedCell?.loadURL(urlString: poppedCellAddress)
+        selectedCell = poppedCell
         poppedCell = nil
     }
     

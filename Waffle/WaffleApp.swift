@@ -30,7 +30,7 @@ struct WaffleApp: App {
     var body: some Scene {
         WindowGroup(id: "main") {
             RootView()
-                .frame(minWidth: 820, minHeight: 600)
+                .frame(minWidth: 820)
                 .modelContainer(container)
                 .environment(waffleCoordinator)
                 .environment(storeManager)

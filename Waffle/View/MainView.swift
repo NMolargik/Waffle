@@ -13,24 +13,22 @@ struct MainView: View {
     @Environment(\.openWindow) private var openWindow
     @Environment(\.dismissWindow) private var dismissWindow
     @Environment(\.modelContext) private var modelContext
-    @Environment(WaffleCoordinator.self) private var coordinator
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(WaffleCoordinator.self) private var coordinator
     
     @AppStorage("poppedCellAddress") private var poppedCellAddress: String = ""
     @AppStorage("lastGridSnapshot") private var lastGridSnapshotData: Data = Data()
     @AppStorage("searchProvider") private var searchProviderRawValue: String = SearchProvider.google.rawValue
+    
+    @State private var viewModel: MainView.ViewModel = MainView.ViewModel()
     
     private var searchProvider: SearchProvider {
         get { SearchProvider(rawValue: searchProviderRawValue) ?? .google }
         set { searchProviderRawValue = newValue.rawValue }
     }
 
-    @State private var viewModel: MainView.ViewModel = MainView.ViewModel()
-    // Control the initial visibility of the split view columns
-    @State private var columnVisibility: NavigationSplitViewVisibility = .detailOnly
-
     var body: some View {
-        NavigationSplitView(columnVisibility: $columnVisibility) {
+        NavigationSplitView {
             SidebarView(
                 applyPreset: { preset in
                     if !coordinator.canMakePresets && !coordinator.isSyrupEnabled {
@@ -57,9 +55,6 @@ struct MainView: View {
                 saveBookmark: { urlString, providedTitle in
                     viewModel.saveCurrentCellAsBookmark(urlString: urlString, title: providedTitle, modelContext: modelContext)
                 },
-                showSettingsSheet: {
-                    viewModel.showSettingsSheet.toggle()
-                },
                 overwritePreset: { preset in
                     guard coordinator.canMakePresets else {
                         coordinator.requestSyrup()
@@ -71,44 +66,53 @@ struct MainView: View {
                 }
             )
             .navigationTitle("Waffle")
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Settings", systemImage: "gearshape.fill") {
+                        viewModel.showSettingsSheet.toggle()
+                    }
+                }
+            }
         } detail: {
             Color.clear
                 .frame(height: 0)
             
             @Bindable var coord = coordinator
-            ZStack {
-                WaffleGridView(
-                    waffleState: $coord.waffleState,
-                    addressBarString: $viewModel.addressBarString,
-                    requestPopBack: {
-                        viewModel.initiatePopBack(poppedCellAddress: poppedCellAddress) {
-                            dismissWindow(id: "DetachedWaffleCell")
-                        }
-                        persistGridSnapshot()
-                    },
-                    fullscreenCell: viewModel.fullScreenCell
-                )
-                .padding(4)
-                .animation(.snappy, value: coordinator.waffleState.poppedCell)
-                .animation(.snappy, value: coordinator.waffleState.selectedCell)
-                .ignoresSafeArea()
-                // Persist when any cell URLs change
-                .onChange(of: coordinator.waffleState.flattenedAddresses()) { _, _ in
+            WaffleGridView(
+                waffleState: $coord.waffleState,
+                addressBarString: $viewModel.addressBarString,
+                requestPopBack: {
+                    viewModel.initiatePopBack(poppedCellAddress: poppedCellAddress) {
+                        dismissWindow(id: "DetachedWaffleCell")
+                    }
                     persistGridSnapshot()
+                },
+                fullscreenCell: viewModel.fullScreenCell,
+                copyToSelectedCell: { address in
+                    coord.waffleState.selectedCell?.loadURL(urlString: address)
                 }
-                // Persist when the structural identity of cells changes (rows/cols adjustments)
-                .onChange(of: coordinator.waffleState.waffleRows.map { $0.map(\.id) }) { _, _ in
-                    persistGridSnapshot()
-                }
-                .onAppear {
-                    viewModel.configure(coordinator: coordinator)
-                    restoreGridSnapshotIfAvailable()
-                    // Ensure we start with the sidebar hidden
-                    columnVisibility = .detailOnly
-                    // Write a baseline snapshot so there is always something to restore next launch
-                    persistGridSnapshot()
-                }
-                
+            )
+            .padding(.horizontal, 4)
+            .background(Color(white: 0.9))
+            .onAppear(perform: coordinator.waffleState.makeInitialItem)
+            .toolbarTitleDisplayMode(.inline)
+            .animation(.snappy, value: coordinator.waffleState.poppedCell)
+            .animation(.snappy, value: coordinator.waffleState.selectedCell)
+            .ignoresSafeArea()
+            // Persist when any cell URLs change
+            .onChange(of: coordinator.waffleState.flattenedAddresses()) { _, _ in
+                persistGridSnapshot()
+            }
+            // Persist when the structural identity of cells changes (rows/cols adjustments)
+            .onChange(of: coordinator.waffleState.waffleRows.map { $0.map(\.id) }) { _, _ in
+                persistGridSnapshot()
+            }
+            .onAppear {
+                viewModel.configure(coordinator: coordinator)
+                restoreGridSnapshotIfAvailable()
+                persistGridSnapshot()
+            }
+            .overlay {
                 if let fullScreenWaffleCell = viewModel.fullScreenCell {
                     FullScreenCellView(viewModel: $viewModel, cell: fullScreenWaffleCell)
                 }
@@ -129,6 +133,7 @@ struct MainView: View {
                     HStack {
                         TextField("Search or enter a URL", text: $viewModel.addressBarString)
                             .padding(10)
+                            .frame(idealWidth: 350)
                             .glassEffect(.regular, in: .capsule)
                             .textContentType(.URL)
                             .textInputAutocapitalization(.never)
@@ -137,7 +142,6 @@ struct MainView: View {
                                 viewModel.submitAddress(using: searchProvider)
                                 persistGridSnapshot()
                             }
-                            .frame(idealWidth: 300)
                         Button {
                             viewModel.reloadSelected()
                             persistGridSnapshot()
@@ -146,13 +150,11 @@ struct MainView: View {
                                 .frame(maxHeight: .infinity)
                         }
                         .buttonStyle(.glass)
-                        .padding(.trailing, 10)
                     }
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     if (coordinator.waffleState.rowCount > 1 || coordinator.waffleState.colCount > 1) {
-                        Button(viewModel.fullScreenCell != nil ? "Minimize" : "Maximize", systemImage: viewModel.fullScreenCell != nil ? "arrow.down.right.and.arrow.up.left.rectangle" : "arrow.up.left.and.arrow.down.right.rectangle"
-                        ) {
+                        Button {
                             if coordinator.canUseFullscreen {
                                 viewModel.toggleFullscreen(cell: coordinator.waffleState.selectedCell)
                             } else {
@@ -160,6 +162,16 @@ struct MainView: View {
                                 viewModel.showSyrupSheet = true
                             }
                             persistGridSnapshot()
+                        } label: {
+                            if viewModel.fullScreenCell != nil {
+                                HStack {
+                                    Text("Minimize")
+                                    
+                                    Image(systemName: "arrow.down.right.and.arrow.up.left.rectangle")
+                                }
+                            } else {
+                                Image(systemName: "arrow.up.left.and.arrow.down.right.rectangle")
+                            }
                         }
                         
                         if (viewModel.fullScreenCell == nil) {

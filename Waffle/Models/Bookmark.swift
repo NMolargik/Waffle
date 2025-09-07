@@ -24,18 +24,23 @@ final class Bookmark {
     var title: String = ""
     /// Timestamp of when the bookmark was created.
     var createdAt: Date = Date.now
+    /// User-defined order for drag-to-reorder in the UI (lower values appear first).
+    var sortIndex: Int = 0
 
     /// Creates a new bookmark from a URL and optional title.
     /// - Parameters:
     ///   - url: The URL to save.
     ///   - title: The display title to associate with the URL.
+    /// - Note: sortIndex defaults to 0; callers should assign a desired index after insertion if needed.
     init(url: URL, title: String) {
         self.id = UUID()
         self.urlString = url.absoluteString
         self.title = title
         self.createdAt = .now
+        self.sortIndex = 0
     }
 
     /// A convenience typed URL constructed from `urlString`, if valid.
     var url: URL? { URL(string: urlString) }
 }
+

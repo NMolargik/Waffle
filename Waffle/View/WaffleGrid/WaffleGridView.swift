@@ -15,6 +15,7 @@ struct WaffleGridView: View {
     
     var requestPopBack: () -> Void
     var fullscreenCell: WaffleCell? = nil
+    var copyToSelectedCell: (String) -> Void
     
     var body: some View {
         Grid(horizontalSpacing: 4, verticalSpacing: 4) {
@@ -23,18 +24,8 @@ struct WaffleGridView: View {
                     ForEach(waffleState.waffleRows[waffleRow]) { waffleColumn in
                         if fullscreenCell == waffleColumn {
                             Color.clear
-                                .overlay {
-                                    let isSelected = waffleState.selectedCell == waffleColumn
-                                    if isSelected {
-                                        Rectangle()
-                                            .strokeBorder(.waffleSecondary, lineWidth: 4)
-                                            .padding(-4)
-                                            
-                                    }
-                                }
                         } else {
                             WebView(waffleColumn.page)
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
                                 .onAppear {
                                     if waffleColumn.address.isEmpty {
                                         waffleColumn.address = "https://www.molargiksoftware.com/#/wafflelanding"
@@ -83,15 +74,21 @@ struct WaffleGridView: View {
                                     }
                                     else if isSelected {
                                         Rectangle()
-                                            .strokeBorder(Color.waffleTertiary, lineWidth: 4)
+                                            .strokeBorder(Color.blue, lineWidth: 4)
                                             .padding(-4)
                                     } else {
-                                        Button {
-                                            waffleState.select(waffleColumn)
-                                            addressBarString = waffleColumn.page.url?.absoluteString ?? ""
-                                        } label: {
-                                            Color.clear
-                                        }
+                                        // Transparent hit area that supports tap and long-press context menu
+                                        Color.clear
+                                            .contentShape(Rectangle())
+                                            .onTapGesture {
+                                                waffleState.select(waffleColumn)
+                                                addressBarString = waffleColumn.page.url?.absoluteString ?? ""
+                                            }
+                                            .contextMenu {
+                                                Button("Copy To Selected Cell") {
+                                                    copyToSelectedCell(waffleColumn.address)
+                                                }
+                                            }
                                     }
                                 }
                         }
@@ -99,7 +96,6 @@ struct WaffleGridView: View {
                 }
             }
         }
-        .onAppear(perform: waffleState.makeInitialItem)
     }
 }
 
@@ -107,6 +103,7 @@ struct WaffleGridView: View {
     WaffleGridView(
         waffleState: .constant(WaffleState()),
         addressBarString: .constant(""),
-        requestPopBack: {}
+        requestPopBack: {},
+        copyToSelectedCell: { _ in }
     )
 }

@@ -53,12 +53,13 @@ struct FullScreenCellView: View {
                             viewModel.addressBarString = cell.page.url?.absoluteString ?? ""
                         }
                     }
+                    .cornerRadius(25)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding()
-                    .cornerRadius(20)
+                    .padding([.top, .horizontal])
             }
         }
         .transition(.opacity)
+        .shadow(radius: 5)
     }
 }
 

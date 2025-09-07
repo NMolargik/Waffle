@@ -85,8 +85,14 @@ struct DetachedWaffleCellView: View {
                     
                     ToolbarItemGroup(placement: .topBarTrailing) {
                         @Bindable var coord = coordinator
-                        Button("Pop Back", systemImage: "rectangle.on.rectangle.slash") {
+                        Button {
                             popBack()
+                        } label: {
+                            HStack {
+                                Text("Pop Back")
+                                
+                                Image(systemName: "rectangle.on.rectangle.slash")
+                            }
                         }
                     }
                 }
@@ -95,11 +101,8 @@ struct DetachedWaffleCellView: View {
     }
     
     private func popBack() {
-        // Only reattach if this window was showing the actually-detached square.
-        if coordinator.waffleState.isPoppedOut(waffleCell) {
-            coordinator.waffleState.popBack(poppedCellAddress: poppedCellAddress)
-            dismissWindow()
-        }
+        coordinator.waffleState.popBack(poppedCellAddress: poppedCellAddress)
+        dismissWindow()
     }
 }
 
