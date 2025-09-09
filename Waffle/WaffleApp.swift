@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import StoreKit
 
 @main
 struct WaffleApp: App {
@@ -15,6 +16,12 @@ struct WaffleApp: App {
     @State private var waffleCoordinator: WaffleCoordinator
 
     private let appGroup = "group.com.molargiksoftware.Waffle"
+
+    // Review prompt tracking
+    @Environment(\.scenePhase) private var scenePhase
+    @AppStorage("launchCount") private var launchCount: Int = 0
+    @State private var didIncrementThisRun: Bool = false
+    @State private var attemptedReviewThisActivation: Bool = false
 
     init() {
         do {
@@ -34,6 +41,9 @@ struct WaffleApp: App {
                 .modelContainer(container)
                 .environment(waffleCoordinator)
                 .environment(storeManager)
+                .onChange(of: scenePhase) { _, newPhase in
+                    handleScenePhaseChange(newPhase)
+                }
         }
         .defaultSize(width: 520, height: 520)
         .windowResizability(.contentSize)
@@ -53,5 +63,43 @@ struct WaffleApp: App {
         }
         .defaultSize(width: 420, height: 420)
         .windowResizability(.contentSize)
+    }
+
+    // MARK: - Review prompt logic
+
+    private func handleScenePhaseChange(_ newPhase: ScenePhase) {
+        switch newPhase {
+        case .active:
+            // Increment launch count once per process run, at first activation.
+            if !didIncrementThisRun {
+                didIncrementThisRun = true
+                launchCount += 1
+            }
+
+            // Attempt review on specific milestones (5th launch here).
+            if !attemptedReviewThisActivation, launchCount == 5 {
+                attemptedReviewThisActivation = true
+                requestReviewIfAppropriate()
+            }
+
+        case .inactive, .background:
+            // Reset per-activation guard so we could consider showing at a later activation if needed.
+            attemptedReviewThisActivation = false
+
+        @unknown default:
+            break
+        }
+    }
+
+    private func requestReviewIfAppropriate() {
+        // Find a foreground active UIWindowScene
+        guard let scene = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first(where: { $0.activationState == .foregroundActive }) else {
+            // If no active scene (edge case), fall back to generic request
+            SKStoreReviewController.requestReview()
+            return
+        }
+        SKStoreReviewController.requestReview(in: scene)
     }
 }
