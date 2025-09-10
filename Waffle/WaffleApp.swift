@@ -96,10 +96,12 @@ struct WaffleApp: App {
         guard let scene = UIApplication.shared.connectedScenes
             .compactMap({ $0 as? UIWindowScene })
             .first(where: { $0.activationState == .foregroundActive }) else {
-            // If no active scene (edge case), fall back to generic request
-            SKStoreReviewController.requestReview()
+            // Fallback: requestReview() is deprecated, but no active scene was found.
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                AppStore.requestReview(in: windowScene)
+            }
             return
         }
-        SKStoreReviewController.requestReview(in: scene)
+        AppStore.requestReview(in: scene)
     }
 }

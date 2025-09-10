@@ -131,17 +131,19 @@ struct MainView: View {
                 }
                 ToolbarItem(placement: .principal) {
                     HStack {
-                        TextField("Search or enter a URL", text: $viewModel.addressBarString)
-                            .padding(10)
-                            .frame(idealWidth: 350)
-                            .glassEffect(.regular, in: .capsule)
-                            .textContentType(.URL)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
-                            .onSubmit {
+                        SelectAllTextField(
+                            text: $viewModel.addressBarString,
+                            placeholder: "Search or enter a URL",
+                            onSubmit: {
                                 viewModel.submitAddress(using: searchProvider)
                                 persistGridSnapshot()
                             }
+                        )
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 10)
+                        .frame(idealWidth: 500)
+                        .layoutPriority(1)
+                        .glassEffect(.regular, in: .capsule)
                         Button {
                             viewModel.reloadSelected()
                             persistGridSnapshot()
@@ -150,6 +152,7 @@ struct MainView: View {
                                 .frame(maxHeight: .infinity)
                         }
                         .buttonStyle(.glass)
+                        .layoutPriority(0)
                     }
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
@@ -194,31 +197,58 @@ struct MainView: View {
                     @Bindable var coord = coordinator
                     if (viewModel.fullScreenCell == nil) {
                         Menu {
-                            Stepper(
-                                value: Binding(
-                                    get: { coord.waffleState.rowCount },
-                                    set: { newValue in
-                                        viewModel.setRows(newValue)
-                                        persistGridSnapshot()
+                            HStack(spacing: 8) {
+                                // Add Row
+                                Button {
+                                    let newValue = min(4, coord.waffleState.rowCount + 1)
+                                    viewModel.setRows(newValue)
+                                    persistGridSnapshot()
+                                } label: {
+                                    Label("Add Row", systemImage: "rectangle.split.1x2.fill")
+                                }
+                                .buttonStyle(.glass)
+                                
+                                // Subtract Row
+                                Button {
+                                    let newValue = max(1, coord.waffleState.rowCount - 1)
+                                    viewModel.setRows(newValue)
+                                    persistGridSnapshot()
+                                } label: {
+                                    Label("Subtract Row", systemImage: "rectangle.split.1x2")
+                                }
+                                .buttonStyle(.glass)
+
+
+                                Divider()
+                                // Add Column
+                                Button {
+                                    let newValue = min(4, coord.waffleState.colCount + 1)
+                                    viewModel.setCols(newValue)
+                                    persistGridSnapshot()
+                                } label: {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "square.split.2x1.fill")
+                                        Text("Add Column")
                                     }
-                                ),
-                                in: 1...4
-                            ) {
-                                Label("Rows: \(coordinator.waffleState.rowCount)", systemImage: "rectangle.split.1x2")
-                                    .padding(.leading, 5)
-                            }
-                            Stepper(
-                                value: Binding(
-                                    get: { coord.waffleState.colCount },
-                                    set: { newValue in
-                                        viewModel.setCols(newValue)
-                                        persistGridSnapshot()
+                                }
+                                .buttonStyle(.glass)
+
+                                // Subtract Column
+                                Button {
+                                    let newValue = max(1, coord.waffleState.colCount - 1)
+                                    viewModel.setCols(newValue)
+                                    persistGridSnapshot()
+                                } label: {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "square.split.2x1")
+                                        Text("Subtract Column")
                                     }
-                                ),
-                                in: 1...4
-                            ) {
-                                Label("Columns: \(coordinator.waffleState.colCount)", systemImage: "rectangle.split.2x1")
+                                }
+                                .buttonStyle(.glass)
                             }
+                            
+                            Divider()
+                            
                             Button("Rearrange", systemImage: "arrow.left.arrow.right.square") {
                                 guard coordinator.canUseRearrange else {
                                     coordinator.requestSyrup()
@@ -359,3 +389,4 @@ struct MainView: View {
         .modelContainer(container)
         .environment(coordinator)
 }
+

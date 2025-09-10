@@ -47,38 +47,36 @@ struct DetachedWaffleCellView: View {
                 .toolbar {
                     ToolbarItemGroup(placement: .topBarLeading) {
                         Button("Back", systemImage: "chevron.backward") {
-                            coordinator.waffleState.selectedCell?.goBack()
+                            waffleCell.goBack()
                         }
                         
                         Button("Forward", systemImage: "chevron.forward") {
-                            coordinator.waffleState.selectedCell?.goForward()
+                            waffleCell.goForward()
                         }
                     }
                     
                     ToolbarItem(placement: .principal) {
                         HStack {
                             HStack {
-                                TextField("Address", text: $viewModel.addressBarString)
-                                    .padding(10)
-                                    .glassEffect(.regular, in: .capsule)
-                                    .textContentType(.URL)
-                                    .textInputAutocapitalization(.never)
-                                    .autocorrectionDisabled()
-                                    .onSubmit {
+                                SelectAllTextField(
+                                    text: $viewModel.addressBarString,
+                                    placeholder: "Search or enter a URL",
+                                    onSubmit: {
                                         let final = viewModel.normalizedInput(viewModel.addressBarString, using: searchProvider)
-                                        coordinator.waffleState.selectedCell?.loadURL(urlString: final)
+                                        waffleCell.loadURL(urlString: final)
                                     }
-                                    .frame(idealWidth: 300)
+                                )
+                                .padding(10)
+                                .glassEffect(.regular, in: .capsule)
+                                .frame(idealWidth: 500)
 
-                                
                                 Button {
-                                    coordinator.waffleState.selectedCell?.reloadCell()
+                                    waffleCell.reloadCell()
                                 } label: {
                                     Label("Refresh", systemImage: "arrow.clockwise")
                                         .frame(maxHeight: .infinity)
                                 }
                                 .buttonStyle(.glass)
-                                
                             }
                         }
                     }
@@ -112,4 +110,3 @@ struct DetachedWaffleCellView: View {
     return DetachedWaffleCellView(waffleCell: previewCell)
         .environment(WaffleCoordinator(store: StoreManager()))
 }
-

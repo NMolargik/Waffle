@@ -55,13 +55,15 @@ struct RearrangeWaffleView: View {
                                             .foregroundStyle(.primary)
                                             .multilineTextAlignment(.center)
                                             .padding(10)
-                                            .lineLimit(3)
+                                            .lineLimit(1)
+                                            .truncationMode(.tail)
                                             .minimumScaleFactor(0.6)
                                             .background {
                                                 Rectangle()
                                                     .foregroundStyle(.ultraThinMaterial)
                                                     .cornerRadius(20)
                                             }
+                                            .padding()
                                     )
                                     .shadow(radius: 2)
                                     .frame(height: 80)
