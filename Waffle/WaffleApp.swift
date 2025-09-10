@@ -13,7 +13,6 @@ import StoreKit
 struct WaffleApp: App {
     private let container: ModelContainer
     private let storeManager = StoreManager()
-    @State private var waffleCoordinator: WaffleCoordinator
 
     private let appGroup = "group.com.molargiksoftware.Waffle"
 
@@ -30,17 +29,11 @@ struct WaffleApp: App {
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
         }
-        // Initialize coordinator with store
-        _waffleCoordinator = State(initialValue: WaffleCoordinator(store: storeManager))
     }
 
     var body: some Scene {
         WindowGroup(id: "main") {
-            RootView()
-                .frame(minWidth: 820)
-                .modelContainer(container)
-                .environment(waffleCoordinator)
-                .environment(storeManager)
+            MainSceneHost(storeManager: storeManager, container: container)
                 .onChange(of: scenePhase) { _, newPhase in
                     handleScenePhaseChange(newPhase)
                 }
@@ -51,18 +44,12 @@ struct WaffleApp: App {
         .commands { }
 
         WindowGroup(id: "DetachedWaffleCell", for: WaffleCell.self) { $waffleCell in
-            if let waffleCell {
-                DetachedWaffleCellView(waffleCell: waffleCell)
-                    .environment(waffleCoordinator)
-                    .environment(storeManager)
-                    .modelContainer(container)
-            } else {
-                Text("Oh, how'd you do that?\nPlease close this window. - Waffle")
-                    .multilineTextAlignment(.center)
-            }
+            DetachedCellSceneHost(waffleCell: $waffleCell, storeManager: storeManager, container: container)
         }
         .defaultSize(width: 420, height: 420)
         .windowResizability(.contentSize)
+        .handlesExternalEvents(matching: ["DetachedWaffleCella"])
+        .commands { }
     }
 
     // MARK: - Review prompt logic
@@ -103,5 +90,54 @@ struct WaffleApp: App {
             return
         }
         AppStore.requestReview(in: scene)
+    }
+}
+
+// MARK: - Scene Hosts
+private struct MainSceneHost: View {
+    let storeManager: StoreManager
+    let container: ModelContainer
+
+    @State private var coordinator: WaffleCoordinator
+
+    init(storeManager: StoreManager, container: ModelContainer) {
+        self.storeManager = storeManager
+        self.container = container
+        _coordinator = State(initialValue: WaffleCoordinator(store: storeManager))
+    }
+
+    var body: some View {
+        RootView()
+            .frame(minWidth: 820)
+            .modelContainer(container)
+            .environment(coordinator)
+            .environment(storeManager)
+    }
+}
+
+private struct DetachedCellSceneHost: View {
+    @Binding var waffleCell: WaffleCell?
+    let storeManager: StoreManager
+    let container: ModelContainer
+
+    @State private var coordinator: WaffleCoordinator
+
+    init(waffleCell: Binding<WaffleCell?>, storeManager: StoreManager, container: ModelContainer) {
+        self._waffleCell = waffleCell
+        self.storeManager = storeManager
+        self.container = container
+        _coordinator = State(initialValue: WaffleCoordinator(store: storeManager))
+    }
+
+    var body: some View {
+        if let waffleCell {
+            DetachedWaffleCellView(waffleCell: waffleCell)
+                .environment(coordinator)
+                .environment(storeManager)
+                .modelContainer(container)
+        } else {
+            Text("Oh, how'd you do that?\nPlease close this window. - Waffle")
+                .multilineTextAlignment(.center)
+        }
     }
 }
