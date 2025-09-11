@@ -70,9 +70,26 @@ final class WaffleState {
     }
     
     func popBack(poppedCellAddress: String) {
-        poppedCell?.loadURL(urlString: poppedCellAddress)
-        selectedCell = poppedCell
-        poppedCell = nil
+        // If we have a popped cell, optionally update its address, select it, and clear popped state.
+        if let cell = poppedCell {
+            if !poppedCellAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                cell.loadURL(urlString: poppedCellAddress)
+            }
+            selectedCell = cell
+            poppedCell = nil
+        } else {
+            // No popped cell tracked; as a fallback, try to select a cell that matches the address if provided.
+            if !poppedCellAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                outer: for r in 0..<waffleRows.count {
+                    for c in 0..<waffleRows[r].count {
+                        if waffleRows[r][c].address == poppedCellAddress {
+                            selectedCell = waffleRows[r][c]
+                            break outer
+                        }
+                    }
+                }
+            }
+        }
     }
     
     func isPoppedOut(_ cell: WaffleCell) -> Bool {

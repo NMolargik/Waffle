@@ -36,6 +36,7 @@ struct DetachedWaffleCellView: View {
                     let addr = waffleCell.address.isEmpty ? defaultAddr : waffleCell.address
                     viewModel.addressBarString = addr
                     waffleCell.loadURL(urlString: addr)
+                    poppedCellAddress = addr
                 }
                 .onChange(of: waffleCell.page.url) {
                     waffleCell.address = waffleCell.page.url?.absoluteString ?? ""
