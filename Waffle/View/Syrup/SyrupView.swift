@@ -112,12 +112,6 @@ struct SyrupView: View {
         }
         .padding()
         .frame(minWidth: 420, minHeight: 520)
-        .task {
-            // Ensure products are loaded if not already
-            if store.product == nil {
-                await store.configure()
-            }
-        }
     }
 }
 

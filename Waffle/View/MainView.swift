@@ -178,7 +178,20 @@ struct MainView: View {
                         }
                         
                         if (viewModel.fullScreenCell == nil) {
-                            Button(coordinator.waffleState.poppedCell != nil ? "Pop Back" : "Pop Out", systemImage: coordinator.waffleState.poppedCell != nil ? "rectangle.on.rectangle.slash" : "rectangle.on.rectangle") {
+                            Button(
+                                coordinator.waffleState.poppedCell != nil ? "Pop Back" : "Pop Out",
+                                systemImage: coordinator.waffleState.poppedCell != nil ? "rectangle.on.rectangle.slash" : "rectangle.on.rectangle"
+                            ) {
+                                // If a cell is already popped out, pop it back into the grid
+                                if coordinator.waffleState.poppedCell != nil {
+                                    viewModel.initiatePopBack(poppedCellAddress: poppedCellAddress) {
+                                        dismissWindow(id: "DetachedWaffleCell")
+                                    }
+                                    persistGridSnapshot()
+                                    return
+                                }
+
+                                // Otherwise, attempt to pop out the currently selected cell
                                 if viewModel.canUsePopout() {
                                     viewModel.popOutSelectedCell { cell in
                                         openWindow(id: "DetachedWaffleCell", value: cell)
@@ -189,7 +202,8 @@ struct MainView: View {
                                     viewModel.showSyrupSheet = true
                                 }
                             }
-                            .disabled(!coordinator.waffleState.canPopOut)
+                            // Disabled only when there is no popped cell AND no selected cell
+                            .disabled(coordinator.waffleState.poppedCell == nil && coordinator.waffleState.selectedCell == nil)
                         }
                     }
                 }

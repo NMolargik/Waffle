@@ -10,21 +10,26 @@ final class StoreManager {
     private(set) var product: Product? = nil
     private(set) var isPurchased: Bool = false
 
-    private let productID = "syrup_4_99"
+    nonisolated(unsafe) private var updatesTask: Task<Void, Never>? = nil
+
+    private let productID = "syrup_2_99"
 
     init() {
         Task { await self.configure() }
     }
 
+    private func clearError() { errorMessage = nil }
+
     // MARK: - Setup and product loading
     func configure() async {
-        await observeTransactions()
+        startObservingTransactionsIfNeeded()
         await loadProducts()
         await updateEntitlements()
     }
 
     private func loadProducts() async {
         isLoading = true
+        clearError()
         defer { isLoading = false }
         do {
             let products = try await Product.products(for: [productID])
@@ -41,14 +46,15 @@ final class StoreManager {
             return false
         }
         isLoading = true
+        clearError()
         defer { isLoading = false }
         do {
             let result = try await product.purchase()
             switch result {
             case .success(let verification):
                 let transaction = try checkVerified(verification)
-                await transaction.finish()
                 await updateEntitlements()
+                await transaction.finish()
                 return true
             case .userCancelled:
                 return false
@@ -66,6 +72,7 @@ final class StoreManager {
 
     func restore() async -> Bool {
         isLoading = true
+        clearError()
         defer { isLoading = false }
         do {
             try await AppStore.sync()
@@ -90,10 +97,11 @@ final class StoreManager {
         self.isPurchased = hasSyrup
     }
 
-    private func observeTransactions() async {
-        Task.detached(priority: .background) { [weak self] in
+    private func startObservingTransactionsIfNeeded() {
+        guard updatesTask == nil else { return }
+        updatesTask = Task { [weak self] in
+            guard let self else { return }
             for await result in Transaction.updates {
-                guard let self else { continue }
                 if case .verified(let transaction) = result {
                     if transaction.productID == self.productID {
                         await self.updateEntitlements()
@@ -112,4 +120,11 @@ final class StoreManager {
             return safe
         }
     }
+
+    nonisolated deinit {
+        // Snapshot the task reference before cancellation to avoid main-actor isolation issues
+        let task = updatesTask
+        task?.cancel()
+    }
 }
+

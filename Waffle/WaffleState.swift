@@ -16,7 +16,7 @@ final class WaffleState {
     var selectedCell: WaffleCell? = nil
     var poppedCell: WaffleCell? = nil
     
-    var canPopOut: Bool { selectedCell != nil && selectedCell != poppedCell }
+    var canPopOut: Bool { selectedCell != nil && poppedCell == nil }
     
     var rowCount = 1 {
         didSet {
