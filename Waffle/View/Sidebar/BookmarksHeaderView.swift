@@ -45,9 +45,10 @@ struct BookmarksHeaderView: View {
         .padding(10)
         .background {
             Rectangle()
-                .foregroundStyle(.wafflePrimary.opacity(0.2))
+                .foregroundStyle(.waffleSecondary)
                 .cornerRadius(15)
         }
+        .padding(.horizontal, 10)
     }
 }
 

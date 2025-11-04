@@ -31,9 +31,9 @@ struct SelectAllTextField: UIViewRepresentable {
         attrs[.paragraphStyle] = paragraph
         textField.defaultTextAttributes = attrs
 
-        // Let SwiftUI's frame(idealWidth:) drive width; allow compression horizontally.
-        textField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        textField.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        // Prefer to grow wide and resist shrinking horizontally.
+        textField.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        textField.setContentHuggingPriority(.defaultLow, for: .horizontal)
 
         textField.addTarget(context.coordinator, action: #selector(Coordinator.textFieldDidChange), for: .editingChanged)
         textField.addTarget(context.coordinator, action: #selector(Coordinator.textFieldDidEndOnExit), for: .editingDidEndOnExit)

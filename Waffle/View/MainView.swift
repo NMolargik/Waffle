@@ -141,7 +141,7 @@ struct MainView: View {
                         )
                         .padding(.vertical, 8)
                         .padding(.horizontal, 10)
-                        .frame(idealWidth: 500)
+                        .frame(minWidth: 320, maxWidth: .infinity)
                         .layoutPriority(1)
                         .glassEffect(.regular, in: .capsule)
                         Button {
@@ -154,6 +154,7 @@ struct MainView: View {
                         .buttonStyle(.glass)
                         .layoutPriority(0)
                     }
+                    .frame(maxWidth: .infinity)
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     if (coordinator.waffleState.rowCount > 1 || coordinator.waffleState.colCount > 1) {

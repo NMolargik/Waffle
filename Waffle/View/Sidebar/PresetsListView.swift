@@ -45,6 +45,12 @@ struct PresetsListView: View {
                     }
                     .padding(.vertical, 6)
                 }
+                .padding()
+                .background {
+                    Rectangle()
+                        .foregroundStyle(.thickMaterial)
+                        .cornerRadius(20)
+                }
             }
 
             ForEach(presets) { preset in
@@ -59,8 +65,14 @@ struct PresetsListView: View {
                                 Image(systemName: "square.grid.3x3.fill")
                                 Text("\(preset.rows)x\(preset.cols)")
                             }
-                            .foregroundStyle(Color.waffleTertiary)
                             .font(.caption)
+                            .padding(.vertical, 8)
+                            .padding(.horizontal)
+                            .background {
+                                Rectangle()
+                                    .foregroundStyle(.waffleSecondary)
+                                    .cornerRadius(20)
+                            }
                         }
                         Spacer()
                         Image(systemName: "arrow.right")

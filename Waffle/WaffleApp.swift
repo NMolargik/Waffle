@@ -19,8 +19,6 @@ struct WaffleApp: App {
     private let storeManager = StoreManager()
     private let coordinator: WaffleCoordinator
 
-    private let appGroup = "group.com.molargiksoftware.Waffle"
-
     // Review prompt tracking
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage("launchCount") private var launchCount: Int = 0

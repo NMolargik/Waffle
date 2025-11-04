@@ -16,7 +16,7 @@ struct PresetsHeaderView: View {
             Group {
                 Image(systemName: "square.grid.3x3.fill")
                     .foregroundStyle(
-                        Color.waffleSecondary
+                        Color.waffleTertiary
                     )
                     .frame(width: 40)
                 Text("Presets")
@@ -46,9 +46,10 @@ struct PresetsHeaderView: View {
         .padding(10)
         .background {
             Rectangle()
-                .foregroundStyle(.wafflePrimary.opacity(0.2))
+                .foregroundStyle(.waffleSecondary)
                 .cornerRadius(15)
         }
+        .padding(.horizontal, 10)
     }
 }
 
