@@ -203,8 +203,9 @@ private struct WelcomeCard: View {
                     .frame(width: 100, height: 100)
                     .shadow(color: Color.waffleSecondary.opacity(0.5), radius: 20)
 
-                Image(systemName: "square.grid.2x2.fill")
-                    .font(.system(size: 48, weight: .bold))
+                Image("waffleImage")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
                     .foregroundStyle(Color.waffleTertiary)
                     .symbolEffect(.bounce, value: animate)
             }
@@ -223,15 +224,6 @@ private struct WelcomeCard: View {
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
-
-            Spacer()
-
-            // Feature highlights
-            HStack(spacing: 20) {
-                FeaturePill(icon: "rectangle.split.3x3", text: "Grid Layout")
-                FeaturePill(icon: "hand.tap", text: "Easy Control")
-                FeaturePill(icon: "bookmark", text: "Save Sites")
-            }
 
             Spacer()
         }
@@ -408,7 +400,7 @@ private struct SelectCellCard: View {
                     .font(.title2.bold())
                     .foregroundStyle(Color.waffleSecondary)
 
-                Text("Tap any cell to select it. The selected cell has a glowing border.")
+                Text("Tap any cell to select it. The selected cell has a colored border.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -518,13 +510,6 @@ private struct NavigateCard: View {
 
             // Mock toolbar
             VStack(spacing: 16) {
-                // Navigation buttons
-                HStack(spacing: 20) {
-                    MockToolbarButton(icon: "chevron.left", label: "Back")
-                    MockToolbarButton(icon: "chevron.right", label: "Forward")
-                    MockToolbarButton(icon: "arrow.clockwise", label: "Reload")
-                }
-
                 // Address bar
                 HStack {
                     Image(systemName: "magnifyingglass")
@@ -543,8 +528,6 @@ private struct NavigateCard: View {
             // Tips
             VStack(alignment: .leading, spacing: 12) {
                 NavigationTip(icon: "keyboard", text: "Type a URL or search term in the address bar")
-                NavigationTip(icon: "return", text: "Press Return to navigate")
-                NavigationTip(icon: "command", text: "Use ⌘[ for back, ⌘] for forward")
             }
             .padding()
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
