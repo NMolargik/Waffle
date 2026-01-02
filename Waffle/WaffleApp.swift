@@ -56,7 +56,9 @@ struct WaffleApp: App {
         .defaultSize(width: 520, height: 520)
         .windowResizability(.contentSize)
         .handlesExternalEvents(matching: ["main"])
-        .commands { }
+        .commands {
+            GridCommands(coordinator: coordinator)
+        }
 
         WindowGroup(id: "DetachedWaffleCell", for: WaffleCell.self) { $waffleCell in
             DetachedCellSceneHost(waffleCell: $waffleCell, storeManager: storeManager, container: container, coordinator: coordinator)
@@ -64,7 +66,6 @@ struct WaffleApp: App {
         .defaultSize(width: 420, height: 420)
         .windowResizability(.contentSize)
         .handlesExternalEvents(matching: ["DetachedWaffleCell"])
-        .commands { }
     }
 
     // MARK: - Review prompt logic
@@ -177,20 +178,68 @@ private struct DetachedCellSceneHost: View {
                 .environment(storeManager)
                 .modelContainer(container)
                 .onDisappear {
-                    // Ensure the popped cell is returned to the grid when this window closes.
-                    let addr = waffleCell.address.isEmpty ? (waffleCell.page.url?.absoluteString ?? "") : waffleCell.address
-                    if !addr.isEmpty {
-                        coordinator.waffleState.popBack(poppedCellAddress: addr)
+                    // Safety net: ensure the popped cell is returned to the grid when this window closes
+                    // (e.g., if user swipes away the window instead of tapping Pop Back).
+                    // Only call popBack if the cell is still marked as popped out (prevents double-processing).
+                    if coordinator.waffleState.poppedCell != nil {
+                        let addr = waffleCell.address.isEmpty ? (waffleCell.page.url?.absoluteString ?? "") : waffleCell.address
+                        if !addr.isEmpty {
+                            coordinator.waffleState.popBack(poppedCellAddress: addr)
+                        }
                     }
 
-                    // If no main window is marked open, open one immediately.
+                    // Only bring the main window forward if it's not already open.
+                    // Use a delay to avoid WebKit animation race conditions.
                     if !mainWindowOpen {
-                        openWindow(id: "main")
+                        Task { @MainActor in
+                            try? await Task.sleep(for: .milliseconds(200))
+                            openWindow(id: "main")
+                        }
                     }
                 }
         } else {
             Text("Oh, how'd you do that?\nPlease close this window. - Waffle")
                 .multilineTextAlignment(.center)
+        }
+    }
+}
+
+// MARK: - Grid Commands
+
+struct GridCommands: Commands {
+    let coordinator: WaffleCoordinator
+
+    var body: some Commands {
+        CommandMenu("Grid") {
+            Button("Add Row") {
+                guard coordinator.waffleState.rowCount < coordinator.maxRows else { return }
+                coordinator.waffleState.rowCount += 1
+            }
+            .keyboardShortcut(.downArrow, modifiers: [.command, .shift])
+            .disabled(coordinator.waffleState.rowCount >= coordinator.maxRows)
+
+            Button("Remove Row") {
+                guard coordinator.waffleState.rowCount > 1 else { return }
+                coordinator.waffleState.rowCount -= 1
+            }
+            .keyboardShortcut(.upArrow, modifiers: [.command, .shift])
+            .disabled(coordinator.waffleState.rowCount <= 1)
+
+            Divider()
+
+            Button("Add Column") {
+                guard coordinator.waffleState.colCount < coordinator.maxCols else { return }
+                coordinator.waffleState.colCount += 1
+            }
+            .keyboardShortcut(.rightArrow, modifiers: [.command, .shift])
+            .disabled(coordinator.waffleState.colCount >= coordinator.maxCols)
+
+            Button("Remove Column") {
+                guard coordinator.waffleState.colCount > 1 else { return }
+                coordinator.waffleState.colCount -= 1
+            }
+            .keyboardShortcut(.leftArrow, modifiers: [.command, .shift])
+            .disabled(coordinator.waffleState.colCount <= 1)
         }
     }
 }

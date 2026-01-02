@@ -16,7 +16,7 @@ struct FullScreenCellView: View {
     var body: some View {
         ZStack {
             Rectangle()
-                .strokeBorder(Color.accent, lineWidth: 4)
+                .strokeBorder(Color.accentColor, lineWidth: 4)
                 .padding(-4)
                 .ignoresSafeArea()
             
@@ -40,22 +40,25 @@ struct FullScreenCellView: View {
                 }
             
             if viewModel.showFullScreenWebView {
-                WebView(cell.page)
-                    .onAppear {
-                        if cell.address.isEmpty {
-                            cell.address = "https://google.com"
-                        }
-                        cell.loadURL(urlString: cell.address)
+                Group {
+                    if cell.address.isEmpty {
+                        EmptyCellView()
+                    } else {
+                        WebView(cell.page)
+                            .onAppear {
+                                cell.loadURL(urlString: cell.address)
+                            }
+                            .onChange(of: cell.page.url) {
+                                cell.address = cell.page.url?.absoluteString ?? ""
+                                if coordinator.waffleState.selectedCell == cell {
+                                    viewModel.addressBarString = cell.page.url?.absoluteString ?? ""
+                                }
+                            }
                     }
-                    .onChange(of: cell.page.url) {
-                        cell.address = cell.page.url?.absoluteString ?? ""
-                        if coordinator.waffleState.selectedCell == cell {
-                            viewModel.addressBarString = cell.page.url?.absoluteString ?? ""
-                        }
-                    }
-                    .cornerRadius(25)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding([.top, .horizontal])
+                }
+                .cornerRadius(25)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding([.top, .horizontal])
             }
         }
         .transition(.opacity)

@@ -21,7 +21,9 @@ struct MainView: View {
     @AppStorage("searchProvider") private var searchProviderRawValue: String = SearchProvider.google.rawValue
     
     @State private var viewModel: MainView.ViewModel = MainView.ViewModel()
-    
+    @FocusState private var isAddressBarFocused: Bool
+    @State private var persistenceTask: Task<Void, Never>?
+
     private var searchProvider: SearchProvider {
         get { SearchProvider(rawValue: searchProviderRawValue) ?? .google }
         set { searchProviderRawValue = newValue.rawValue }
@@ -93,7 +95,7 @@ struct MainView: View {
                 }
             )
             .padding(.horizontal, 4)
-            .background(Color(white: 0.9))
+            .background(Color.wafflePrimary.opacity(0.3))
             .onAppear(perform: coordinator.waffleState.makeInitialItem)
             .toolbarTitleDisplayMode(.inline)
             .animation(.snappy, value: coordinator.waffleState.poppedCell)
@@ -123,38 +125,40 @@ struct MainView: View {
                         viewModel.goBack()
                         persistGridSnapshot()
                     }
-                    
+                    .keyboardShortcut("[", modifiers: .command)
+
                     Button("Forward", systemImage: "chevron.forward") {
                         viewModel.goForward()
                         persistGridSnapshot()
                     }
+                    .keyboardShortcut("]", modifiers: .command)
                 }
                 ToolbarItem(placement: .principal) {
-                    HStack {
-                        SelectAllTextField(
-                            text: $viewModel.addressBarString,
-                            placeholder: "Search or enter a URL",
-                            onSubmit: {
-                                viewModel.submitAddress(using: searchProvider)
-                                persistGridSnapshot()
-                            }
-                        )
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 10)
-                        .frame(minWidth: 320, maxWidth: .infinity)
-                        .layoutPriority(1)
-                        .glassEffect(.regular, in: .capsule)
-                        Button {
-                            viewModel.reloadSelected()
+                    SelectAllTextField(
+                        text: $viewModel.addressBarString,
+                        placeholder: "Search or enter a URL",
+                        onSubmit: {
+                            viewModel.submitAddress(using: searchProvider)
                             persistGridSnapshot()
-                        } label: {
-                            Image(systemName: "arrow.clockwise")
-                                .frame(maxHeight: .infinity)
                         }
-                        .buttonStyle(.glass)
-                        .layoutPriority(0)
+                    )
+                    .focused($isAddressBarFocused)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .frame(minWidth: 200, idealWidth: 400, maxWidth: 600)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .clipShape(Capsule())
+                    .glassEffect(.regular, in: .capsule)
+                }
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        viewModel.reloadSelected()
+                        persistGridSnapshot()
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
                     }
-                    .frame(maxWidth: .infinity)
+                    .keyboardShortcut("r", modifiers: .command)
+                    .buttonStyle(.glass)
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     if (coordinator.waffleState.rowCount > 1 || coordinator.waffleState.colCount > 1) {
@@ -170,13 +174,14 @@ struct MainView: View {
                             if viewModel.fullScreenCell != nil {
                                 HStack {
                                     Text("Minimize")
-                                    
+
                                     Image(systemName: "arrow.down.right.and.arrow.up.left.rectangle")
                                 }
                             } else {
                                 Image(systemName: "arrow.up.left.and.arrow.down.right.rectangle")
                             }
                         }
+                        .keyboardShortcut("f", modifiers: [.command, .shift])
                         
                         if (viewModel.fullScreenCell == nil) {
                             Button(
@@ -203,6 +208,7 @@ struct MainView: View {
                                     viewModel.showSyrupSheet = true
                                 }
                             }
+                            .keyboardShortcut("p", modifiers: [.command, .shift])
                             // Disabled only when there is no popped cell AND no selected cell
                             .disabled(coordinator.waffleState.poppedCell == nil && coordinator.waffleState.selectedCell == nil)
                         }
@@ -215,14 +221,14 @@ struct MainView: View {
                             HStack(spacing: 8) {
                                 // Add Row
                                 Button {
-                                    let newValue = min(4, coord.waffleState.rowCount + 1)
+                                    let newValue = min(coord.maxRows, coord.waffleState.rowCount + 1)
                                     viewModel.setRows(newValue)
                                     persistGridSnapshot()
                                 } label: {
                                     Label("Add Row", systemImage: "rectangle.split.1x2.fill")
                                 }
-                                .buttonStyle(.glass)
-                                
+                                .disabled(coord.waffleState.rowCount >= coord.maxRows)
+
                                 // Subtract Row
                                 Button {
                                     let newValue = max(1, coord.waffleState.rowCount - 1)
@@ -231,13 +237,13 @@ struct MainView: View {
                                 } label: {
                                     Label("Subtract Row", systemImage: "rectangle.split.1x2")
                                 }
-                                .buttonStyle(.glass)
-
+                                .disabled(coord.waffleState.rowCount <= 1)
 
                                 Divider()
+
                                 // Add Column
                                 Button {
-                                    let newValue = min(4, coord.waffleState.colCount + 1)
+                                    let newValue = min(coord.maxCols, coord.waffleState.colCount + 1)
                                     viewModel.setCols(newValue)
                                     persistGridSnapshot()
                                 } label: {
@@ -246,7 +252,7 @@ struct MainView: View {
                                         Text("Add Column")
                                     }
                                 }
-                                .buttonStyle(.glass)
+                                .disabled(coord.waffleState.colCount >= coord.maxCols)
 
                                 // Subtract Column
                                 Button {
@@ -259,6 +265,7 @@ struct MainView: View {
                                         Text("Subtract Column")
                                     }
                                 }
+                                .disabled(coord.waffleState.colCount <= 1)
                                 .buttonStyle(.glass)
                             }
                             
@@ -275,8 +282,8 @@ struct MainView: View {
                                 }
                                 DispatchQueue.main.async {
                                     let current = coordinator.waffleState.flattenedAddresses()
-                                    
-                                    viewModel.pendingReorderedURLs = current.isEmpty ? ["https://apple.com"] : current
+
+                                    viewModel.pendingReorderedURLs = current.isEmpty ? [AppConfiguration.fallbackURL] : current
                                     viewModel.showRearrangeSheet = true
                                 }
                             }
@@ -305,9 +312,9 @@ struct MainView: View {
                 persistGridSnapshot()
             }
             .onChange(of: scenePhase) { _, newPhase in
-                // Extra safety: persist on lifecycle changes
+                // Immediately persist on lifecycle changes (no debounce)
                 if newPhase == .inactive || newPhase == .background {
-                    persistGridSnapshot()
+                    persistGridSnapshotImmediately()
                 }
             }
             .sheet(isPresented: $viewModel.showSyrupSheet, onDismiss: {
@@ -344,15 +351,40 @@ struct MainView: View {
                 .onAppear {
                     let live = coordinator.waffleState.flattenedAddresses()
                     if live.count != viewModel.pendingReorderedURLs.count || viewModel.pendingReorderedURLs.isEmpty {
-                        viewModel.pendingReorderedURLs = live.isEmpty ? ["https://apple.com"] : live
+                        viewModel.pendingReorderedURLs = live.isEmpty ? [AppConfiguration.fallbackURL] : live
                     }
                 }
                 .frame(minWidth: 500, minHeight: 400)
             }
         }
+        .toast(message: coordinator.errorHandler.toastMessage) {
+            coordinator.errorHandler.dismissToast()
+        }
+        .errorAlert(Binding(
+            get: { coordinator.errorHandler.currentError },
+            set: { _ in coordinator.errorHandler.dismiss() }
+        ))
     }
 
     private func persistGridSnapshot() {
+        // Cancel any pending persistence task
+        persistenceTask?.cancel()
+
+        // Debounce: wait before actually persisting
+        persistenceTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(Int(AppConfiguration.persistenceDebounceInterval * 1000)))
+            guard !Task.isCancelled else { return }
+
+            let snapshot = coordinator.waffleState.makeSnapshot()
+            if let data = try? JSONEncoder().encode(snapshot) {
+                lastGridSnapshotData = data
+            }
+        }
+    }
+
+    /// Immediately persist without debouncing (for critical moments like app going to background)
+    private func persistGridSnapshotImmediately() {
+        persistenceTask?.cancel()
         let snapshot = coordinator.waffleState.makeSnapshot()
         if let data = try? JSONEncoder().encode(snapshot) {
             lastGridSnapshotData = data

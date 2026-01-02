@@ -18,6 +18,9 @@ final class WaffleCoordinator {
     // Store
     let store: StoreManager
 
+    // Error handling
+    let errorHandler = ErrorHandler()
+
     init(store: StoreManager) {
         self.store = store
     }
@@ -32,8 +35,10 @@ final class WaffleCoordinator {
     var canUsePopout: Bool { isSyrupEnabled }
     var canUseFullscreen: Bool { isSyrupEnabled }
     var canMakePresets: Bool { isSyrupEnabled }
-    var maxFreeRows: Int { 2 }
-    var maxFreeCols: Int { 2 }
+
+    // Grid limits
+    var maxRows: Int { isSyrupEnabled ? AppConfiguration.maxPremiumRows : AppConfiguration.maxFreeRows }
+    var maxCols: Int { isSyrupEnabled ? AppConfiguration.maxPremiumCols : AppConfiguration.maxFreeCols }
 
     func requestSyrup() {
         presentSyrupSheet = true

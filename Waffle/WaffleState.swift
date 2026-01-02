@@ -9,9 +9,9 @@ import Foundation
 import Observation
 
 @Observable
+@MainActor
 final class WaffleState {
     var waffleRows = [[WaffleCell]]()
-    var columnFractions = [Double]()
     
     var selectedCell: WaffleCell? = nil
     var poppedCell: WaffleCell? = nil
@@ -101,33 +101,10 @@ final class WaffleState {
         self.waffleRows = [firstRow]
         self.selectedCell = firstRow.first
     }
-    
-    func updateRows() {
-        if rowCount < self.waffleRows.count {
-            waffleRows.removeLast()
-        } else {
-            let newRow = (0..<colCount).map { _ in WaffleCell() }
-            waffleRows.append(newRow)
-        }
-    }
-    
-    func updateCols() {
-        if colCount < waffleRows[0].count {
-            for i in 0..<waffleRows.count {
-                waffleRows[i].removeLast()
-            }
-        } else {
-            for i in 0..<waffleRows.count {
-                waffleRows[i].append(WaffleCell())
-            }
-        }
-    }
-    
+
     func flattenedAddresses() -> [String] {
         waffleRows.flatMap { row in
-            row.map { cell in
-                return cell.address.isEmpty ? "https://www.molargiksoftware.com/#/wafflelanding" : cell.address
-            }
+            row.map { $0.address }
         }
     }
     
@@ -163,7 +140,7 @@ final class WaffleState {
                 if idx < snapshot.urls.count {
                     waffleRows[r][c].loadURL(urlString: snapshot.urls[idx])
                 } else {
-                    waffleRows[r][c].loadURL(urlString: "https://apple.com")
+                    waffleRows[r][c].loadURL(urlString: AppConfiguration.fallbackURL)
                 }
                 idx += 1
             }
@@ -182,9 +159,9 @@ final class WaffleState {
         }
     }
     
-    func apply(preset: Preset, syrupEnabled: Bool, maxFreeRows: Int, maxFreeCols: Int) {
-        let targetRows = syrupEnabled ? max(1, preset.rows) : min(max(1, preset.rows), maxFreeRows)
-        let targetCols = syrupEnabled ? max(1, preset.cols) : min(max(1, preset.cols), maxFreeCols)
+    func apply(preset: Preset, syrupEnabled: Bool, maxRows: Int, maxCols: Int) {
+        let targetRows = min(max(1, preset.rows), maxRows)
+        let targetCols = min(max(1, preset.cols), maxCols)
         rowCount = targetRows
         colCount = targetCols
         
@@ -200,7 +177,7 @@ final class WaffleState {
                     let urlString = urls[idx]
                     waffleRows[r][c].loadURL(urlString: urlString)
                 } else {
-                    waffleRows[r][c].loadURL(urlString: "https://apple.com")
+                    waffleRows[r][c].loadURL(urlString: AppConfiguration.fallbackURL)
                 }
                 idx += 1
             }

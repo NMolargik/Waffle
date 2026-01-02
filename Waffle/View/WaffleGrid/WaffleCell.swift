@@ -14,11 +14,21 @@ final class WaffleCell: Identifiable, Hashable, Codable {
     let id: UUID
     let page = WebPage()
     var address: String = ""
-    
+
+    /// Whether the web page is currently loading
+    var isLoading: Bool {
+        page.isLoading
+    }
+
+    /// Estimated loading progress (0.0 to 1.0)
+    var loadingProgress: Double {
+        page.estimatedProgress
+    }
+
     var canGoBack: Bool {
         page.backForwardList.backList.last != nil
     }
-    
+
     var canGoForward: Bool {
         page.backForwardList.forwardList.first != nil
     }

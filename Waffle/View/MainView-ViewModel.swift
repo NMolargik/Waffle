@@ -34,24 +34,9 @@ extension MainView {
 
         // MARK: - Address/search
 
-        func normalizedInput(_ input: String, using provider: SearchProvider) -> String {
-            let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard trimmed.isEmpty == false else { return provider.searchURL(for: "") }
-            if trimmed.lowercased().hasPrefix("http://") || trimmed.lowercased().hasPrefix("https://") {
-                return trimmed
-            }
-            let hasSpaces = trimmed.contains(where: { $0.isWhitespace })
-            let looksLikeDomain = trimmed.contains(".") && !hasSpaces
-            let startsWithWWW = trimmed.lowercased().hasPrefix("www.")
-            if looksLikeDomain || startsWithWWW {
-                return "https://\(trimmed)"
-            }
-            return provider.searchURL(for: trimmed)
-        }
-
         func submitAddress(using provider: SearchProvider) {
             guard let state = coordinator?.waffleState else { return }
-            let final = normalizedInput(addressBarString, using: provider)
+            let final = AddressNormalizer.normalize(addressBarString, using: provider)
             state.selectedCell?.loadURL(urlString: final)
         }
 
@@ -125,7 +110,7 @@ extension MainView {
                     if idx < urls.count {
                         state.waffleRows[r][c].loadURL(urlString: urls[idx])
                     } else {
-                        state.waffleRows[r][c].loadURL(urlString: "https://apple.com")
+                        state.waffleRows[r][c].loadURL(urlString: AppConfiguration.fallbackURL)
                     }
                     idx += 1
                 }
@@ -135,44 +120,34 @@ extension MainView {
 
         func setRows(_ newValue: Int) {
             guard let coord = coordinator else { return }
-            if coord.isSyrupEnabled {
-                coord.waffleState.rowCount = min(max(1, newValue), 5)
-            } else {
-                if newValue > coord.maxFreeRows {
-                    coord.requestSyrup()
-                    showSyrupSheet = true
-                    coord.waffleState.rowCount = coord.maxFreeRows
-                } else {
-                    coord.waffleState.rowCount = max(1, newValue)
-                }
+            let clampedValue = min(max(1, newValue), coord.maxRows)
+            if !coord.isSyrupEnabled && newValue > coord.maxRows {
+                coord.requestSyrup()
+                showSyrupSheet = true
             }
+            coord.waffleState.rowCount = clampedValue
         }
 
         func setCols(_ newValue: Int) {
             guard let coord = coordinator else { return }
-            if coord.isSyrupEnabled {
-                coord.waffleState.colCount = min(max(1, newValue), 5)
-            } else {
-                if newValue > coord.maxFreeCols {
-                    coord.requestSyrup()
-                    showSyrupSheet = true
-                    coord.waffleState.colCount = coord.maxFreeCols
-                } else {
-                    coord.waffleState.colCount = max(1, newValue)
-                }
+            let clampedValue = min(max(1, newValue), coord.maxCols)
+            if !coord.isSyrupEnabled && newValue > coord.maxCols {
+                coord.requestSyrup()
+                showSyrupSheet = true
             }
+            coord.waffleState.colCount = clampedValue
         }
 
         // MARK: - Presets / Bookmarks
 
         func applyPreset(_ preset: Preset) -> Bool {
             guard let coord = coordinator else { return false }
-            let overLimit = (!coord.isSyrupEnabled) && (preset.rows > coord.maxFreeRows || preset.cols > coord.maxFreeCols)
+            let overLimit = (!coord.isSyrupEnabled) && (preset.rows > coord.maxRows || preset.cols > coord.maxCols)
             coord.waffleState.apply(
                 preset: preset,
                 syrupEnabled: coord.isSyrupEnabled,
-                maxFreeRows: coord.maxFreeRows,
-                maxFreeCols: coord.maxFreeCols
+                maxRows: coord.maxRows,
+                maxCols: coord.maxCols
             )
             if overLimit {
                 coord.requestSyrup()

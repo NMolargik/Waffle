@@ -30,7 +30,7 @@ struct SyrupView: View {
                 
                 Image(systemName: "drop.fill")
                     .font(.system(size: 48))
-                    .foregroundStyle(.brown)
+                    .foregroundStyle(Color.waffleTertiary)
                 
                 Text("Syrup")
                     .font(.largeTitle).bold()
@@ -44,7 +44,7 @@ struct SyrupView: View {
                     .foregroundStyle(.secondary)
                 
                 VStack(alignment: .leading, spacing: 10) {
-                    Label("Up to 4x4 waffles (double the 2x2 limit)", systemImage: "square.grid.3x3")
+                    Label("Up to \(AppConfiguration.maxPremiumRows)x\(AppConfiguration.maxPremiumCols) waffles (double the \(AppConfiguration.maxFreeRows)x\(AppConfiguration.maxFreeCols) limit)", systemImage: "square.grid.3x3")
                     Label("Rearrange waffles", systemImage: "arrow.left.arrow.right.square")
                     Label("Pop out cells into their own windows", systemImage: "rectangle.on.rectangle")
                     Label("Fullscreen a single cell", systemImage: "arrow.up.left.and.arrow.down.right.rectangle")
@@ -87,8 +87,7 @@ struct SyrupView: View {
                             .bold()
                     }
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.brown)
+                .buttonStyle(.wafflePrimary)
                 .disabled(store.isLoading || store.product == nil)
                 
                 Button {
@@ -101,6 +100,7 @@ struct SyrupView: View {
                 } label: {
                     Text("Restore Purchases")
                 }
+                .buttonStyle(.waffleSecondary)
                 .disabled(store.isLoading)
             }
             

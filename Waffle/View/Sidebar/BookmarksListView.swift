@@ -12,8 +12,8 @@ struct BookmarksListView: View {
     var applyBookmark: (Bookmark) -> Void
     var onEdit: (Bookmark) -> Void
     var onDelete: (Bookmark) -> Void
-    var onMove: (IndexSet, Int) -> Void
-    
+    var onMove: ((IndexSet, Int) -> Void)?
+
     var body: some View {
         List {
             if bookmarks.isEmpty {
@@ -74,7 +74,10 @@ struct BookmarksListView: View {
                         }
                     }
                 }
-                .onMove(perform: onMove)
+                .onMove { from, to in
+                    onMove?(from, to)
+                }
+                .moveDisabled(onMove == nil)
             }
         }
     }

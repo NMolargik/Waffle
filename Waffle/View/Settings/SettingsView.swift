@@ -39,7 +39,7 @@ struct SettingsView: View {
                             } else {
                                 HStack(spacing: 6) {
                                     Image(systemName: "cart")
-                                        .foregroundStyle(.brown)
+                                        .foregroundStyle(.waffleTertiary)
                                     Text("Not Purchased")
                                         .foregroundStyle(.secondary)
                                 }
@@ -146,8 +146,9 @@ struct SettingsView: View {
             let all = try modelContext.fetch(descriptor)
             all.forEach { modelContext.delete($0) }
             try modelContext.save()
+            coordinator.errorHandler.showToast("All bookmarks deleted")
         } catch {
-            print("Failed to delete all bookmarks: \(error)")
+            coordinator.errorHandler.showDataError("Failed to delete bookmarks: \(error.localizedDescription)")
         }
     }
 
@@ -157,8 +158,9 @@ struct SettingsView: View {
             let all = try modelContext.fetch(descriptor)
             all.forEach { modelContext.delete($0) }
             try modelContext.save()
+            coordinator.errorHandler.showToast("All presets deleted")
         } catch {
-            print("Failed to delete all presets: \(error)")
+            coordinator.errorHandler.showDataError("Failed to delete presets: \(error.localizedDescription)")
         }
     }
 }

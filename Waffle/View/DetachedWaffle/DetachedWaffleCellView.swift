@@ -10,6 +10,7 @@ import WebKit
 
 struct DetachedWaffleCellView: View {
     @Environment(\.dismissWindow) private var dismissWindow
+    @Environment(\.openWindow) private var openWindow
     @Environment(WaffleCoordinator.self) private var coordinator: WaffleCoordinator
     
     let waffleCell: WaffleCell
@@ -28,24 +29,26 @@ struct DetachedWaffleCellView: View {
         NavigationStack {
             Color(.clear)
                 .frame(height: 0)
-            
-            WebView(waffleCell.page)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .onAppear {
-                    let defaultAddr = "https://www.molargiksoftware.com/#/wafflelanding"
-                    let addr = waffleCell.address.isEmpty ? defaultAddr : waffleCell.address
-                    viewModel.addressBarString = addr
-                    waffleCell.loadURL(urlString: addr)
-                    poppedCellAddress = addr
+
+            Group {
+                if waffleCell.address.isEmpty {
+                    EmptyCellView()
+                } else {
+                    WebView(waffleCell.page)
+                        .onAppear {
+                            viewModel.addressBarString = waffleCell.address
+                            waffleCell.loadURL(urlString: waffleCell.address)
+                            poppedCellAddress = waffleCell.address
+                        }
+                        .onChange(of: waffleCell.page.url) {
+                            waffleCell.address = waffleCell.page.url?.absoluteString ?? ""
+                            poppedCellAddress = waffleCell.address
+                            viewModel.addressBarString = waffleCell.address
+                        }
                 }
-                .onChange(of: waffleCell.page.url) {
-                    waffleCell.address = waffleCell.page.url?.absoluteString ?? ""
-                    poppedCellAddress = waffleCell.address
-                }
-                .onDisappear {
-                    popBack()
-                }
-                .toolbar {
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .toolbar {
                     ToolbarItemGroup(placement: .topBarLeading) {
                         Button("Back", systemImage: "chevron.backward") {
                             waffleCell.goBack()
@@ -57,29 +60,28 @@ struct DetachedWaffleCellView: View {
                     }
                     
                     ToolbarItem(placement: .principal) {
-                        HStack {
-                            HStack {
-                                SelectAllTextField(
-                                    text: $viewModel.addressBarString,
-                                    placeholder: "Search or enter a URL",
-                                    onSubmit: {
-                                        let final = viewModel.normalizedInput(viewModel.addressBarString, using: searchProvider)
-                                        waffleCell.loadURL(urlString: final)
-                                    }
-                                )
-                                .padding(10)
-                                .glassEffect(.regular, in: .capsule)
-                                .frame(idealWidth: 500)
-
-                                Button {
-                                    waffleCell.reloadCell()
-                                } label: {
-                                    Label("Refresh", systemImage: "arrow.clockwise")
-                                        .frame(maxHeight: .infinity)
-                                }
-                                .buttonStyle(.glass)
+                        SelectAllTextField(
+                            text: $viewModel.addressBarString,
+                            placeholder: "Search or enter a URL",
+                            onSubmit: {
+                                let final = AddressNormalizer.normalize(viewModel.addressBarString, using: searchProvider)
+                                waffleCell.loadURL(urlString: final)
                             }
+                        )
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 12)
+                        .frame(minWidth: 200, idealWidth: 400, maxWidth: 600)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .clipShape(Capsule())
+                        .glassEffect(.regular, in: .capsule)
+                    }
+                    ToolbarItem(placement: .primaryAction) {
+                        Button {
+                            waffleCell.reloadCell()
+                        } label: {
+                            Image(systemName: "arrow.clockwise")
                         }
+                        .buttonStyle(.glass)
                     }
                     
                     ToolbarItemGroup(placement: .topBarTrailing) {
@@ -100,8 +102,13 @@ struct DetachedWaffleCellView: View {
     }
     
     private func popBack() {
+        // Update state first, then dismiss window after a brief delay
+        // to avoid WebKit animation race conditions during window teardown.
         coordinator.waffleState.popBack(poppedCellAddress: poppedCellAddress)
-        dismissWindow()
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(50))
+            dismissWindow()
+        }
     }
 }
 

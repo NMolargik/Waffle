@@ -37,66 +37,7 @@ struct WaffleGridView: View {
                                         removal: .move(edge: .trailing).combined(with: .opacity)
                                     ))
                             } else {
-                                WebView(waffleCell.page)
-                                    .onAppear {
-                                        if waffleCell.address.isEmpty {
-                                            waffleCell.address = "https://www.molargiksoftware.com/#/wafflelanding"
-                                        }
-                                        waffleCell.loadURL(urlString: waffleCell.address)
-                                    }
-                                    .onChange(of: waffleCell.page.url) {
-                                        waffleCell.address = waffleCell.page.url?.absoluteString ?? ""
-                                        if waffleState.selectedCell == waffleCell {
-                                            addressBarString = waffleCell.page.url?.absoluteString ?? ""
-                                        }
-                                    }
-                                    .overlay {
-                                        let isPoppedOut = waffleState.isPoppedOut(waffleCell)
-                                        let isSelected = waffleState.selectedCell == waffleCell
-                                        
-                                        if isPoppedOut {
-                                            ZStack {
-                                                Rectangle()
-                                                    .foregroundStyle(Color.accentColor)
-                                                VStack {
-                                                    Text("This cell has been")
-                                                        .font(.subheadline)
-                                                    Text("Popped Out")
-                                                        .font(.title)
-                                                    Button(action: {
-                                                        requestPopBack()
-                                                    }, label: {
-                                                        HStack {
-                                                            Image(systemName: "arrow.down.backward")
-                                                            Text("Pop Back")
-                                                        }
-                                                    })
-                                                    .padding(.horizontal, 16)
-                                                    .padding(.vertical, 8)
-                                                    .background(
-                                                        Capsule().fill(Color.white)
-                                                    )
-                                                    .foregroundStyle(.black)
-                                                }
-                                            }
-                                        } else if isSelected {
-                                            Rectangle()
-                                                .strokeBorder(Color.blue, lineWidth: 4)
-                                                .padding(-4)
-                                        } else {
-                                            Color.clear
-                                                .contentShape(Rectangle())
-                                                .onTapGesture {
-                                                    waffleState.select(waffleCell)
-                                                    addressBarString = waffleCell.page.url?.absoluteString ?? ""
-                                                }
-                                                .contextMenu {
-                                                    Button("Copy To Selected Cell") {
-                                                        copyToSelectedCell(waffleCell.address)
-                                                    }
-                                                }
-                                        }
-                                    }
+                                cellContent(for: waffleCell)
                                     // Column transitions: trailing edge
                                     .transition(.asymmetric(
                                         insertion: .move(edge: .trailing).combined(with: .opacity),
@@ -119,6 +60,127 @@ struct WaffleGridView: View {
         .animation(.snappy, value: waffleState.rowCount)
         .animation(.snappy, value: waffleState.colCount)
         .animation(.snappy, value: waffleState.waffleRows.map { $0.map(\.id) })
+    }
+
+    @ViewBuilder
+    private func cellContent(for waffleCell: WaffleCell) -> some View {
+        let isPoppedOut = waffleState.isPoppedOut(waffleCell)
+        let isSelected = waffleState.selectedCell == waffleCell
+        let isEmpty = waffleCell.address.isEmpty
+
+        WaffleCellContainer(
+            waffleCell: waffleCell,
+            isPoppedOut: isPoppedOut,
+            isSelected: isSelected,
+            isEmpty: isEmpty,
+            addressBarString: $addressBarString,
+            waffleState: $waffleState,
+            requestPopBack: requestPopBack,
+            copyToSelectedCell: copyToSelectedCell
+        )
+    }
+}
+
+/// Separate container view to enable @State for hover tracking
+private struct WaffleCellContainer: View {
+    let waffleCell: WaffleCell
+    let isPoppedOut: Bool
+    let isSelected: Bool
+    let isEmpty: Bool
+    @Binding var addressBarString: String
+    @Binding var waffleState: WaffleState
+    let requestPopBack: () -> Void
+    let copyToSelectedCell: (String) -> Void
+
+    @State private var isHovered = false
+
+    var body: some View {
+        Group {
+            if isEmpty {
+                EmptyCellView()
+            } else {
+                WebView(waffleCell.page)
+                    .onAppear {
+                        waffleCell.loadURL(urlString: waffleCell.address)
+                    }
+                    .onChange(of: waffleCell.page.url) {
+                        waffleCell.address = waffleCell.page.url?.absoluteString ?? ""
+                        if waffleState.selectedCell == waffleCell {
+                            addressBarString = waffleCell.page.url?.absoluteString ?? ""
+                        }
+                    }
+            }
+        }
+        .overlay(alignment: .top) {
+            // Loading progress bar
+            if waffleCell.isLoading && !isEmpty {
+                GeometryReader { geo in
+                    Rectangle()
+                        .fill(Color.accentColor)
+                        .frame(width: geo.size.width * waffleCell.loadingProgress, height: 3)
+                        .animation(.easeInOut(duration: 0.2), value: waffleCell.loadingProgress)
+                }
+                .frame(height: 3)
+            }
+        }
+        .overlay {
+            if isPoppedOut {
+                ZStack {
+                    Rectangle()
+                        .foregroundStyle(Color.accentColor)
+                    VStack {
+                        Text("This cell has been")
+                            .font(.subheadline)
+                        Text("Popped Out")
+                            .font(.title)
+                        Button(action: {
+                            requestPopBack()
+                        }, label: {
+                            HStack {
+                                Image(systemName: "arrow.down.backward")
+                                Text("Pop Back")
+                            }
+                        })
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(
+                            Capsule().fill(Color.wafflePrimary)
+                        )
+                        .foregroundStyle(Color.waffleTertiary)
+                    }
+                }
+            } else if isSelected {
+                // Soft glow selection instead of harsh border
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.accentColor, lineWidth: 3)
+                    .shadow(color: Color.accentColor.opacity(0.5), radius: 8)
+                    .padding(1)
+            } else {
+                // Hover highlight for non-selected cells
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.accentColor.opacity(isHovered ? 0.6 : 0), lineWidth: 2)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.accentColor.opacity(isHovered ? 0.08 : 0))
+                    )
+                    .animation(.easeInOut(duration: 0.15), value: isHovered)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        waffleState.select(waffleCell)
+                        addressBarString = waffleCell.address
+                    }
+                    .contextMenu {
+                        if !isEmpty {
+                            Button("Copy To Selected Cell") {
+                                copyToSelectedCell(waffleCell.address)
+                            }
+                        }
+                    }
+            }
+        }
+        .onHover { hovering in
+            isHovered = hovering
+        }
     }
 }
 

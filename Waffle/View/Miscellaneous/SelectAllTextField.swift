@@ -20,13 +20,19 @@ struct SelectAllTextField: UIViewRepresentable {
         textField.borderStyle = .none
         textField.backgroundColor = .clear
 
+        // URL bar settings - no autocapitalization or autocorrection
+        textField.autocapitalizationType = .none
+        textField.autocorrectionType = .no
+        textField.spellCheckingType = .no
+        textField.keyboardType = .webSearch
+
         // Prefer truncation (not font shrinking) when space is tight.
         textField.adjustsFontSizeToFitWidth = false
         textField.minimumFontSize = 12
 
-        // Truncate long URLs in the middle.
+        // Truncate long URLs at the end (show beginning of URL).
         let paragraph = NSMutableParagraphStyle()
-        paragraph.lineBreakMode = .byTruncatingMiddle
+        paragraph.lineBreakMode = .byTruncatingTail
         var attrs = textField.defaultTextAttributes
         attrs[.paragraphStyle] = paragraph
         textField.defaultTextAttributes = attrs
@@ -37,6 +43,10 @@ struct SelectAllTextField: UIViewRepresentable {
 
         textField.addTarget(context.coordinator, action: #selector(Coordinator.textFieldDidChange), for: .editingChanged)
         textField.addTarget(context.coordinator, action: #selector(Coordinator.textFieldDidEndOnExit), for: .editingDidEndOnExit)
+
+        // Store reference for focus management
+        context.coordinator.textField = textField
+
         return textField
     }
 
@@ -49,6 +59,11 @@ struct SelectAllTextField: UIViewRepresentable {
         }
     }
 
+    @available(iOS 16.0, *)
+    func sizeThatFits(_ proposal: ProposedViewSize, uiView: UITextField, context: Context) -> CGSize? {
+        nil // Use default sizing
+    }
+
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
@@ -56,9 +71,14 @@ struct SelectAllTextField: UIViewRepresentable {
     class Coordinator: NSObject, UITextFieldDelegate {
         var parent: SelectAllTextField
         var shouldSelectAll = false
+        weak var textField: UITextField?
 
         init(_ parent: SelectAllTextField) {
             self.parent = parent
+        }
+
+        func focus() {
+            textField?.becomeFirstResponder()
         }
 
         func textFieldDidBeginEditing(_ textField: UITextField) {
@@ -69,6 +89,12 @@ struct SelectAllTextField: UIViewRepresentable {
                     self?.shouldSelectAll = false
                 }
             }
+        }
+
+        func textFieldDidEndEditing(_ textField: UITextField) {
+            // Scroll to beginning when editing ends so truncation shows the start of the URL
+            let beginning = textField.beginningOfDocument
+            textField.selectedTextRange = textField.textRange(from: beginning, to: beginning)
         }
 
         @objc func textFieldDidChange(_ textField: UITextField) {

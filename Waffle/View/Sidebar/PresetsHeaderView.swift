@@ -10,46 +10,15 @@ import SwiftUI
 struct PresetsHeaderView: View {
     var onQuickSave: () -> Void
     var onSaveAs: () -> Void
-    
+
     var body: some View {
-        HStack {
-            Group {
-                Image(systemName: "square.grid.3x3.fill")
-                    .foregroundStyle(
-                        Color.waffleTertiary
-                    )
-                    .frame(width: 40)
-                Text("Presets")
-            }
-            .font(.title2)
-            .fontWeight(.semibold)
-            .bold()
-            
-            Spacer()
-            
-            Menu {
-                Button("Quick Save", systemImage: "square.and.arrow.down.fill") { onQuickSave() }
-                Button("Save As…", systemImage: "square.and.pencil") { onSaveAs() }
-            } label: {
-                HStack {
-                    Image(systemName: "plus")
-                    Text("New")
-                }
-                .bold()
-                .padding(10)
-                .foregroundStyle(Color.primary)
-                .glassEffect(.regular.interactive())
-            }
-            .menuStyle(.borderlessButton)
-            .buttonStyle(.glass)
-        }
-        .padding(10)
-        .background {
-            Rectangle()
-                .foregroundStyle(.waffleSecondary)
-                .cornerRadius(15)
-        }
-        .padding(.horizontal, 10)
+        SidebarSectionHeader(
+            title: "Presets",
+            icon: "square.grid.3x3.fill",
+            iconGradient: [Color.wafflePrimary, Color.waffleSecondary],
+            primaryAction: (label: "Quick Save", icon: "square.and.arrow.down.fill", action: onQuickSave),
+            secondaryAction: (label: "Save As…", icon: "square.and.pencil", action: onSaveAs)
+        )
     }
 }
 
