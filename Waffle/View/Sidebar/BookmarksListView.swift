@@ -58,7 +58,7 @@ struct BookmarksListView: View {
                     }
                     .buttonStyle(.plain)
                     .contextMenu {
-                        Button("Apply") { applyBookmark(bm) }
+                        Button("Apply to cell") { applyBookmark(bm) }
                         Button("Edit") { onEdit(bm) }
                         Button(role: .destructive) {
                             onDelete(bm)
@@ -82,7 +82,6 @@ struct BookmarksListView: View {
         }
     }
 }
-
 
 #Preview {
     let mocks: [Bookmark] = [

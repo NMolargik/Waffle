@@ -60,28 +60,29 @@ struct DetachedWaffleCellView: View {
                     }
                     
                     ToolbarItem(placement: .principal) {
-                        SelectAllTextField(
-                            text: $viewModel.addressBarString,
-                            placeholder: "Search or enter a URL",
-                            onSubmit: {
-                                let final = AddressNormalizer.normalize(viewModel.addressBarString, using: searchProvider)
-                                waffleCell.loadURL(urlString: final)
+                        HStack(spacing: 8) {
+                            Button {
+                                waffleCell.reloadCell()
+                            } label: {
+                                Image(systemName: "arrow.clockwise")
                             }
-                        )
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 12)
-                        .frame(minWidth: 200, idealWidth: 400, maxWidth: 600)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .clipShape(Capsule())
-                        .glassEffect(.regular, in: .capsule)
-                    }
-                    ToolbarItem(placement: .primaryAction) {
-                        Button {
-                            waffleCell.reloadCell()
-                        } label: {
-                            Image(systemName: "arrow.clockwise")
+                            .buttonStyle(.glass)
+
+                            SelectAllTextField(
+                                text: $viewModel.addressBarString,
+                                placeholder: "Search or enter a URL",
+                                onSubmit: {
+                                    let final = AddressNormalizer.normalize(viewModel.addressBarString, using: searchProvider)
+                                    waffleCell.loadURL(urlString: final)
+                                }
+                            )
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 12)
+                            .frame(minWidth: 200, idealWidth: 400, maxWidth: 600)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .clipShape(Capsule())
+                            .glassEffect(.regular, in: .capsule)
                         }
-                        .buttonStyle(.glass)
                     }
                     
                     ToolbarItemGroup(placement: .topBarTrailing) {
@@ -107,6 +108,7 @@ struct DetachedWaffleCellView: View {
         coordinator.waffleState.popBack(poppedCellAddress: poppedCellAddress)
         Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(50))
+            openWindow(id: "main")
             dismissWindow()
         }
     }

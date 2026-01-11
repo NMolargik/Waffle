@@ -76,9 +76,6 @@ struct MainView: View {
                 }
             }
         } detail: {
-            Color.clear
-                .frame(height: 0)
-            
             @Bindable var coord = coordinator
             WaffleGridView(
                 waffleState: $coord.waffleState,
@@ -94,13 +91,14 @@ struct MainView: View {
                     coord.waffleState.selectedCell?.loadURL(urlString: address)
                 }
             )
-            .padding(.horizontal, 4)
+            .padding(.horizontal, 10)
+            .padding(.bottom, 10)
+            .ignoresSafeArea(edges: .bottom)
             .background(Color.wafflePrimary.opacity(0.3))
             .onAppear(perform: coordinator.waffleState.makeInitialItem)
             .toolbarTitleDisplayMode(.inline)
             .animation(.snappy, value: coordinator.waffleState.poppedCell)
             .animation(.snappy, value: coordinator.waffleState.selectedCell)
-            .ignoresSafeArea()
             // Persist when any cell URLs change
             .onChange(of: coordinator.waffleState.flattenedAddresses()) { _, _ in
                 persistGridSnapshot()
@@ -134,31 +132,32 @@ struct MainView: View {
                     .keyboardShortcut("]", modifiers: .command)
                 }
                 ToolbarItem(placement: .principal) {
-                    SelectAllTextField(
-                        text: $viewModel.addressBarString,
-                        placeholder: "Search or enter a URL",
-                        onSubmit: {
-                            viewModel.submitAddress(using: searchProvider)
+                    HStack(spacing: 8) {
+                        Button {
+                            viewModel.reloadSelected()
                             persistGridSnapshot()
+                        } label: {
+                            Image(systemName: "arrow.clockwise")
                         }
-                    )
-                    .focused($isAddressBarFocused)
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 12)
-                    .frame(minWidth: 200, idealWidth: 400, maxWidth: 600)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .clipShape(Capsule())
-                    .glassEffect(.regular, in: .capsule)
-                }
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        viewModel.reloadSelected()
-                        persistGridSnapshot()
-                    } label: {
-                        Image(systemName: "arrow.clockwise")
+                        .keyboardShortcut("r", modifiers: .command)
+                        .buttonStyle(.glass)
+
+                        SelectAllTextField(
+                            text: $viewModel.addressBarString,
+                            placeholder: "Search or enter a URL",
+                            onSubmit: {
+                                viewModel.submitAddress(using: searchProvider)
+                                persistGridSnapshot()
+                            }
+                        )
+                        .focused($isAddressBarFocused)
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 12)
+                        .frame(minWidth: 200, idealWidth: 400, maxWidth: 600)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .clipShape(Capsule())
+                        .glassEffect(.regular, in: .capsule)
                     }
-                    .keyboardShortcut("r", modifiers: .command)
-                    .buttonStyle(.glass)
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     if (coordinator.waffleState.rowCount > 1 || coordinator.waffleState.colCount > 1) {
@@ -288,10 +287,7 @@ struct MainView: View {
                                 }
                             }
                         } label: {
-                            Image(systemName: "square.grid.3x3.fill")
-                                .foregroundStyle(
-                                    Color.waffleSecondary
-                                )
+                            Image(systemName: "square.grid.3x3.fill") 
                         }
                     }
                 }
@@ -335,7 +331,6 @@ struct MainView: View {
             .sheet(isPresented: $viewModel.showSettingsSheet) { SettingsView() }
             .sheet(isPresented: $viewModel.showRearrangeSheet) {
                 RearrangeWaffleView(
-                    urls: viewModel.pendingReorderedURLs,
                     rows: coordinator.waffleState.rowCount,
                     cols: coordinator.waffleState.colCount,
                     onCancel: {
@@ -347,14 +342,6 @@ struct MainView: View {
                         viewModel.showRearrangeSheet = false
                     }
                 )
-                .id(viewModel.pendingReorderedURLs)
-                .onAppear {
-                    let live = coordinator.waffleState.flattenedAddresses()
-                    if live.count != viewModel.pendingReorderedURLs.count || viewModel.pendingReorderedURLs.isEmpty {
-                        viewModel.pendingReorderedURLs = live.isEmpty ? [AppConfiguration.fallbackURL] : live
-                    }
-                }
-                .frame(minWidth: 500, minHeight: 400)
             }
         }
         .toast(message: coordinator.errorHandler.toastMessage) {

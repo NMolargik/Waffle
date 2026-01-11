@@ -24,20 +24,20 @@ struct PresetsListView: View {
                         Label("Syrup Required", systemImage: "drop.fill")
                             .font(.headline)
                             .tint(.waffleTertiary)
-                        
-                        Text("Presets are part of Syrup. To apply, update, or manage presets you’ll need Syrup.")
+
+                        Text("Presets are part of Syrup. To apply, update, or manage presets you'll need Syrup.")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                         HStack {
                             Spacer()
-                            
+
                             Button {
                                 coordinator.requestSyrup()
                             } label: {
                                 Text("Purchase")
                             }
                             .buttonStyle(.wafflePrimary)
-                            
+
                             Spacer()
                         }
                     }
@@ -48,6 +48,25 @@ struct PresetsListView: View {
                     Rectangle()
                         .foregroundStyle(.thickMaterial)
                         .cornerRadius(20)
+                }
+            } else if presets.isEmpty {
+                Section {
+                    VStack(spacing: 10) {
+                        Image(systemName: "square.grid.3x3.slash")
+                            .font(.system(size: 32, weight: .regular))
+                            .foregroundStyle(.secondary)
+                        Text("No presets yet")
+                            .font(.headline)
+                        Text("Save your current grid layout as a preset to quickly restore it later.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 24)
+                    .listRowInsets(EdgeInsets(top: 16, leading: 12, bottom: 16, trailing: 12))
+                } header: {
+                    Color.clear.frame(height: 0.1)
                 }
             }
 

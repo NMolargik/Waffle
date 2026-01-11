@@ -19,8 +19,7 @@ struct FullScreenCellView: View {
                 .strokeBorder(Color.accentColor, lineWidth: 4)
                 .padding(-4)
                 .ignoresSafeArea()
-            
-            
+
             Rectangle()
                 .foregroundStyle(.ultraThinMaterial)
                 .ignoresSafeArea()

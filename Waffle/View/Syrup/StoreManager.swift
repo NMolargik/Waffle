@@ -1,6 +1,12 @@
+//
+//  StoreManager.swift
+//  Waffle
+//
+//  Created by Nick Molargik on 9/3/25.
+//
+
 import Foundation
 import StoreKit
-import Observation
 
 @MainActor
 @Observable
@@ -10,7 +16,7 @@ final class StoreManager {
     private(set) var product: Product? = nil
     private(set) var isPurchased: Bool = false
 
-    nonisolated(unsafe) private var updatesTask: Task<Void, Never>? = nil
+    private var updatesTask: Task<Void, Never>?
 
     private let productID = "syrup_2_99"
 
@@ -121,10 +127,5 @@ final class StoreManager {
         }
     }
 
-    nonisolated deinit {
-        // Snapshot the task reference before cancellation to avoid main-actor isolation issues
-        let task = updatesTask
-        task?.cancel()
-    }
 }
 

@@ -202,33 +202,6 @@ extension MainView {
             modelContext.insert(bookmark)
             try? modelContext.save()
         }
-
-        // MARK: - Persistence helpers (produce/consume Data; MainView owns AppStorage)
-
-        func makeGridSnapshotData() -> Data? {
-            guard let state = coordinator?.waffleState else { return nil }
-            let snapshot = state.makeSnapshot()
-            return try? JSONEncoder().encode(snapshot)
-        }
-
-        func applyGridSnapshotData(_ data: Data?) -> String {
-            guard let state = coordinator?.waffleState else { return "" }
-            guard let data, !data.isEmpty else {
-                if state.waffleRows.isEmpty {
-                    state.makeInitialItem()
-                }
-                return state.selectedCell?.address ?? ""
-            }
-            if let snapshot = try? JSONDecoder().decode(WaffleState.Snapshot.self, from: data) {
-                state.apply(snapshot: snapshot)
-                return state.selectedCell?.address ?? ""
-            } else {
-                if state.waffleRows.isEmpty {
-                    state.makeInitialItem()
-                }
-                return state.selectedCell?.address ?? ""
-            }
-        }
     }
 }
 

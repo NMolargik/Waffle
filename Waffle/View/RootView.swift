@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import Observation
 
 struct RootView: View {
     @Environment(\.openWindow) private var openWindow

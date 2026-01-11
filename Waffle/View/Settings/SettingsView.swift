@@ -82,7 +82,7 @@ struct SettingsView: View {
                         Text(viewModel.appVersionString)
                             .foregroundStyle(.secondary)
                     }
-                    
+
                     Button {
                         openInApp("https://www.linkedin.com/in/nicholas-molargik/")
                     } label: {
@@ -94,7 +94,7 @@ struct SettingsView: View {
                         }
                     }
                     .buttonStyle(.plain)
-                    
+
                     Button {
                         openInApp("https://molargiksoftware.com")
                     } label: {
@@ -107,6 +107,16 @@ struct SettingsView: View {
                     }
                     .buttonStyle(.plain)
                 }
+
+                #if DEBUG
+                Section("Debug") {
+                    Button {
+                        addExampleData()
+                    } label: {
+                        Label("Add Example Bookmarks & Presets", systemImage: "plus.square.on.square")
+                    }
+                }
+                #endif
             }
             .navigationTitle("Settings")
             .toolbar {
@@ -163,6 +173,121 @@ struct SettingsView: View {
             coordinator.errorHandler.showDataError("Failed to delete presets: \(error.localizedDescription)")
         }
     }
+
+    #if DEBUG
+    private func addExampleData() {
+        do {
+            // Example Bookmarks
+            let exampleBookmarks: [(url: String, title: String)] = [
+                ("https://www.apple.com", "Apple"),
+                ("https://www.google.com", "Google"),
+                ("https://www.github.com", "GitHub"),
+                ("https://www.wikipedia.org", "Wikipedia"),
+                ("https://www.youtube.com", "YouTube"),
+                ("https://news.ycombinator.com", "Hacker News")
+            ]
+
+            for (index, bookmark) in exampleBookmarks.enumerated() {
+                if let url = URL(string: bookmark.url) {
+                    let newBookmark = Bookmark(url: url, title: bookmark.title)
+                    newBookmark.sortIndex = index
+                    modelContext.insert(newBookmark)
+                }
+            }
+
+            // Example Presets (inserted in reverse order so they appear in desired order)
+
+            // Dev - 4x4 grid (premium showcase)
+            let devPreset = Preset(
+                name: "Dev",
+                rows: 4,
+                cols: 4,
+                urls: [
+                    "https://github.com",
+                    "https://stackoverflow.com",
+                    "https://developer.apple.com",
+                    "https://docs.swift.org",
+                    "https://www.hackingwithswift.com",
+                    "https://swiftui.directory",
+                    "https://www.swift.org/blog",
+                    "https://forums.swift.org",
+                    "https://nshipster.com",
+                    "https://www.objc.io",
+                    "https://www.raywenderlich.com",
+                    "https://www.swiftbysundell.com",
+                    "https://developer.apple.com/documentation/swiftui",
+                    "https://developer.apple.com/design/human-interface-guidelines",
+                    "https://testflight.apple.com",
+                    "https://appstoreconnect.apple.com"
+                ]
+            )
+            modelContext.insert(devPreset)
+
+            // News - 1x4 grid (horizontal strip)
+            let newsPreset = Preset(
+                name: "News",
+                rows: 1,
+                cols: 4,
+                urls: [
+                    "https://www.reuters.com",
+                    "https://www.bbc.com/news",
+                    "https://www.npr.org",
+                    "https://apnews.com"
+                ]
+            )
+            modelContext.insert(newsPreset)
+
+            // Study - 2x2 grid
+            let studyPreset = Preset(
+                name: "Study",
+                rows: 2,
+                cols: 2,
+                urls: [
+                    "https://www.wikipedia.org",
+                    "https://www.khanacademy.org",
+                    "https://www.wolframalpha.com",
+                    "https://scholar.google.com"
+                ]
+            )
+            modelContext.insert(studyPreset)
+
+            // Space - 2x3 grid
+            let spacePreset = Preset(
+                name: "Space",
+                rows: 2,
+                cols: 3,
+                urls: [
+                    "https://www.nasa.gov",
+                    "https://www.spacex.com",
+                    "https://www.space.com",
+                    "https://www.esa.int",
+                    "https://hubblesite.org",
+                    "https://www.planetary.org"
+                ]
+            )
+            modelContext.insert(spacePreset)
+
+            // Stocks - 2x2 grid (1 news + 3 stock charts)
+            let stocksPreset = Preset(
+                name: "Stocks",
+                rows: 2,
+                cols: 2,
+                urls: [
+                    "https://www.cnbc.com/markets",
+                    "https://finance.yahoo.com/chart/AAPL",
+                    "https://finance.yahoo.com/chart/GOOGL",
+                    "https://finance.yahoo.com/chart/MSFT"
+                ]
+            )
+            modelContext.insert(stocksPreset)
+
+            try modelContext.save()
+            coordinator.errorHandler.showToast("Added example data")
+        } catch {
+            coordinator.errorHandler.showDataError("Failed to add example data: \(error.localizedDescription)")
+        }
+    }
+    #endif
 }
 
 #Preview {

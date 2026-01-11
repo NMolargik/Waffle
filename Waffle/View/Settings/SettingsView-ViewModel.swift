@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import SwiftUI
 
 extension SettingsView {
     @Observable
@@ -20,9 +19,4 @@ extension SettingsView {
             return "Version \(version) (\(build))"
         }
     }
-}
-
-#Preview {
-    SettingsView()
-        .environment(WaffleCoordinator(store: StoreManager()))
 }
