@@ -1,38 +1,154 @@
-# 🧇 Waffle — The Grid-Based Web Browser for iPad
+<img src="Icons/WaffleIcon-iOS-Default-1024x1024@1x.png" alt="Waffle" width="128" height="128">
 
-**Waffle** is an experimental **iPad-only web browser** that reimagines how users interact with multiple webpages at once.  
-Built with **SwiftUI** and **WebKit** on **iOS 26**, it leverages the latest Apple platform features — including multi-window support, Scene-based architecture, and the new `WebView` API — to offer a lightweight, intuitive, and deeply Apple-native browsing experience.
+# Waffle
 
----
+A grid-based web browser for iPad that reimagines how users interact with multiple webpages at once.
 
-## ✨ Overview
+## Overview
 
-Unlike traditional tab-based browsers, **Waffle** organizes pages into a **customizable grid**.  
-Each “cell” in the grid hosts its own browsing context, allowing users to visually organize workflows, research sets, and dashboards side-by-side.
+Unlike traditional tab-based browsers, Waffle organizes pages into a customizable grid. Each cell hosts its own browsing context, allowing users to visually organize workflows, research sets, and dashboards side-by-side. Built with SwiftUI and WebKit for iOS 26, it offers a lightweight, intuitive, and deeply Apple-native browsing experience.
 
 Waffle is designed for:
-- **iPad power users** who multitask visually.
-- **Researchers and developers** who reference multiple sources simultaneously.
-- **Designers and creatives** who prefer spatial memory over tab stacks.
+- **iPad power users** who multitask visually
+- **Researchers and developers** who reference multiple sources simultaneously
+- **Designers and creatives** who prefer spatial memory over tab stacks
 
----
+## Features
 
-## 🧱 Architecture
+### Grid Browsing
+- Customizable grid layout (up to unlimited rows/columns with premium)
+- Independent browsing context per cell with full navigation
+- Drag and drop to rearrange cells
+- Pop-out windows for focused viewing
 
-- **Language:** Swift  
-- **Framework:** SwiftUI + WebKit (`WebView` for iOS 26)  
-- **Persistence:** SwiftData  
-- **Sync:** CloudKit Private Database  
-- **Storage:** AppStorage + SwiftData hybrid for user preferences and layouts  
-- **Multi-Window:** Scene phase awareness with independent grid persistence per scene  
-- **Share Extension:** “Save to Waffle” Safari extension for capturing URLs directly into chosen cells  
+### Bookmarks & Presets
+- Save and organize bookmarks with drag-to-reorder
+- Create presets to save entire grid layouts
+- Restore research sessions with one tap
 
-___
+### Safari Integration
+- Share extension to save URLs directly into grid cells
+- Quick capture from any app via share sheet
 
-## 🧰 Development
+### Platform Integration
+- **iCloud Sync**: Seamless bookmark and preset sync via CloudKit
+- **Multi-Window**: Scene-based architecture with independent grid persistence
+- **Fullscreen Mode**: Distraction-free browsing
 
-### Prerequisites
-- **Xcode 16+**  
-- **iPadOS 26 SDK**  
-- **Apple Developer Account** (for CloudKit container access)  
-- **macOS 15+ (Sequoia)**  
+### Premium Features (Syrup)
+- Grid dimensions beyond 2x2
+- Grid rearrangement
+- Pop-out windows
+- Fullscreen mode
+- Preset creation
+
+## Requirements
+
+- iPadOS 26.0+
+- Xcode 16.0+
+- macOS 15.0+ (Sequoia)
+- Apple Developer account (for CloudKit capabilities)
+
+## Setup
+
+1. Clone the repository
+2. Open `Waffle.xcodeproj` in Xcode
+3. Configure signing with your Apple Developer account
+4. Update bundle identifiers and iCloud container identifiers
+5. Build and run on iPad simulator or device
+
+### Required Capabilities
+
+Enable these in your Xcode project:
+- iCloud (CloudKit with private database)
+- App Groups
+
+## Architecture
+
+### App Lifecycle
+
+The app uses two window scenes:
+- **main**: Primary grid browser interface
+- **DetachedWaffleCell**: Pop-out windows for individual cells
+
+### Coordinator Pattern
+
+```
+WaffleApp
+    └── WaffleCoordinator (@Observable)
+            ├── WaffleState (grid state, snapshots)
+            └── StoreManager (in-app purchases)
+```
+
+### Key Components
+
+| Component | Responsibility |
+|-----------|---------------|
+| `WaffleCoordinator` | Central coordinator managing state and subscriptions |
+| `WaffleState` | Observable grid state with 2D cell array |
+| `WaffleCell` | Individual grid cell with WebPage context |
+| `StoreManager` | StoreKit 2 subscription management |
+
+### Data Layer
+
+- **SwiftData** with iCloud CloudKit sync for bookmarks and presets
+- **AppStorage** for user preferences
+- **Codable Snapshots** for grid state persistence
+
+### Data Models
+
+| Model | Description |
+|-------|-------------|
+| `WaffleCell` | In-memory grid cell with WebPage |
+| `Bookmark` | Saved URLs with sortIndex for reordering |
+| `Preset` | Saved grid layouts (name, dimensions, URLs) |
+| `SearchProvider` | Search engine enum (Google, DuckDuckGo) |
+
+### Key Patterns
+
+- **MVVM with Coordinator**: Views have nested ViewModels, coordinator manages app-wide state
+- **Dependency Injection**: Coordinator injected via SwiftUI `@Environment`
+- **Feature Gating**: Premium features controlled via `hasSyrup` flag
+
+## Project Structure
+
+```
+Waffle/
+├── WaffleApp.swift             # App entry point with window scenes
+├── WaffleCoordinator.swift     # Central state coordinator
+├── WaffleState.swift           # Grid state management
+├── Models/
+│   ├── WaffleCell.swift        # Grid cell model
+│   ├── Bookmark.swift          # SwiftData bookmark
+│   └── Preset.swift            # SwiftData preset
+├── Views/
+│   ├── Main/                   # Primary interface
+│   │   ├── MainView.swift      # Root navigation
+│   │   ├── SidebarView.swift   # Navigation sidebar
+│   │   └── WaffleGridView.swift # Grid container
+│   ├── Cell/                   # Cell views
+│   │   ├── WaffleCellView.swift
+│   │   └── EmptyCellView.swift
+│   ├── Settings/               # Preferences
+│   └── Syrup/                  # Subscription UI
+├── WebKit/                     # WKWebView wrapper
+└── Extensions/                 # Utilities
+
+WaffleShareExtension/           # Safari share extension
+```
+
+## Privacy
+
+Waffle is designed with privacy in mind:
+- All data stored in your private iCloud container
+- No browsing history sent to third parties
+- No analytics or tracking
+- Local-first architecture
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Author
+
+Molargik Software LLC
