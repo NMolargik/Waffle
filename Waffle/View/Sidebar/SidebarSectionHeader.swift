@@ -9,11 +9,11 @@ import SwiftUI
 
 /// A reusable header component for sidebar sections (Bookmarks, Presets, etc.)
 struct SidebarSectionHeader: View {
-    let title: String
+    let title: LocalizedStringKey
     let icon: String
     let iconGradient: [Color]
-    let primaryAction: (label: String, icon: String, action: () -> Void)
-    let secondaryAction: (label: String, icon: String, action: () -> Void)
+    let primaryAction: (label: LocalizedStringKey, icon: String, action: () -> Void)
+    let secondaryAction: (label: LocalizedStringKey, icon: String, action: () -> Void)
 
     var body: some View {
         HStack {

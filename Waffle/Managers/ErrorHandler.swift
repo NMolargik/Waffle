@@ -66,7 +66,7 @@ final class ErrorHandler {
 
     func showDataError(_ message: String) {
         show(error: AppError(
-            title: "Data Error",
+            title: String(localized: "Data Error"),
             message: message,
             isRecoverable: true
         ))
@@ -74,7 +74,7 @@ final class ErrorHandler {
 
     func showNetworkError(_ message: String) {
         show(error: AppError(
-            title: "Network Error",
+            title: String(localized: "Network Error"),
             message: message,
             isRecoverable: true
         ))

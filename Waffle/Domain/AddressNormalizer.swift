@@ -8,7 +8,7 @@
 import Foundation
 
 /// Normalizes user input from the address bar into a valid URL string.
-enum AddressNormalizer {
+nonisolated enum AddressNormalizer {
     /// Converts user input into a properly formatted URL string.
     ///
     /// The function applies the following rules:

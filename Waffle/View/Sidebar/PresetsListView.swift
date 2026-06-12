@@ -76,7 +76,7 @@ struct PresetsListView: View {
                 } label: {
                     HStack {
                         VStack(alignment: .leading) {
-                            Text(preset.name.isEmpty ? "Untitled Preset" : preset.name)
+                            Text(preset.name.isEmpty ? String(localized: "Untitled Preset") : preset.name)
                                 .font(.headline)
                             HStack {
                                 Image(systemName: "square.grid.3x3.fill")
@@ -99,8 +99,8 @@ struct PresetsListView: View {
                 }
                 .buttonStyle(.plain)
                 .contextMenu {
-                    Button("Apply") { applyPreset(preset) }
-                    Button("Rename") { onRename(preset) }
+                    Button(String(localized: "Apply")) { applyPreset(preset) }
+                    Button(String(localized: "Rename")) { onRename(preset) }
                     Button(role: .destructive) {
                         onDelete(preset)
                     } label: {
@@ -157,16 +157,13 @@ struct PresetsListView: View {
         ])
     ]
 
-    let store = StoreManager()
-    let coordinator = WaffleCoordinator(store: store)
-
     return PresetsListView(
         presets: presets,
-        applyPreset: { p in print("[Preview] Apply:", p.name.isEmpty ? "Untitled Preset" : p.name) },
-        overwritePreset: { p in print("[Preview] Overwrite with current grid:", p.name.isEmpty ? "Untitled Preset" : p.name) },
-        onRename: { p in print("[Preview] Rename:", p.name.isEmpty ? "Untitled Preset" : p.name) },
-        onDelete: { p in print("[Preview] Delete:", p.name.isEmpty ? "Untitled Preset" : p.name) }
+        applyPreset: { _ in },
+        overwritePreset: { _ in },
+        onRename: { _ in },
+        onDelete: { _ in }
     )
-    .environment(coordinator)
+    .environment(PreviewSupport.makeCoordinator())
     .padding()
 }

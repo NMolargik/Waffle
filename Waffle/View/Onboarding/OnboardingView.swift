@@ -6,20 +6,20 @@
 //
 
 import SwiftUI
-import Combine
 
+/// First-run tour. Every page mirrors the real main window — the same
+/// toolbar controls, grid selection glow, sidebar sections, and Syrup gates
+/// the user will see immediately after finishing.
 struct OnboardingView: View {
     @Environment(WaffleCoordinator.self) private var coordinator
     @AppStorage("hasCompletedOnboarding") private var done = false
 
     @State private var pageIndex: Int = 0
-    @Namespace private var hero
 
     private let pages: [OnboardingPage] = OnboardingPage.all
 
     var body: some View {
         ZStack {
-            // Subtle brand gradient background - lighter for better readability
             LinearGradient(
                 colors: [
                     Color.wafflePrimary.opacity(0.6),
@@ -31,16 +31,12 @@ struct OnboardingView: View {
             )
             .ignoresSafeArea()
 
-            // Add a light overlay for better card contrast
-            Color.white.opacity(0.1)
-                .ignoresSafeArea()
-
             VStack(spacing: 0) {
                 // Top controls
                 HStack {
                     ProgressPips(count: pages.count, index: pageIndex)
                     Spacer()
-                    Button("Skip") {
+                    Button(String(localized: "Skip")) {
                         finishAndShowSyrup()
                     }
                     .font(.subheadline.weight(.medium))
@@ -48,11 +44,12 @@ struct OnboardingView: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
                     .background(.ultraThinMaterial, in: Capsule())
+                    .accessibilityHint(Text("Skips the tour"))
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 16)
 
-                Spacer(minLength: 20)
+                Spacer(minLength: 16)
 
                 // Main card
                 ZStack {
@@ -64,14 +61,17 @@ struct OnboardingView: View {
                         )
                         .shadow(color: .black.opacity(0.1), radius: 20, y: 10)
 
-                    contentForPage(pages[pageIndex].kind)
-                        .padding(24)
+                    ScrollView {
+                        contentForPage(pages[pageIndex].kind)
+                            .padding(24)
+                    }
+                    .scrollBounceBehavior(.basedOnSize)
                 }
                 .padding(.horizontal, 20)
-                .frame(maxHeight: 620)
+                .frame(maxWidth: 700, maxHeight: 640)
                 .animation(.spring(response: 0.5, dampingFraction: 0.85), value: pageIndex)
 
-                Spacer(minLength: 20)
+                Spacer(minLength: 16)
 
                 // Bottom controls
                 HStack {
@@ -122,21 +122,21 @@ struct OnboardingView: View {
         coordinator.presentSyrupSheet = true
     }
 
-    @ViewBuilder
+    @ContentBuilder
     private func contentForPage(_ kind: OnboardingPage.Kind) -> some View {
         switch kind {
         case .welcome:
             WelcomeCard()
-        case .concept:
-            ConceptCard()
-        case .selectCell:
-            SelectCellCard()
-        case .navigate:
-            NavigateCard()
-        case .gridControls:
-            GridControlsCard()
-        case .premiumFeatures:
-            PremiumFeaturesCard()
+        case .grid:
+            GridCard()
+        case .toolbar:
+            ToolbarCard()
+        case .gridMenu:
+            GridMenuCard()
+        case .library:
+            LibraryCard()
+        case .syrup:
+            SyrupCard()
         }
     }
 }
@@ -146,22 +146,22 @@ struct OnboardingView: View {
 private struct OnboardingPage: Identifiable {
     enum Kind {
         case welcome
-        case concept
-        case selectCell
-        case navigate
-        case gridControls
-        case premiumFeatures
+        case grid
+        case toolbar
+        case gridMenu
+        case library
+        case syrup
     }
     let id = UUID()
     let kind: Kind
 
     static let all: [OnboardingPage] = [
         .init(kind: .welcome),
-        .init(kind: .concept),
-        .init(kind: .selectCell),
-        .init(kind: .navigate),
-        .init(kind: .gridControls),
-        .init(kind: .premiumFeatures)
+        .init(kind: .grid),
+        .init(kind: .toolbar),
+        .init(kind: .gridMenu),
+        .init(kind: .library),
+        .init(kind: .syrup)
     ]
 }
 
@@ -183,6 +183,121 @@ private struct ProgressPips: View {
     }
 }
 
+// MARK: - Shared Pieces
+
+private struct CardHeader: View {
+    let icon: String
+    let title: LocalizedStringKey
+    let subtitle: LocalizedStringKey
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Label(title, systemImage: icon)
+                .font(.title2.bold())
+                .foregroundStyle(Color.waffleSecondary)
+
+            Text(subtitle)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+    }
+}
+
+/// A faithful miniature of the real grid toolbar: back/forward, reload +
+/// address capsule, and the grid menu button.
+private struct MockToolbar: View {
+    let address: String
+
+    var body: some View {
+        HStack(spacing: 12) {
+            HStack(spacing: 10) {
+                Image(systemName: "chevron.backward")
+                Image(systemName: "chevron.forward")
+            }
+            .foregroundStyle(.secondary)
+
+            HStack(spacing: 8) {
+                Image(systemName: "arrow.clockwise")
+                    .foregroundStyle(.secondary)
+
+                Text(verbatim: address)
+                    .font(.subheadline)
+                    .lineLimit(1)
+                    .contentTransition(.numericText())
+
+                Spacer(minLength: 0)
+            }
+            .padding(.vertical, 8)
+            .padding(.horizontal, 14)
+            .background(.thinMaterial, in: Capsule())
+
+            Image(systemName: "square.grid.3x3.fill")
+                .foregroundStyle(.secondary)
+        }
+        .padding(10)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
+    }
+}
+
+/// A tappable miniature waffle cell with the app's real selection treatment:
+/// an accent stroke with a soft glow, just like the grid.
+private struct MockCell: View {
+    let site: String
+    let icon: String
+    let tint: Color
+    let isSelected: Bool
+    var onTap: (() -> Void)? = nil
+
+    var body: some View {
+        Button {
+            onTap?()
+        } label: {
+            ZStack {
+                LinearGradient(
+                    colors: [Color.wafflePrimary.opacity(0.5), Color.waffleSecondary.opacity(0.35)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+
+                VStack(spacing: 6) {
+                    Image(systemName: icon)
+                        .font(.title2)
+                        .foregroundStyle(tint)
+                    Text(verbatim: site)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay {
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 3)
+                    .shadow(color: isSelected ? Color.accentColor.opacity(0.5) : .clear, radius: 8)
+                    .padding(1)
+            }
+            .scaleEffect(isSelected ? 1.02 : 1.0)
+            .animation(.spring(response: 0.3), value: isSelected)
+        }
+        .buttonStyle(.plain)
+        .disabled(onTap == nil)
+    }
+}
+
+private struct DemoSite {
+    let address: String
+    let icon: String
+    let tint: Color
+
+    static let samples: [DemoSite] = [
+        .init(address: "apple.com", icon: "applelogo", tint: .primary),
+        .init(address: "news.com", icon: "newspaper.fill", tint: .red),
+        .init(address: "mail.com", icon: "envelope.fill", tint: .blue),
+        .init(address: "video.com", icon: "play.rectangle.fill", tint: .purple)
+    ]
+}
+
 // MARK: - Card 1: Welcome
 
 private struct WelcomeCard: View {
@@ -190,9 +305,6 @@ private struct WelcomeCard: View {
 
     var body: some View {
         VStack(spacing: 24) {
-            Spacer()
-
-            // App icon representation
             ZStack {
                 RoundedRectangle(cornerRadius: 24)
                     .fill(LinearGradient(
@@ -206,105 +318,102 @@ private struct WelcomeCard: View {
                 Image("waffleImage")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
+                    .frame(width: 72, height: 72)
                     .foregroundStyle(Color.waffleTertiary)
                     .symbolEffect(.bounce, value: animate)
             }
+            .padding(.top, 12)
 
             VStack(spacing: 12) {
                 Text("Welcome to Waffle")
                     .font(.system(size: 32, weight: .bold, design: .rounded))
 
-                Text("The grid-based browser for iPad")
+                Text("Browse the web in a grid, not in tabs")
                     .font(.title3)
                     .foregroundStyle(.secondary)
             }
 
-            Text("Browse multiple websites simultaneously, arranged in a customizable grid layout.")
+            Text("Waffle shows several webpages at once, side by side in a grid of cells. Keep your mail, news, scores, and video in view at the same time — no tab switching.")
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
 
-            Spacer()
+            // Tiny preview of what's coming
+            HStack(spacing: 6) {
+                ForEach(0..<3, id: \.self) { i in
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.waffleSecondary.opacity(0.3))
+                        .frame(width: 42, height: 32)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(i == 0 ? Color.accentColor : .clear, lineWidth: 2)
+                        )
+                }
+            }
+            .padding(.bottom, 8)
         }
         .onAppear { animate = true }
     }
 }
 
-private struct FeaturePill: View {
-    let icon: String
-    let text: String
+// MARK: - Card 2: The Grid
 
-    var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundStyle(Color.waffleSecondary)
-            Text(text)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-        .frame(width: 90)
-    }
-}
-
-// MARK: - Card 2: The Concept
-
-private struct ConceptCard: View {
-    @State private var highlightedCell = 0
-    let timer = Timer.publish(every: 1.5, on: .main, in: .common).autoconnect()
+private struct GridCard: View {
+    @State private var selectedIndex = 0
 
     var body: some View {
         VStack(spacing: 20) {
-            VStack(spacing: 8) {
-                Label("What is Grid Browsing?", systemImage: "lightbulb.fill")
-                    .font(.title2.bold())
-                    .foregroundStyle(Color.waffleSecondary)
+            CardHeader(
+                icon: "square.grid.2x2.fill",
+                title: "This Is Your Waffle",
+                subtitle: "Every cell is a full browser. Tap a cell below to select it — just like in the app."
+            )
 
-                Text("Think of your browser as a grid of cells, each showing a different website")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
+            VStack(spacing: 10) {
+                // The address bar follows the selection, exactly like the real toolbar.
+                MockToolbar(address: DemoSite.samples[selectedIndex].address)
+
+                VStack(spacing: 8) {
+                    ForEach(0..<2, id: \.self) { row in
+                        HStack(spacing: 8) {
+                            ForEach(0..<2, id: \.self) { col in
+                                let i = row * 2 + col
+                                MockCell(
+                                    site: DemoSite.samples[i].address,
+                                    icon: DemoSite.samples[i].icon,
+                                    tint: DemoSite.samples[i].tint,
+                                    isSelected: selectedIndex == i,
+                                    onTap: { selectedIndex = i }
+                                )
+                                .frame(height: 110)
+                            }
+                        }
+                    }
+                }
             }
-
-            // Interactive grid demo
-            InteractiveGridDemo(highlightedCell: highlightedCell)
-                .frame(height: 280)
+            .padding(12)
+            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
 
             VStack(alignment: .leading, spacing: 12) {
-                ConceptPoint(
-                    number: "1",
-                    text: "Each cell is an independent browser"
-                )
-                ConceptPoint(
-                    number: "2",
-                    text: "Tap any cell to select and control it"
-                )
-                ConceptPoint(
-                    number: "3",
-                    text: "Use the address bar to navigate the selected cell"
-                )
+                ConceptPoint(number: "1", text: "The selected cell glows with a colored border")
+                ConceptPoint(number: "2", text: "The address bar always shows the selected cell's page")
+                ConceptPoint(number: "3", text: "Back, forward, and reload act on the selected cell")
             }
             .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
-
-            Spacer()
-        }
-        .onReceive(timer) { _ in
-            withAnimation(.easeInOut(duration: 0.3)) {
-                highlightedCell = (highlightedCell + 1) % 4
-            }
         }
     }
 }
 
 private struct ConceptPoint: View {
     let number: String
-    let text: String
+    let text: LocalizedStringKey
 
     var body: some View {
         HStack(spacing: 12) {
-            Text(number)
+            Text(verbatim: number)
                 .font(.caption.bold())
                 .foregroundStyle(.white)
                 .frame(width: 22, height: 22)
@@ -316,249 +425,61 @@ private struct ConceptPoint: View {
     }
 }
 
-private struct InteractiveGridDemo: View {
-    let highlightedCell: Int
-    let sites = ["apple.com", "google.com", "github.com", "swift.org"]
-    let colors: [Color] = [.blue, .red, .purple, .orange]
+// MARK: - Card 3: The Toolbar
 
-    var body: some View {
-        VStack(spacing: 8) {
-            HStack(spacing: 8) {
-                ForEach(0..<2, id: \.self) { i in
-                    CellPreview(
-                        site: sites[i],
-                        color: colors[i],
-                        isSelected: highlightedCell == i
-                    )
-                }
-            }
-            HStack(spacing: 8) {
-                ForEach(2..<4, id: \.self) { i in
-                    CellPreview(
-                        site: sites[i],
-                        color: colors[i],
-                        isSelected: highlightedCell == i
-                    )
-                }
-            }
-        }
-        .padding(12)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
-    }
-}
-
-private struct CellPreview: View {
-    let site: String
-    let color: Color
-    let isSelected: Bool
-
-    var body: some View {
-        VStack(spacing: 0) {
-            // Fake address bar
-            HStack {
-                Circle()
-                    .fill(color.opacity(0.3))
-                    .frame(width: 16, height: 16)
-                Text(site)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                Spacer()
-            }
-            .padding(6)
-            .background(Color.primary.opacity(0.05))
-
-            // Content area
-            Rectangle()
-                .fill(color.opacity(0.1))
-                .overlay(
-                    Image(systemName: "globe")
-                        .font(.largeTitle)
-                        .foregroundStyle(color.opacity(0.3))
-                )
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(isSelected ? Color.waffleSecondary : Color.clear, lineWidth: 3)
-        )
-        .shadow(color: isSelected ? Color.waffleSecondary.opacity(0.4) : .clear, radius: 8)
-        .scaleEffect(isSelected ? 1.02 : 1.0)
-        .animation(.spring(response: 0.3), value: isSelected)
-    }
-}
-
-// MARK: - Card 3: Selecting Cells
-
-private struct SelectCellCard: View {
-    @State private var selectedCell = 0
-    @State private var showTapHint = true
-
+private struct ToolbarCard: View {
     var body: some View {
         VStack(spacing: 20) {
-            VStack(spacing: 8) {
-                Label("Selecting a Cell", systemImage: "hand.tap.fill")
-                    .font(.title2.bold())
-                    .foregroundStyle(Color.waffleSecondary)
+            CardHeader(
+                icon: "magnifyingglass",
+                title: "Search and Navigate",
+                subtitle: "The toolbar at the top of the window drives whichever cell is selected"
+            )
 
-                Text("Tap any cell to select it. The selected cell has a colored border.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
+            MockToolbar(address: String(localized: "Search or enter a URL"))
+
+            VStack(alignment: .leading, spacing: 14) {
+                ToolbarTip(
+                    icon: "keyboard",
+                    text: "Type a web address — or anything else, and Waffle searches for it"
+                )
+                ToolbarTip(
+                    icon: "chevron.backward",
+                    text: "The back and forward buttons step through the selected cell's history"
+                )
+                ToolbarTip(
+                    icon: "arrow.clockwise",
+                    text: "Reload refreshes just the selected cell"
+                )
+                ToolbarTip(
+                    icon: "gearshape.fill",
+                    text: "Pick your search engine in Settings, in the sidebar"
+                )
             }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
 
-            // Tappable demo grid
+            // Keyboard shortcuts, as on iPad with a hardware keyboard.
             VStack(spacing: 8) {
-                HStack(spacing: 8) {
-                    TappableCell(index: 0, selectedCell: $selectedCell, showTapHint: showTapHint)
-                    TappableCell(index: 1, selectedCell: $selectedCell, showTapHint: false)
-                }
-                HStack(spacing: 8) {
-                    TappableCell(index: 2, selectedCell: $selectedCell, showTapHint: false)
-                    TappableCell(index: 3, selectedCell: $selectedCell, showTapHint: false)
-                }
-            }
-            .padding(12)
-            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
-            .frame(height: 240)
-
-            // Explanation
-            VStack(spacing: 8) {
-                HStack {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
-                    Text("Selected cell: \(selectedCell + 1)")
-                        .font(.subheadline.bold())
-                }
-
-                Text("The address bar and navigation controls apply to the selected cell")
-                    .font(.caption)
+                Text("With a keyboard attached")
+                    .font(.caption.bold())
                     .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
+                HStack(spacing: 16) {
+                    ShortcutBadge(keys: "⌘[", label: "Back")
+                    ShortcutBadge(keys: "⌘]", label: "Forward")
+                    ShortcutBadge(keys: "⌘R", label: "Reload")
+                }
             }
             .padding()
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
-
-            Spacer()
-        }
-        .onChange(of: selectedCell) { _, _ in
-            showTapHint = false
         }
     }
 }
 
-private struct TappableCell: View {
-    let index: Int
-    @Binding var selectedCell: Int
-    let showTapHint: Bool
-
-    var isSelected: Bool { selectedCell == index }
-    let colors: [Color] = [.blue, .green, .purple, .orange]
-
-    var body: some View {
-        Button {
-            withAnimation(.spring(response: 0.3)) {
-                selectedCell = index
-            }
-        } label: {
-            RoundedRectangle(cornerRadius: 12)
-                .fill(colors[index].opacity(0.15))
-                .overlay(
-                    VStack {
-                        Text("Cell \(index + 1)")
-                            .font(.headline)
-                            .foregroundStyle(colors[index])
-
-                        if showTapHint {
-                            HStack(spacing: 4) {
-                                Image(systemName: "hand.tap.fill")
-                                Text("Tap me!")
-                            }
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .padding(.top, 4)
-                        }
-                    }
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(isSelected ? Color.waffleSecondary : Color.clear, lineWidth: 3)
-                )
-                .shadow(color: isSelected ? Color.waffleSecondary.opacity(0.4) : .clear, radius: 8)
-        }
-        .buttonStyle(.plain)
-    }
-}
-
-// MARK: - Card 4: Navigation
-
-private struct NavigateCard: View {
-    @State private var urlText = "apple.com"
-    @State private var isLoading = false
-
-    var body: some View {
-        VStack(spacing: 20) {
-            VStack(spacing: 8) {
-                Label("Navigating", systemImage: "globe")
-                    .font(.title2.bold())
-                    .foregroundStyle(Color.waffleSecondary)
-
-                Text("Use the address bar to visit websites in the selected cell")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-            }
-
-            // Mock toolbar
-            VStack(spacing: 16) {
-                // Address bar
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundStyle(.secondary)
-                    Text(urlText)
-                        .font(.subheadline)
-                    Spacer()
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .background(.thinMaterial, in: Capsule())
-            }
-            .padding()
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
-
-            // Tips
-            VStack(alignment: .leading, spacing: 12) {
-                NavigationTip(icon: "keyboard", text: "Type a URL or search term in the address bar")
-            }
-            .padding()
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
-
-            Spacer()
-        }
-    }
-}
-
-private struct MockToolbarButton: View {
+private struct ToolbarTip: View {
     let icon: String
-    let label: String
-
-    var body: some View {
-        VStack(spacing: 4) {
-            Image(systemName: icon)
-                .font(.title3)
-                .foregroundStyle(Color.waffleSecondary)
-                .frame(width: 44, height: 44)
-                .background(.thinMaterial, in: Circle())
-
-            Text(label)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-        }
-    }
-}
-
-private struct NavigationTip: View {
-    let icon: String
-    let text: String
+    let text: LocalizedStringKey
 
     var body: some View {
         HStack(spacing: 12) {
@@ -573,74 +494,98 @@ private struct NavigationTip: View {
     }
 }
 
-// MARK: - Card 5: Grid Controls
+private struct ShortcutBadge: View {
+    let keys: String
+    let label: LocalizedStringKey
 
-private struct GridControlsCard: View {
+    var body: some View {
+        VStack(spacing: 4) {
+            Text(verbatim: keys)
+                .font(.subheadline.monospaced().bold())
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8))
+            Text(label)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+// MARK: - Card 4: The Grid Menu
+
+private struct GridMenuCard: View {
     @State private var rows = 2
     @State private var cols = 2
 
     var body: some View {
         VStack(spacing: 20) {
-            VStack(spacing: 8) {
-                Label("Customize Your Grid", systemImage: "square.grid.3x3")
-                    .font(.title2.bold())
-                    .foregroundStyle(Color.waffleSecondary)
+            CardHeader(
+                icon: "square.grid.3x3.fill",
+                title: "Shape Your Grid",
+                subtitle: "The grid button in the toolbar adds and removes rows and columns. Try it here."
+            )
 
-                Text("Add or remove rows and columns to fit your workflow")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-            }
-
-            // Interactive grid resizer
-            HStack(spacing: 24) {
-                VStack(spacing: 8) {
-                    Text("Rows")
-                        .font(.caption.bold())
-                        .foregroundStyle(.secondary)
-                    Stepper("", value: $rows, in: 1...4)
-                        .labelsHidden()
-                    Text("\(rows)")
-                        .font(.title2.bold())
+            // The same actions the real grid menu offers.
+            VStack(spacing: 0) {
+                MenuRow(icon: "rectangle.split.1x2.fill", title: "Add Row") {
+                    rows = min(rows + 1, AppConfiguration.maxPremiumRows)
                 }
-
-                // Mini grid preview
-                MiniGridPreview(rows: rows, cols: cols)
-                    .frame(width: 160, height: 160)
-
-                VStack(spacing: 8) {
-                    Text("Cols")
-                        .font(.caption.bold())
-                        .foregroundStyle(.secondary)
-                    Stepper("", value: $cols, in: 1...4)
-                        .labelsHidden()
-                    Text("\(cols)")
-                        .font(.title2.bold())
+                MenuRow(icon: "rectangle.split.1x2", title: "Subtract Row") {
+                    rows = max(rows - 1, 1)
+                }
+                Divider().padding(.horizontal)
+                MenuRow(icon: "square.split.2x1.fill", title: "Add Column") {
+                    cols = min(cols + 1, AppConfiguration.maxPremiumCols)
+                }
+                MenuRow(icon: "square.split.2x1", title: "Subtract Column") {
+                    cols = max(cols - 1, 1)
                 }
             }
-            .padding()
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
 
-            // Info
+            MiniGridPreview(rows: rows, cols: cols)
+                .frame(width: 170, height: 150)
+
             VStack(spacing: 8) {
                 HStack {
                     Image(systemName: "info.circle.fill")
                         .foregroundStyle(Color.waffleSecondary)
-                    Text("Free: Up to \(AppConfiguration.maxFreeRows)x\(AppConfiguration.maxFreeCols)")
+                    Text("Free grids go up to \(AppConfiguration.maxFreeRows)×\(AppConfiguration.maxFreeCols)")
                         .font(.subheadline)
                 }
                 HStack {
                     Image(systemName: "drop.fill")
                         .foregroundStyle(Color.waffleTertiary)
-                    Text("With Syrup: Up to \(AppConfiguration.maxPremiumRows)x\(AppConfiguration.maxPremiumCols)")
+                    Text("Syrup unlocks up to \(AppConfiguration.maxPremiumRows)×\(AppConfiguration.maxPremiumCols)")
                         .font(.subheadline)
                 }
             }
             .padding()
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
-
-            Spacer()
         }
+    }
+}
+
+private struct MenuRow: View {
+    let icon: String
+    let title: LocalizedStringKey
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                Text(title)
+                    .font(.subheadline)
+                Spacer()
+                Image(systemName: icon)
+                    .foregroundStyle(Color.waffleSecondary)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -670,9 +615,96 @@ private struct MiniGridPreview: View {
     }
 }
 
-// MARK: - Card 6: Premium Features
+// MARK: - Card 5: Bookmarks & Presets
 
-private struct PremiumFeaturesCard: View {
+private struct LibraryCard: View {
+    var body: some View {
+        VStack(spacing: 20) {
+            CardHeader(
+                icon: "sidebar.left",
+                title: "Your Library",
+                subtitle: "The sidebar keeps bookmarks and presets, synced with iCloud across your devices"
+            )
+
+            // Bookmarks section, mirroring the sidebar.
+            VStack(alignment: .leading, spacing: 12) {
+                Label("Bookmarks", systemImage: "bookmark.fill")
+                    .font(.headline)
+                    .foregroundStyle(Color.waffleSecondary)
+
+                LibraryPoint(
+                    icon: "square.and.arrow.down.fill",
+                    text: "Quick Save bookmarks the page in the selected cell"
+                )
+                LibraryPoint(
+                    icon: "hand.tap.fill",
+                    text: "Tap a bookmark to open it in the selected cell"
+                )
+                LibraryPoint(
+                    icon: "hand.draw.fill",
+                    text: "Or drag a bookmark onto any cell to open it there"
+                )
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+
+            // Presets section, mirroring the sidebar.
+            VStack(alignment: .leading, spacing: 12) {
+                Label("Presets", systemImage: "square.grid.3x3.fill")
+                    .font(.headline)
+                    .foregroundStyle(Color.waffleSecondary)
+
+                LibraryPoint(
+                    icon: "square.and.arrow.down.fill",
+                    text: "A preset saves your whole grid — size and every page in it"
+                )
+                LibraryPoint(
+                    icon: "arrow.right",
+                    text: "Tap a preset to bring that entire layout back in one go"
+                )
+                LibraryPoint(
+                    icon: "sparkles",
+                    text: "Great for routines: a morning news grid, a work grid, a game-day grid"
+                )
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(Color.waffleSecondary)
+                Text("Search at the top of the sidebar finds any bookmark or preset")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding()
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+        }
+    }
+}
+
+private struct LibraryPoint: View {
+    let icon: String
+    let text: LocalizedStringKey
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.body)
+                .foregroundStyle(Color.waffleSecondary)
+                .frame(width: 24)
+
+            Text(text)
+                .font(.subheadline)
+        }
+    }
+}
+
+// MARK: - Card 6: Syrup
+
+private struct SyrupCard: View {
     var body: some View {
         VStack(spacing: 20) {
             VStack(spacing: 8) {
@@ -680,11 +712,11 @@ private struct PremiumFeaturesCard: View {
                     Image(systemName: "drop.fill")
                         .font(.title2)
                         .foregroundStyle(Color.waffleTertiary)
-                    Text("Unlock with Syrup")
+                    Text("Pour On the Syrup")
                         .font(.title2.bold())
                 }
 
-                Text("Get even more out of Waffle with these premium features")
+                Text("Waffle is free to use in a \(AppConfiguration.maxFreeRows)×\(AppConfiguration.maxFreeCols) grid. A one-time Syrup purchase unlocks everything else.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -692,47 +724,46 @@ private struct PremiumFeaturesCard: View {
 
             VStack(spacing: 12) {
                 PremiumFeatureRow(
+                    icon: "rectangle.split.3x3",
+                    title: "Larger Grids",
+                    description: "Grow your waffle up to \(AppConfiguration.maxPremiumRows)×\(AppConfiguration.maxPremiumCols) cells"
+                )
+                PremiumFeatureRow(
                     icon: "rectangle.on.rectangle",
                     title: "Pop Out",
-                    description: "Detach any cell into its own window"
+                    description: "Detach a cell into its own window, then pop it back into the grid"
                 )
                 PremiumFeatureRow(
                     icon: "arrow.up.left.and.arrow.down.right",
                     title: "Fullscreen",
-                    description: "Focus on a single cell temporarily"
+                    description: "Temporarily focus on a single cell, then jump back to the grid"
                 )
                 PremiumFeatureRow(
                     icon: "arrow.left.arrow.right.square",
                     title: "Rearrange",
-                    description: "Drag cells to reorder your grid"
+                    description: "Drag cells into a new order from the grid menu"
                 )
                 PremiumFeatureRow(
                     icon: "square.grid.3x3",
                     title: "Presets",
-                    description: "Save and restore entire grid layouts"
-                )
-                PremiumFeatureRow(
-                    icon: "rectangle.split.3x3",
-                    title: "Larger Grids",
-                    description: "Up to \(AppConfiguration.maxPremiumRows)x\(AppConfiguration.maxPremiumCols) cells"
+                    description: "Save grid layouts and restore them anytime"
                 )
             }
             .padding()
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
 
-            Text("You'll see Syrup options after completing this tour")
+            Text("You'll see Syrup right after this tour — and anytime later in Settings")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-
-            Spacer()
+                .multilineTextAlignment(.center)
         }
     }
 }
 
 private struct PremiumFeatureRow: View {
     let icon: String
-    let title: String
-    let description: String
+    let title: LocalizedStringKey
+    let description: LocalizedStringKey
 
     var body: some View {
         HStack(spacing: 14) {
@@ -760,5 +791,5 @@ private struct PremiumFeatureRow: View {
 
 #Preview {
     OnboardingView()
-        .environment(WaffleCoordinator(store: StoreManager()))
+        .environment(PreviewSupport.makeCoordinator())
 }

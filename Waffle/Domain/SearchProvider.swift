@@ -12,7 +12,7 @@ import Foundation
 /// The enum is `RawRepresentable` by `String` so it can be persisted easily
 /// (e.g., in UserDefaults) and surfaced in UI pickers. It also provides a
 /// human-friendly display name and a method to build a search URL for a query.
-enum SearchProvider: String, CaseIterable, Codable {
+nonisolated enum SearchProvider: String, CaseIterable, Codable {
     /// Google Search.
     case google
     /// DuckDuckGo Search.

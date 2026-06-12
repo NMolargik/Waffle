@@ -6,7 +6,7 @@ A grid-based web browser for iPad that reimagines how users interact with multip
 
 ## Overview
 
-Unlike traditional tab-based browsers, Waffle organizes pages into a customizable grid. Each cell hosts its own browsing context, allowing users to visually organize workflows, research sets, and dashboards side-by-side. Built with SwiftUI and WebKit for iOS 26, it offers a lightweight, intuitive, and deeply Apple-native browsing experience.
+Unlike traditional tab-based browsers, Waffle organizes pages into a customizable grid. Each cell hosts its own browsing context, allowing users to visually organize workflows, research sets, and dashboards side-by-side. Built with SwiftUI and WebKit for iOS 27, it offers a lightweight, intuitive, and deeply Apple-native browsing experience.
 
 Waffle is designed for:
 - **iPad power users** who multitask visually
@@ -44,9 +44,9 @@ Waffle is designed for:
 
 ## Requirements
 
-- iPadOS 26.0+
-- Xcode 16.0+
-- macOS 15.0+ (Sequoia)
+- iPadOS 27.0+
+- Xcode 27.0+
+- macOS 15.0+
 - Apple Developer account (for CloudKit capabilities)
 
 ## Setup
@@ -106,7 +106,7 @@ WaffleApp
 
 ### Key Patterns
 
-- **MVVM with Coordinator**: Views have nested ViewModels, coordinator manages app-wide state
+- **Layered, environment-injected architecture**: SwiftUI views read `@Observable` managers from the environment; pure domain logic and protocol seams over system frameworks keep everything unit-testable
 - **Dependency Injection**: Coordinator injected via SwiftUI `@Environment`
 - **Feature Gating**: Premium features controlled via `hasSyrup` flag
 

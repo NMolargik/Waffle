@@ -5,6 +5,7 @@
 //  Created by Nick Molargik on 9/2/25.
 //
 
+import AppIntents
 import SwiftUI
 import WebKit
 import SwiftData
@@ -12,336 +13,117 @@ import SwiftData
 struct MainView: View {
     @Environment(\.openWindow) private var openWindow
     @Environment(\.dismissWindow) private var dismissWindow
-    @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
     @Environment(WaffleCoordinator.self) private var coordinator
-    
+
     @AppStorage("poppedCellAddress") private var poppedCellAddress: String = ""
-    @AppStorage("lastGridSnapshot") private var lastGridSnapshotData: Data = Data()
     @AppStorage("searchProvider") private var searchProviderRawValue: String = SearchProvider.google.rawValue
-    
-    @State private var viewModel: MainView.ViewModel = MainView.ViewModel()
-    @FocusState private var isAddressBarFocused: Bool
-    @State private var persistenceTask: Task<Void, Never>?
+
+    @State private var showSettingsSheet = false
+    @State private var showRearrangeSheet = false
+    /// Drives the fullscreen overlay's WebView.
+    @State private var fullScreenCell: WaffleCell? = nil
+    /// Blanks the cell's grid slot. Set before `fullScreenCell` on entry and
+    /// cleared after it on exit, so the shared WebPage is never hosted by the
+    /// grid's WebView and the overlay's WebView at the same time.
+    @State private var gridReleasedCell: WaffleCell? = nil
+    @State private var fullscreenTransitionTask: Task<Void, Never>? = nil
+    /// Width of the detail column, measured so the address bar can fill it.
+    @State private var detailWidth: CGFloat = 0
 
     private var searchProvider: SearchProvider {
-        get { SearchProvider(rawValue: searchProviderRawValue) ?? .google }
-        set { searchProviderRawValue = newValue.rawValue }
+        SearchProvider(rawValue: searchProviderRawValue) ?? .google
     }
 
+    private var waffleState: WaffleState { coordinator.waffleState }
+
     var body: some View {
+        @Bindable var coord = coordinator
+
         NavigationSplitView {
-            SidebarView(
-                applyPreset: { preset in
-                    if !coordinator.canMakePresets && !coordinator.isSyrupEnabled {
-                        coordinator.requestSyrup()
-                        viewModel.showSyrupSheet = true
-                        return
-                    }
-                    _ = viewModel.applyPreset(preset)
-                    persistGridSnapshot()
-                },
-                savePreset: { providedName in
-                    guard coordinator.canMakePresets else {
-                        coordinator.requestSyrup()
-                        viewModel.showSyrupSheet = true
-                        return
-                    }
-                    viewModel.saveCurrentGridAsPreset(withName: providedName, modelContext: modelContext)
-                    persistGridSnapshot()
-                },
-                applyBookmark: { bookmark in
-                    viewModel.applyBookmark(bookmark)
-                    persistGridSnapshot()
-                },
-                saveBookmark: { urlString, providedTitle in
-                    viewModel.saveCurrentCellAsBookmark(urlString: urlString, title: providedTitle, modelContext: modelContext)
-                },
-                overwritePreset: { preset in
-                    guard coordinator.canMakePresets else {
-                        coordinator.requestSyrup()
-                        viewModel.showSyrupSheet = true
-                        return
-                    }
-                    viewModel.overwritePresetWithCurrentGrid(preset, modelContext: modelContext)
-                    persistGridSnapshot()
-                }
-            )
-            .navigationTitle("Waffle")
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Settings", systemImage: "gearshape.fill") {
-                        viewModel.showSettingsSheet.toggle()
+            SidebarView()
+                .navigationTitle(Text("Waffle"))
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button(String(localized: "Settings"), systemImage: "gearshape.fill") {
+                            showSettingsSheet.toggle()
+                        }
+                        .accessibilityHint(Text("Opens app settings"))
                     }
                 }
-            }
         } detail: {
-            @Bindable var coord = coordinator
             WaffleGridView(
-                waffleState: $coord.waffleState,
-                addressBarString: $viewModel.addressBarString,
-                requestPopBack: {
-                    viewModel.initiatePopBack(poppedCellAddress: poppedCellAddress) {
-                        dismissWindow(id: "DetachedWaffleCell")
-                    }
-                    persistGridSnapshot()
-                },
-                fullscreenCell: viewModel.fullScreenCell,
-                copyToSelectedCell: { address in
-                    coord.waffleState.selectedCell?.loadURL(urlString: address)
-                }
+                waffleState: waffleState,
+                requestPopBack: popBack,
+                fullscreenCell: gridReleasedCell
             )
             .padding(.horizontal, 10)
             .padding(.bottom, 10)
             .ignoresSafeArea(edges: .bottom)
             .background(Color.wafflePrimary.opacity(0.3))
-            .onAppear(perform: coordinator.waffleState.makeInitialItem)
             .toolbarTitleDisplayMode(.inline)
-            .animation(.snappy, value: coordinator.waffleState.poppedCell)
-            .animation(.snappy, value: coordinator.waffleState.selectedCell)
-            // Persist when any cell URLs change
-            .onChange(of: coordinator.waffleState.flattenedAddresses()) { _, _ in
-                persistGridSnapshot()
-            }
-            // Persist when the structural identity of cells changes (rows/cols adjustments)
-            .onChange(of: coordinator.waffleState.waffleRows.map { $0.map(\.id) }) { _, _ in
-                persistGridSnapshot()
-            }
+            .animation(.snappy, value: waffleState.poppedCell)
+            .animation(.snappy, value: waffleState.selectedCell)
             .onAppear {
-                viewModel.configure(coordinator: coordinator)
-                restoreGridSnapshotIfAvailable()
-                persistGridSnapshot()
+                if !waffleState.restoreFromSnapshotIfAvailable() {
+                    waffleState.makeInitialItem()
+                }
+            }
+            .onGeometryChange(for: CGFloat.self) { proxy in
+                proxy.size.width
+            } action: { newWidth in
+                detailWidth = newWidth
             }
             .overlay {
-                if let fullScreenWaffleCell = viewModel.fullScreenCell {
-                    FullScreenCellView(viewModel: $viewModel, cell: fullScreenWaffleCell)
+                if let fullScreenCell {
+                    FullScreenCellView(cell: fullScreenCell)
                 }
             }
             .toolbar {
-                ToolbarItemGroup(placement: .topBarLeading) {
-                    Button("Back", systemImage: "chevron.backward") {
-                        viewModel.goBack()
-                        persistGridSnapshot()
-                    }
-                    .keyboardShortcut("[", modifiers: .command)
-
-                    Button("Forward", systemImage: "chevron.forward") {
-                        viewModel.goForward()
-                        persistGridSnapshot()
-                    }
-                    .keyboardShortcut("]", modifiers: .command)
-                }
-                ToolbarItem(placement: .principal) {
-                    HStack(spacing: 8) {
-                        Button {
-                            viewModel.reloadSelected()
-                            persistGridSnapshot()
-                        } label: {
-                            Image(systemName: "arrow.clockwise")
-                        }
-                        .keyboardShortcut("r", modifiers: .command)
-                        .buttonStyle(.glass)
-
-                        SelectAllTextField(
-                            text: $viewModel.addressBarString,
-                            placeholder: "Search or enter a URL",
-                            onSubmit: {
-                                viewModel.submitAddress(using: searchProvider)
-                                persistGridSnapshot()
-                            }
-                        )
-                        .focused($isAddressBarFocused)
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 12)
-                        .frame(minWidth: 200, idealWidth: 400, maxWidth: 600)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .clipShape(Capsule())
-                        .glassEffect(.regular, in: .capsule)
-                    }
-                }
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    if (coordinator.waffleState.rowCount > 1 || coordinator.waffleState.colCount > 1) {
-                        Button {
-                            if coordinator.canUseFullscreen {
-                                viewModel.toggleFullscreen(cell: coordinator.waffleState.selectedCell)
-                            } else {
-                                coordinator.requestSyrup()
-                                viewModel.showSyrupSheet = true
-                            }
-                            persistGridSnapshot()
-                        } label: {
-                            if viewModel.fullScreenCell != nil {
-                                HStack {
-                                    Text("Minimize")
-
-                                    Image(systemName: "arrow.down.right.and.arrow.up.left.rectangle")
-                                }
-                            } else {
-                                Image(systemName: "arrow.up.left.and.arrow.down.right.rectangle")
-                            }
-                        }
-                        .keyboardShortcut("f", modifiers: [.command, .shift])
-                        
-                        if (viewModel.fullScreenCell == nil) {
-                            Button(
-                                coordinator.waffleState.poppedCell != nil ? "Pop Back" : "Pop Out",
-                                systemImage: coordinator.waffleState.poppedCell != nil ? "rectangle.on.rectangle.slash" : "rectangle.on.rectangle"
-                            ) {
-                                // If a cell is already popped out, pop it back into the grid
-                                if coordinator.waffleState.poppedCell != nil {
-                                    viewModel.initiatePopBack(poppedCellAddress: poppedCellAddress) {
-                                        dismissWindow(id: "DetachedWaffleCell")
-                                    }
-                                    persistGridSnapshot()
-                                    return
-                                }
-
-                                // Otherwise, attempt to pop out the currently selected cell
-                                if viewModel.canUsePopout() {
-                                    viewModel.popOutSelectedCell { cell in
-                                        openWindow(id: "DetachedWaffleCell", value: cell)
-                                    }
-                                    persistGridSnapshot()
-                                } else {
-                                    coordinator.requestSyrup()
-                                    viewModel.showSyrupSheet = true
-                                }
-                            }
-                            .keyboardShortcut("p", modifiers: [.command, .shift])
-                            // Disabled only when there is no popped cell AND no selected cell
-                            .disabled(coordinator.waffleState.poppedCell == nil && coordinator.waffleState.selectedCell == nil)
-                        }
-                    }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    @Bindable var coord = coordinator
-                    if (viewModel.fullScreenCell == nil) {
-                        Menu {
-                            HStack(spacing: 8) {
-                                // Add Row
-                                Button {
-                                    let newValue = min(coord.maxRows, coord.waffleState.rowCount + 1)
-                                    viewModel.setRows(newValue)
-                                    persistGridSnapshot()
-                                } label: {
-                                    Label("Add Row", systemImage: "rectangle.split.1x2.fill")
-                                }
-                                .disabled(coord.waffleState.rowCount >= coord.maxRows)
-
-                                // Subtract Row
-                                Button {
-                                    let newValue = max(1, coord.waffleState.rowCount - 1)
-                                    viewModel.setRows(newValue)
-                                    persistGridSnapshot()
-                                } label: {
-                                    Label("Subtract Row", systemImage: "rectangle.split.1x2")
-                                }
-                                .disabled(coord.waffleState.rowCount <= 1)
-
-                                Divider()
-
-                                // Add Column
-                                Button {
-                                    let newValue = min(coord.maxCols, coord.waffleState.colCount + 1)
-                                    viewModel.setCols(newValue)
-                                    persistGridSnapshot()
-                                } label: {
-                                    HStack(spacing: 8) {
-                                        Image(systemName: "square.split.2x1.fill")
-                                        Text("Add Column")
-                                    }
-                                }
-                                .disabled(coord.waffleState.colCount >= coord.maxCols)
-
-                                // Subtract Column
-                                Button {
-                                    let newValue = max(1, coord.waffleState.colCount - 1)
-                                    viewModel.setCols(newValue)
-                                    persistGridSnapshot()
-                                } label: {
-                                    HStack(spacing: 8) {
-                                        Image(systemName: "square.split.2x1")
-                                        Text("Subtract Column")
-                                    }
-                                }
-                                .disabled(coord.waffleState.colCount <= 1)
-                                .buttonStyle(.glass)
-                            }
-                            
-                            Divider()
-                            
-                            Button("Rearrange", systemImage: "arrow.left.arrow.right.square") {
-                                guard coordinator.canUseRearrange else {
-                                    coordinator.requestSyrup()
-                                    viewModel.showSyrupSheet = true
-                                    return
-                                }
-                                if coordinator.waffleState.waffleRows.isEmpty {
-                                    coordinator.waffleState.makeInitialItem()
-                                }
-                                DispatchQueue.main.async {
-                                    let current = coordinator.waffleState.flattenedAddresses()
-
-                                    viewModel.pendingReorderedURLs = current.isEmpty ? [AppConfiguration.fallbackURL] : current
-                                    viewModel.showRearrangeSheet = true
-                                }
-                            }
-                        } label: {
-                            Image(systemName: "square.grid.3x3.fill") 
-                        }
-                    }
-                }
-            }
-            .toolbarTitleDisplayMode(.inline)
-            .onChange(of: coordinator.presentSyrupSheet) { _, newValue in
-                if newValue {
-                    viewModel.showSyrupSheet = true
-                }
-            }
-            .onChange(of: coordinator.waffleState.selectedCell?.id) { _, _ in
-                persistGridSnapshot()
-            }
-            .onChange(of: coordinator.waffleState.rowCount) { _, _ in
-                persistGridSnapshot()
-            }
-            .onChange(of: coordinator.waffleState.colCount) { _, _ in
-                persistGridSnapshot()
+                navigationToolbar
+                addressToolbar
+                trailingToolbar
             }
             .onChange(of: scenePhase) { _, newPhase in
-                // Immediately persist on lifecycle changes (no debounce)
+                // Persist immediately on lifecycle changes (no debounce).
                 if newPhase == .inactive || newPhase == .background {
-                    persistGridSnapshotImmediately()
+                    waffleState.persistNow()
                 }
             }
-            .sheet(isPresented: $viewModel.showSyrupSheet, onDismiss: {
-                coordinator.presentSyrupSheet = false
-            }) {
+            .sheet(isPresented: $coord.presentSyrupSheet) {
                 SyrupView(
-                    onPurchased: {
-                        viewModel.showSyrupSheet = false
-                        coordinator.presentSyrupSheet = false
-                    },
-                    onClose: {
-                        viewModel.showSyrupSheet = false
-                        coordinator.presentSyrupSheet = false
-                    }
+                    onPurchased: { coordinator.presentSyrupSheet = false },
+                    onClose: { coordinator.presentSyrupSheet = false }
                 )
                 .frame(minWidth: 420, minHeight: 520)
             }
-            .sheet(isPresented: $viewModel.showSettingsSheet) { SettingsView() }
-            .sheet(isPresented: $viewModel.showRearrangeSheet) {
+            .sheet(isPresented: $showSettingsSheet) { SettingsView() }
+            .sheet(isPresented: $showRearrangeSheet) {
                 RearrangeWaffleView(
-                    rows: coordinator.waffleState.rowCount,
-                    cols: coordinator.waffleState.colCount,
-                    onCancel: {
-                        viewModel.showRearrangeSheet = false
-                    },
+                    rows: waffleState.rowCount,
+                    cols: waffleState.colCount,
+                    onCancel: { showRearrangeSheet = false },
                     onSave: { newOrder in
-                        viewModel.applyReorderedURLs(newOrder)
-                        persistGridSnapshot()
-                        viewModel.showRearrangeSheet = false
+                        waffleState.applyReorderedURLs(newOrder)
+                        showRearrangeSheet = false
                     }
                 )
+            }
+        }
+        // Surface the page being browsed to the system: Handoff, and Siri's
+        // on-screen awareness via the app-entity annotation when the page
+        // matches a saved bookmark.
+        .userActivity(
+            "com.molargiksoftware.Waffle.browsing",
+            isActive: !(waffleState.selectedCell?.address.isEmpty ?? true)
+        ) { activity in
+            guard let cell = waffleState.selectedCell, let url = URL(string: cell.address) else { return }
+            activity.title = cell.page.title.isEmpty ? cell.address : cell.page.title
+            activity.webpageURL = url
+            activity.isEligibleForHandoff = true
+            activity.isEligibleForSearch = true
+            if let bookmark = coordinator.library.bookmarks().first(where: { $0.urlString == cell.address }) {
+                activity.appEntityIdentifier = EntityIdentifier(for: BookmarkEntity.self, identifier: bookmark.id)
             }
         }
         .toast(message: coordinator.errorHandler.toastMessage) {
@@ -353,74 +135,236 @@ struct MainView: View {
         ))
     }
 
-    private func persistGridSnapshot() {
-        // Cancel any pending persistence task
-        persistenceTask?.cancel()
+    // MARK: - Toolbar
 
-        // Debounce: wait before actually persisting
-        persistenceTask = Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(Int(AppConfiguration.persistenceDebounceInterval * 1000)))
-            guard !Task.isCancelled else { return }
+    // Visibility priorities decide which items fold into the system More
+    // menu first as the window narrows: fullscreen collapses first, then
+    // pop out, then the automatic items — the address bar never collapses.
 
-            let snapshot = coordinator.waffleState.makeSnapshot()
-            if let data = try? JSONEncoder().encode(snapshot) {
-                lastGridSnapshotData = data
+    @ToolbarContentBuilder
+    private var navigationToolbar: some ToolbarContent {
+        ToolbarItemGroup(placement: .topBarLeading) {
+            Button(String(localized: "Back"), systemImage: "chevron.backward") {
+                waffleState.selectedCell?.goBack()
+            }
+            .keyboardShortcut("[", modifiers: .command)
+            .accessibilityHint(Text("Goes back in the selected cell"))
+
+            Button(String(localized: "Forward"), systemImage: "chevron.forward") {
+                waffleState.selectedCell?.goForward()
+            }
+            .keyboardShortcut("]", modifiers: .command)
+            .accessibilityHint(Text("Goes forward in the selected cell"))
+        }
+    }
+
+    @ToolbarContentBuilder
+    private var addressToolbar: some ToolbarContent {
+        @Bindable var state = coordinator.waffleState
+        ToolbarItem(placement: .principal) {
+            HStack(spacing: 8) {
+                Button {
+                    waffleState.selectedCell?.reloadCell()
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                        .frame(
+                            width: AppConfiguration.barControlHeight,
+                            height: AppConfiguration.barControlHeight
+                        )
+                        .contentShape(Circle())
+                }
+                .keyboardShortcut("r", modifiers: .command)
+                .buttonStyle(.plain)
+                .glassEffect(.regular.interactive(), in: .circle)
+                .accessibilityLabel(Text("Reload"))
+                .accessibilityHint(Text("Reloads the selected cell"))
+
+                AddressBarView(
+                    text: $state.addressText,
+                    placeholder: String(localized: "Search or enter a URL"),
+                    availableWidth: detailWidth,
+                    onSubmit: { waffleState.submitAddress(using: searchProvider) }
+                )
+            }
+        }
+        .visibilityPriority(.high)
+    }
+
+    @ToolbarContentBuilder
+    private var trailingToolbar: some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            if waffleState.rowCount > 1 || waffleState.colCount > 1 {
+                fullscreenButton
+            }
+        }
+        .visibilityPriority(ToolbarItemVisibilityPriority(lowerThan: .low))
+
+        ToolbarItem(placement: .topBarTrailing) {
+            if (waffleState.rowCount > 1 || waffleState.colCount > 1) && fullScreenCell == nil {
+                popOutButton
+            }
+        }
+        .visibilityPriority(.low)
+
+        ToolbarItem(placement: .topBarTrailing) {
+            if fullScreenCell == nil {
+                gridMenu
             }
         }
     }
 
-    /// Immediately persist without debouncing (for critical moments like app going to background)
-    private func persistGridSnapshotImmediately() {
-        persistenceTask?.cancel()
-        let snapshot = coordinator.waffleState.makeSnapshot()
-        if let data = try? JSONEncoder().encode(snapshot) {
-            lastGridSnapshotData = data
+    private var fullscreenButton: some View {
+        Button(
+            fullScreenCell == nil ? String(localized: "Fullscreen") : String(localized: "Minimize"),
+            systemImage: fullScreenCell == nil
+                ? "arrow.up.left.and.arrow.down.right.rectangle"
+                : "arrow.down.right.and.arrow.up.left.rectangle"
+        ) {
+            if coordinator.canUseFullscreen {
+                toggleFullscreen()
+            } else {
+                coordinator.requestSyrup()
+            }
+        }
+        .keyboardShortcut("f", modifiers: [.command, .shift])
+        .accessibilityLabel(fullScreenCell == nil ? Text("Enter fullscreen") : Text("Exit fullscreen"))
+        .accessibilityHint(Text("Shows the selected cell by itself"))
+    }
+
+    private var popOutButton: some View {
+        Button(
+            waffleState.poppedCell != nil ? String(localized: "Pop Back") : String(localized: "Pop Out"),
+            systemImage: waffleState.poppedCell != nil ? "rectangle.on.rectangle.slash" : "rectangle.on.rectangle"
+        ) {
+            if waffleState.poppedCell != nil {
+                popBack()
+                return
+            }
+
+            guard coordinator.canUsePopout else {
+                coordinator.requestSyrup()
+                return
+            }
+            if let cell = waffleState.selectedCell, !waffleState.isPoppedOut(cell) {
+                waffleState.popOut(cell)
+                openWindow(id: "DetachedWaffleCell", value: cell)
+            }
+        }
+        .keyboardShortcut("p", modifiers: [.command, .shift])
+        .disabled(waffleState.poppedCell == nil && waffleState.selectedCell == nil)
+        .accessibilityHint(Text("Moves the selected cell into its own window"))
+    }
+
+    private var gridMenu: some View {
+        Menu {
+            Button {
+                coordinator.setGridSize(rows: waffleState.rowCount + 1, cols: waffleState.colCount)
+            } label: {
+                Label(String(localized: "Add Row"), systemImage: "rectangle.split.1x2.fill")
+            }
+            .disabled(waffleState.rowCount >= coordinator.maxRows)
+
+            Button {
+                coordinator.setGridSize(rows: waffleState.rowCount - 1, cols: waffleState.colCount)
+            } label: {
+                Label(String(localized: "Subtract Row"), systemImage: "rectangle.split.1x2")
+            }
+            .disabled(waffleState.rowCount <= 1)
+
+            Divider()
+
+            Button {
+                coordinator.setGridSize(rows: waffleState.rowCount, cols: waffleState.colCount + 1)
+            } label: {
+                Label(String(localized: "Add Column"), systemImage: "square.split.2x1.fill")
+            }
+            .disabled(waffleState.colCount >= coordinator.maxCols)
+
+            Button {
+                coordinator.setGridSize(rows: waffleState.rowCount, cols: waffleState.colCount - 1)
+            } label: {
+                Label(String(localized: "Subtract Column"), systemImage: "square.split.2x1")
+            }
+            .disabled(waffleState.colCount <= 1)
+
+            Divider()
+
+            Button(String(localized: "Rearrange"), systemImage: "arrow.left.arrow.right.square") {
+                guard coordinator.canUseRearrange else {
+                    coordinator.requestSyrup()
+                    return
+                }
+                if waffleState.waffleRows.isEmpty {
+                    waffleState.makeInitialItem()
+                }
+                showRearrangeSheet = true
+            }
+        } label: {
+            Image(systemName: "square.grid.3x3.fill")
+        }
+        .accessibilityLabel(Text("Grid options"))
+        .accessibilityHint(Text("Add or remove rows and columns, or rearrange cells"))
+    }
+
+    // MARK: - Actions
+
+    private func toggleFullscreen() {
+        // Ignore presses while a transition is settling — re-hosting the
+        // WebPage mid-teardown is exactly the race that crashes WebKit.
+        if fullScreenCell == nil, gridReleasedCell != nil { return }
+
+        fullscreenTransitionTask?.cancel()
+        if fullScreenCell == nil {
+            guard let cell = waffleState.selectedCell else { return }
+            // Two-phase entry: blank the grid slot first so its WebView is
+            // fully torn down before the overlay hosts the same WebPage.
+            gridReleasedCell = cell
+            fullscreenTransitionTask = Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(100))
+                guard !Task.isCancelled else { return }
+                fullScreenCell = cell
+            }
+        } else {
+            // Reverse on exit: drop the overlay's WebView first, then restore
+            // the grid slot once teardown has settled.
+            fullScreenCell = nil
+            fullscreenTransitionTask = Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(150))
+                guard !Task.isCancelled else { return }
+                gridReleasedCell = nil
+            }
         }
     }
-    
-    private func restoreGridSnapshotIfAvailable() {
-        guard !lastGridSnapshotData.isEmpty,
-              let snapshot = try? JSONDecoder().decode(WaffleState.Snapshot.self, from: lastGridSnapshotData) else {
-            return
-        }
-        coordinator.waffleState.apply(snapshot: snapshot)
-        // Update address bar to selected cell’s address if available
-        if let sel = coordinator.waffleState.selectedCell {
-            viewModel.addressBarString = sel.address
-        }
+
+    private func popBack() {
+        waffleState.popBack(poppedCellAddress: poppedCellAddress)
+        dismissWindow(id: "DetachedWaffleCell")
     }
 }
 
 #Preview {
-    // In-memory SwiftData container for Preset and Bookmark
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: Bookmark.self, Preset.self, configurations: config)
 
-    // Coordinator + Store for environment
-    let storeManager = StoreManager()
-    let coordinator = WaffleCoordinator(store: storeManager)
+    let errorHandler = ErrorHandler()
+    let store = StoreManager()
+    let library = LibraryManager(container: container, errorHandler: errorHandler)
+    let state = WaffleState()
+    let coordinator = WaffleCoordinator(store: store, library: library, errorHandler: errorHandler, waffleState: state)
 
-    // Seed a simple initial grid for nicer preview
-    coordinator.waffleState.rowCount = 2
-    coordinator.waffleState.colCount = 2
-    coordinator.waffleState.waffleRows = (0..<2).map { _ in
+    state.rowCount = 2
+    state.colCount = 2
+    state.waffleRows = (0..<2).map { _ in
         (0..<2).map { _ in
             let cell = WaffleCell()
             cell.address = "https://apple.com"
             return cell
         }
     }
-    coordinator.waffleState.selectedCell = coordinator.waffleState.waffleRows.first?.first
-
-    // AppStorage defaults for preview run
-    UserDefaults.standard.register(defaults: [
-        "poppedCellAddress": "https://apple.com",
-        "lastGridSnapshot": Data(),
-        "searchProvider": SearchProvider.google.rawValue
-    ])
+    state.selectedCell = state.waffleRows.first?.first
 
     return MainView()
         .modelContainer(container)
         .environment(coordinator)
+        .environment(store)
 }
-

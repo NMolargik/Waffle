@@ -7,9 +7,10 @@
 
 import SwiftUI
 import SwiftData
+import WebKit
 
 struct SidebarView: View {
-    @Environment(\.modelContext) private var context
+    @Environment(WaffleCoordinator.self) private var coordinator
 
     // Sort by user-defined order; as a fallback for legacy data where sortIndex may be equal,
     // also sort by createdAt to keep a stable order.
@@ -20,77 +21,68 @@ struct SidebarView: View {
     private var bookmarks: [Bookmark]
     @Query(sort: \Preset.createdAt, order: .reverse) private var presets: [Preset]
 
-    var applyPreset: (Preset) -> Void
-    var savePreset: (_ withName: String?) -> Void
-    var applyBookmark: (Bookmark) -> Void
-    var saveBookmark: (_ urlString: String, _ withTitle: String?) -> Void
-    var overwritePreset: (Preset) -> Void
-
     @State private var searchText: String = ""
     @State private var showingPresetNamePrompt = false
     @State private var newPresetName: String = ""
+    @State private var presetToRename: Preset? = nil
     @State private var showingBookmarkNamePrompt = false
     @State private var newBookmarkTitle: String = ""
     @State private var newBookmarkURLString: String = ""
     @State private var bookmarkToEdit: Bookmark? = nil
 
+    private var library: LibraryManager { coordinator.library }
+    private var waffleState: WaffleState { coordinator.waffleState }
+
     var body: some View {
         VStack {
             BookmarksHeaderView(
-                onQuickSaveCurrent: { saveBookmark("", nil) },
+                onQuickSaveCurrent: { quickSaveBookmark() },
                 onSaveAs: { beginBookmarkCreation() }
             )
             bookmarksListView
 
             PresetsHeaderView(
-                onQuickSave: { savePreset(nil) },
+                onQuickSave: { savePreset(named: nil) },
                 onSaveAs: { beginPresetNaming() }
             )
 
             PresetsListView(
                 presets: filteredPresets,
-                applyPreset: applyPreset,
-                overwritePreset: overwritePreset,
-                onRename: { preset in beginPresetRenaming(existingName: preset.name) },
-                onDelete: { preset in
-                    context.delete(preset)
-                    try? context.save()
-                }
+                applyPreset: { coordinator.applyPreset($0) },
+                overwritePreset: { overwritePreset($0) },
+                onRename: { beginPresetRenaming($0) },
+                onDelete: { library.deletePreset($0) }
             )
         }
-        .searchable(text: $searchText, prompt: "Search bookmarks & presets")
-        .alert("Save Preset", isPresented: $showingPresetNamePrompt) {
-            TextField("Name", text: $newPresetName)
-            Button("Cancel", role: .cancel) { resetPresetPrompt() }
-            Button("Save") {
-                savePreset(newPresetName.isEmpty ? nil : newPresetName)
+        .searchable(text: $searchText, prompt: Text("Search bookmarks & presets"))
+        .alert(presetToRename == nil ? Text("Save Preset") : Text("Rename Preset"), isPresented: $showingPresetNamePrompt) {
+            TextField(String(localized: "Name"), text: $newPresetName)
+            Button(String(localized: "Cancel"), role: .cancel) { resetPresetPrompt() }
+            Button(presetToRename == nil ? String(localized: "Save") : String(localized: "Rename")) {
+                if let preset = presetToRename {
+                    library.renamePreset(preset, to: newPresetName)
+                } else {
+                    savePreset(named: newPresetName.isEmpty ? nil : newPresetName)
+                }
                 resetPresetPrompt()
             }
         } message: {
             Text("Enter a name for this grid layout.")
         }
-        .alert(bookmarkToEdit == nil ? "Save Bookmark" : "Rename Bookmark", isPresented: $showingBookmarkNamePrompt) {
-            TextField("Title", text: $newBookmarkTitle)
-            TextField("URL", text: $newBookmarkURLString)
+        .alert(bookmarkToEdit == nil ? Text("Save Bookmark") : Text("Rename Bookmark"), isPresented: $showingBookmarkNamePrompt) {
+            TextField(String(localized: "Title"), text: $newBookmarkTitle)
+            TextField(String(localized: "URL"), text: $newBookmarkURLString)
                 .textContentType(.URL)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
-            Button("Cancel", role: .cancel) {
+            Button(String(localized: "Cancel"), role: .cancel) {
                 resetBookmarkPrompt()
             }
-            Button(bookmarkToEdit == nil ? "Save" : "Update") {
+            Button(bookmarkToEdit == nil ? String(localized: "Save") : String(localized: "Update")) {
                 if let editing = bookmarkToEdit {
-                    editing.title = newBookmarkTitle
-                    editing.urlString = newBookmarkURLString
-                    try? context.save()
+                    library.updateBookmark(editing, title: newBookmarkTitle, urlString: newBookmarkURLString)
                 } else {
-                    let new = Bookmark(
-                        url: URL(string: newBookmarkURLString) ?? URL(string: "https://apple.com")!,
-                        title: newBookmarkTitle
-                    )
-                    new.sortIndex = (bookmarks.map(\.sortIndex).max() ?? -1) + 1
-                    context.insert(new)
-                    try? context.save()
+                    library.addBookmark(urlString: newBookmarkURLString, title: newBookmarkTitle)
                 }
                 resetBookmarkPrompt()
             }
@@ -98,7 +90,7 @@ struct SidebarView: View {
             Text(bookmarkToEdit == nil ? "Enter a title and URL for this bookmark." : "Edit the title and URL for this bookmark.")
         }
         .onAppear {
-            normalizeSortIndexesIfNeeded()
+            library.normalizeBookmarkSortIndexes()
         }
     }
 
@@ -121,39 +113,77 @@ struct SidebarView: View {
 
     // MARK: - Subviews
 
-    @ViewBuilder
+    @ContentBuilder
     private var bookmarksListView: some View {
         let moveHandler: ((IndexSet, Int) -> Void)? = searchText.isEmpty ? { from, to in
-            handleMove(from: from, to: to)
+            library.moveBookmarks(bookmarks, from: from, to: to)
         } : nil
 
         BookmarksListView(
             bookmarks: filteredBookmarks,
-            applyBookmark: applyBookmark,
-            onEdit: { bm in beginBookmarkEditing(bm) },
-            onDelete: { bm in
-                context.delete(bm)
-                try? context.save()
-                normalizeSortIndexesIfNeeded()
+            applyBookmark: { bookmark in
+                waffleState.loadInSelectedCell(bookmark.urlString)
             },
+            onEdit: { beginBookmarkEditing($0) },
+            onDelete: { library.deleteBookmark($0) },
             onMove: moveHandler
+        )
+    }
+
+    // MARK: - Actions
+
+    private func quickSaveBookmark() {
+        guard let cell = waffleState.selectedCell else { return }
+        library.addBookmark(urlString: cell.address, title: cell.page.title)
+    }
+
+    private func savePreset(named name: String?) {
+        guard coordinator.canMakePresets else {
+            coordinator.requestSyrup()
+            return
+        }
+        library.savePreset(
+            named: name,
+            rows: waffleState.rowCount,
+            cols: waffleState.colCount,
+            urls: waffleState.flattenedAddresses()
+        )
+    }
+
+    private func overwritePreset(_ preset: Preset) {
+        guard coordinator.canMakePresets else {
+            coordinator.requestSyrup()
+            return
+        }
+        library.overwritePreset(
+            preset,
+            rows: waffleState.rowCount,
+            cols: waffleState.colCount,
+            urls: waffleState.flattenedAddresses()
         )
     }
 
     // MARK: - Preset Prompt
 
     private func beginPresetNaming() {
+        guard coordinator.canMakePresets else {
+            coordinator.requestSyrup()
+            return
+        }
+        presetToRename = nil
         newPresetName = ""
         showingPresetNamePrompt = true
     }
 
-    private func beginPresetRenaming(existingName: String) {
-        newPresetName = existingName
+    private func beginPresetRenaming(_ preset: Preset) {
+        presetToRename = preset
+        newPresetName = preset.name
         showingPresetNamePrompt = true
     }
 
     private func resetPresetPrompt() {
         showingPresetNamePrompt = false
+        presetToRename = nil
         newPresetName = ""
     }
 
@@ -162,7 +192,7 @@ struct SidebarView: View {
     private func beginBookmarkCreation() {
         bookmarkToEdit = nil
         newBookmarkTitle = ""
-        newBookmarkURLString = ""
+        newBookmarkURLString = waffleState.selectedCell?.address ?? ""
         showingBookmarkNamePrompt = true
     }
 
@@ -179,77 +209,14 @@ struct SidebarView: View {
         newBookmarkTitle = ""
         newBookmarkURLString = ""
     }
-
-    // MARK: - Sort Index Management
-
-    private func normalizeSortIndexesIfNeeded() {
-        for (idx, bm) in bookmarks.enumerated() where bm.sortIndex != idx {
-            bm.sortIndex = idx
-        }
-        try? context.save()
-    }
-
-    private func handleMove(from source: IndexSet, to destination: Int) {
-        var ordered = bookmarks
-        ordered.move(fromOffsets: source, toOffset: destination)
-        for (idx, bm) in ordered.enumerated() {
-            bm.sortIndex = idx
-        }
-        try? context.save()
-    }
-}
-
-private enum SidebarPreviewData {
-    static func makePreviewContainer() -> ModelContainer {
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try! ModelContainer(for: Bookmark.self, Preset.self, configurations: config)
-        let context = container.mainContext
-
-        let p1 = Preset(name: "News 2x2", rows: 2, cols: 2, urls: [
-            "https://www.apple.com",
-            "https://www.bbc.com",
-            "https://www.cnn.com",
-            "https://www.theverge.com"
-        ])
-        let p2 = Preset(name: "Work 1x3", rows: 1, cols: 3, urls: [
-            "https://mail.google.com",
-            "https://calendar.google.com",
-            "https://github.com"
-        ])
-        let p3 = Preset(name: "Research 3x2", rows: 3, cols: 2, urls: [
-            "https://developer.apple.com",
-            "https://swift.org",
-            "https://forums.swift.org",
-            "https://www.raywenderlich.com",
-            "https://stackoverflow.com",
-            "https://www.hackingwithswift.com"
-        ])
-
-        let b1 = Bookmark(url: URL(string: "https://apple.com")!, title: "Apple")
-        let b2 = Bookmark(url: URL(string: "https://developer.apple.com/documentation")!, title: "Documentation")
-        let b3 = Bookmark(url: URL(string: "https://news.ycombinator.com")!, title: "Hacker News")
-        let b4 = Bookmark(url: URL(string: "https://github.com")!, title: "GitHub")
-        b1.sortIndex = 0
-        b2.sortIndex = 1
-        b3.sortIndex = 2
-        b4.sortIndex = 3
-
-        context.insert(p1); context.insert(p2); context.insert(p3)
-        context.insert(b1); context.insert(b2); context.insert(b3); context.insert(b4)
-        try? context.save()
-        return container
-    }
 }
 
 #Preview {
-    SidebarView(
-        applyPreset: { _ in },
-        savePreset: { _ in },
-        applyBookmark: { _ in },
-        saveBookmark: { _, _ in },
-        overwritePreset: { _ in }
-    )
-    .frame(width: 500)
-    .modelContainer(SidebarPreviewData.makePreviewContainer())
-    .environment(WaffleCoordinator(store: StoreManager()))
+    let container = PreviewSupport.makeContainer()
+    PreviewSupport.seedSampleLibrary(in: container)
+
+    return SidebarView()
+        .frame(width: 500)
+        .modelContainer(container)
+        .environment(PreviewSupport.makeCoordinator(container: container))
 }

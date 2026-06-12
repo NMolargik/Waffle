@@ -11,7 +11,7 @@
 			<string>waffle</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>Waffle</string>
+				<string>waffle</string>
 			</array>
 		</dict>
 	</array>

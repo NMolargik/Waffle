@@ -6,20 +6,27 @@
 //
 
 import SwiftUI
-import UniformTypeIdentifiers
+import WebKit
 
+/// Sheet for reordering the waffle grid. The layout mirrors the real grid's
+/// rows × columns geometry, and every tile shows the live page's title and
+/// favicon so cells are recognizable at a glance. Two ways to move cells:
+/// drag to reorder (shifting everything after the drop point), or tap two
+/// cells to swap just those two.
 struct RearrangeWaffleView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(WaffleCoordinator.self) private var coordinator
 
     @State private var cells: [RearrangeCell] = []
-    @State private var draggedCell: RearrangeCell?
     @State private var originalCells: [RearrangeCell] = []
+    @State private var swapSource: RearrangeCell.ID? = nil
 
     let rows: Int
     let cols: Int
     let onCancel: () -> Void
     let onSave: ([String]) -> Void
+
+    private var hasChanges: Bool { cells != originalCells }
 
     var body: some View {
         NavigationStack {
@@ -33,30 +40,44 @@ struct RearrangeWaffleView: View {
 
                 if cells.isEmpty {
                     ContentUnavailableView {
-                        Label("No Cells", systemImage: "square.grid.3x3.slash")
+                        Label(String(localized: "No Cells"), systemImage: "square.grid.3x3.slash")
                     } description: {
                         Text("There are no cells to rearrange.")
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
-                    gridView
-                        .padding(20)
+                    GeometryReader { geometry in
+                        gridView(in: geometry.size)
+                    }
+                    .padding(20)
                 }
             }
             .background(Color(uiColor: .systemGroupedBackground))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                    Button(String(localized: "Cancel")) {
                         onCancel()
                         dismiss()
                     }
                 }
+                ToolbarItem(placement: .principal) {
+                    Button(String(localized: "Reset"), systemImage: "arrow.uturn.backward") {
+                        withAnimation(.spring(response: 0.3)) {
+                            cells = originalCells
+                            swapSource = nil
+                        }
+                    }
+                    .buttonStyle(.glass)
+                    .disabled(!hasChanges)
+                    .accessibilityHint(Text("Restores the original order"))
+                }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
+                    Button(String(localized: "Save")) {
                         onSave(cells.map(\.url))
                         dismiss()
                     }
                     .fontWeight(.semibold)
+                    .disabled(!hasChanges)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -64,7 +85,7 @@ struct RearrangeWaffleView: View {
         .onAppear {
             loadCells()
         }
-        .frame(minWidth: 500, minHeight: 450)
+        .frame(minWidth: 540, minHeight: 480)
     }
 
     // MARK: - Header
@@ -81,7 +102,7 @@ struct RearrangeWaffleView: View {
                 HStack(spacing: 4) {
                     Image(systemName: "square.grid.3x3")
                         .font(.caption)
-                    Text("\(rows) × \(cols)")
+                    Text(verbatim: "\(rows) × \(cols)")
                         .font(.subheadline)
                         .fontWeight(.medium)
                 }
@@ -90,142 +111,215 @@ struct RearrangeWaffleView: View {
                 .background(Color.waffleSecondary.opacity(0.3), in: Capsule())
             }
 
-            Text("Drag cells to swap their positions")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+            Group {
+                if swapSource == nil {
+                    Text("Drag a cell to reorder, or tap two cells to swap them")
+                } else {
+                    Label(String(localized: "Now tap another cell to swap"), systemImage: "arrow.left.arrow.right")
+                        .foregroundStyle(Color.accentColor)
+                }
+            }
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+            .contentTransition(.opacity)
+            .animation(.easeInOut(duration: 0.15), value: swapSource == nil)
         }
     }
 
     // MARK: - Grid
 
-    private var gridView: some View {
-        GeometryReader { geometry in
-            let spacing: CGFloat = 8
-            let availableWidth = geometry.size.width
-            let availableHeight = geometry.size.height
-            let cellWidth = (availableWidth - (spacing * CGFloat(cols - 1))) / CGFloat(cols)
-            let cellHeight = (availableHeight - (spacing * CGFloat(rows - 1))) / CGFloat(rows)
+    /// Uses iOS 27's reorderable ForEach: the container interprets drops and
+    /// hands back a ReorderDifference instead of manual NSItemProvider plumbing.
+    /// Tiles are sized so the sheet's grid keeps the real grid's geometry.
+    private func gridView(in size: CGSize) -> some View {
+        let spacing: CGFloat = 8
+        let rowCount = max(1, rows)
+        let tileHeight = max(60, (size.height - spacing * CGFloat(rowCount - 1)) / CGFloat(rowCount))
+        let columns = Array(repeating: GridItem(.flexible(), spacing: spacing), count: max(1, cols))
 
-            VStack(spacing: spacing) {
-                ForEach(0..<rows, id: \.self) { row in
-                    HStack(spacing: spacing) {
-                        ForEach(0..<cols, id: \.self) { col in
-                            let index = row * cols + col
-                            if index < cells.count {
-                                cellView(for: cells[index], at: index)
-                                    .frame(width: cellWidth, height: cellHeight)
-                            }
-                        }
-                    }
-                }
+        return LazyVGrid(columns: columns, spacing: spacing) {
+            ForEach(Array(cells.enumerated()), id: \.element.id) { index, cell in
+                RearrangeTileView(
+                    cell: cell,
+                    index: index,
+                    isSwapSource: swapSource == cell.id,
+                    onTap: { handleTap(cell.id) },
+                    onClear: { clearCell(cell.id) }
+                )
+                .frame(height: tileHeight)
+            }
+            .reorderable()
+        }
+        .reorderContainer(for: RearrangeCell.self) { difference in
+            withAnimation(.spring(response: 0.3)) {
+                applyReorder(difference)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .accessibilityLabel(Text("Rearrangeable grid"))
+    }
+
+    // MARK: - Actions
+
+    private func applyReorder(_ difference: ReorderDifference<RearrangeCell.ID, ReorderableSingleCollectionIdentifier>) {
+        let ids = Set(difference.sources)
+        let destination: RearrangeCell.ID? = switch difference.destination.position {
+        case .before(let id): id
+        case .end: nil
+        }
+        cells = GridLayout.movedItems(cells, withIDs: ids, before: destination)
+        swapSource = nil
+    }
+
+    private func handleTap(_ id: RearrangeCell.ID) {
+        guard let source = swapSource else {
+            swapSource = id
+            return
+        }
+        defer { swapSource = nil }
+        guard source != id,
+              let first = cells.firstIndex(where: { $0.id == source }),
+              let second = cells.firstIndex(where: { $0.id == id }) else { return }
+        withAnimation(.spring(response: 0.3)) {
+            cells = GridLayout.swapped(cells, first, second)
+        }
+    }
+
+    private func clearCell(_ id: RearrangeCell.ID) {
+        guard let index = cells.firstIndex(where: { $0.id == id }) else { return }
+        withAnimation(.spring(response: 0.3)) {
+            cells[index].clear()
+            if swapSource == id {
+                swapSource = nil
             }
         }
     }
 
-    // MARK: - Cell View
+    private func loadCells() {
+        cells = coordinator.waffleState.waffleRows.flatMap { row in
+            row.map { RearrangeCell(id: UUID(), url: $0.address, title: $0.page.title) }
+        }
+        originalCells = cells
+    }
+}
 
-    private func cellView(for cell: RearrangeCell, at index: Int) -> some View {
-        let isBeingDragged = draggedCell?.id == cell.id
-        let isDragTarget = draggedCell != nil && draggedCell?.id != cell.id
+// MARK: - Tile
 
-        return VStack(spacing: 6) {
-            // Position badge
-            Text("\(index + 1)")
+/// A single tile in the rearrange grid: favicon, page title, and compact URL,
+/// with the app's accent-glow treatment when chosen for a swap.
+private struct RearrangeTileView: View {
+    let cell: RearrangeCell
+    let index: Int
+    let isSwapSource: Bool
+    let onTap: () -> Void
+    let onClear: () -> Void
+
+    private var faviconURL: URL? {
+        guard let host = URL(string: cell.url)?.host() else { return nil }
+        return URL(string: "https://\(host)/favicon.ico")
+    }
+
+    var body: some View {
+        ZStack {
+            if cell.isEmpty {
+                LinearGradient(
+                    colors: [Color.wafflePrimary.opacity(0.4), Color.waffleSecondary.opacity(0.3)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+
+                VStack(spacing: 6) {
+                    Image(systemName: "globe.badge.chevron.backward")
+                        .font(.title3)
+                        .foregroundStyle(.tertiary)
+                    Text("Empty")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                }
+            } else {
+                Color(uiColor: .secondarySystemGroupedBackground)
+
+                VStack(spacing: 8) {
+                    faviconView
+
+                    VStack(spacing: 2) {
+                        if !cell.title.isEmpty {
+                            Text(verbatim: cell.title)
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .lineLimit(1)
+                        }
+                        Text(verbatim: URLDisplayFormatter.compact(cell.url))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                    }
+                }
+                .padding(.horizontal, 10)
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(alignment: .topLeading) {
+            Text(verbatim: "\(index + 1)")
                 .font(.caption2)
                 .fontWeight(.bold)
                 .foregroundStyle(.white)
                 .frame(width: 22, height: 22)
                 .background(Color.waffleTertiary, in: Circle())
-
-            // URL display
-            if cell.url.isEmpty {
-                Image(systemName: "globe.badge.chevron.backward")
-                    .font(.title2)
-                    .foregroundStyle(.tertiary)
-                Text("Empty")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-            } else {
-                Image(systemName: "globe")
-                    .font(.title2)
-                    .foregroundStyle(Color.waffleSecondary)
-                Text(displayURL(for: cell.url))
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.center)
-                    .truncationMode(.middle)
-            }
+                .padding(6)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(8)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(cell.url.isEmpty
-                    ? Color(uiColor: .tertiarySystemFill)
-                    : Color(uiColor: .secondarySystemGroupedBackground))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(isDragTarget ? Color.waffleTertiary : Color.clear, lineWidth: 2)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(isDragTarget ? Color.waffleTertiary.opacity(0.1) : Color.clear)
-                )
-        )
-        .scaleEffect(isBeingDragged ? 1.05 : 1.0)
-        .opacity(isBeingDragged ? 0.7 : 1.0)
-        .shadow(color: .black.opacity(isBeingDragged ? 0.2 : 0.05), radius: isBeingDragged ? 10 : 4)
-        .animation(.spring(response: 0.3), value: isBeingDragged)
-        .animation(.spring(response: 0.3), value: isDragTarget)
-        .onDrag {
-            draggedCell = cell
-            return NSItemProvider(object: cell.id.uuidString as NSString)
+        .overlay {
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(isSwapSource ? Color.accentColor : Color.clear, lineWidth: 3)
+                .shadow(color: isSwapSource ? Color.accentColor.opacity(0.5) : .clear, radius: 8)
+                .padding(1)
         }
-        .onDrop(of: [.text], isTargeted: nil) { _ in
-            guard let dragged = draggedCell, dragged.id != cell.id else {
-                draggedCell = nil
-                return false
-            }
-
-            // Swap the cells
-            if let fromIndex = cells.firstIndex(where: { $0.id == dragged.id }),
-               let toIndex = cells.firstIndex(where: { $0.id == cell.id }) {
-                withAnimation(.spring(response: 0.3)) {
-                    cells.swapAt(fromIndex, toIndex)
+        .scaleEffect(isSwapSource ? 1.02 : 1.0)
+        .animation(.spring(response: 0.3), value: isSwapSource)
+        .contentShape(RoundedRectangle(cornerRadius: 14))
+        .onTapGesture(perform: onTap)
+        .contextMenu {
+            if !cell.isEmpty {
+                Button(role: .destructive) {
+                    onClear()
+                } label: {
+                    Label(String(localized: "Clear Cell"), systemImage: "xmark.circle")
                 }
             }
-
-            draggedCell = nil
-            return true
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(
+            cell.isEmpty
+                ? Text("Position \(index + 1), empty")
+                : Text("Position \(index + 1), \(cell.title.isEmpty ? URLDisplayFormatter.compact(cell.url) : cell.title)")
+        )
+        .accessibilityHint(
+            isSwapSource
+                ? Text("Chosen for swapping. Tap another cell to swap.")
+                : Text("Drag to reorder, or tap to choose for swapping")
+        )
+        .accessibilityAddTraits(isSwapSource ? .isSelected : [])
     }
 
-    // MARK: - Helpers
-
-    private func loadCells() {
-        let urls = coordinator.waffleState.flattenedAddresses()
-        cells = urls.enumerated().map { index, url in
-            RearrangeCell(id: UUID(), url: url)
+    private var faviconView: some View {
+        AsyncImage(url: faviconURL) { phase in
+            if let image = phase.image {
+                image
+                    .resizable()
+                    .scaledToFit()
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+            } else {
+                Image(systemName: "globe")
+                    .font(.title3)
+                    .foregroundStyle(Color.waffleSecondary)
+            }
         }
-        originalCells = cells
-    }
-
-    private func displayURL(for urlString: String) -> String {
-        var url = urlString
-        if url.hasPrefix("https://") { url = String(url.dropFirst(8)) }
-        else if url.hasPrefix("http://") { url = String(url.dropFirst(7)) }
-        if url.hasPrefix("www.") { url = String(url.dropFirst(4)) }
-        if let slashIndex = url.firstIndex(of: "/") {
-            let domain = String(url[..<slashIndex])
-            let path = String(url[slashIndex...])
-            if path.count > 10 { return domain }
-        }
-        return url
+        .frame(width: 28, height: 28)
     }
 }
 
 #Preview {
     RearrangeWaffleView(rows: 2, cols: 2, onCancel: {}, onSave: { _ in })
-        .environment(WaffleCoordinator(store: StoreManager()))
+        .environment(PreviewSupport.makeCoordinator())
 }

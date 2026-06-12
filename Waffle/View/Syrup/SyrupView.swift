@@ -26,6 +26,7 @@ struct SyrupView: View {
                             .font(.title2)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel(Text("Close"))
                 }
                 
                 Image(systemName: "drop.fill")

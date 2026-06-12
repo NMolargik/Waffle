@@ -57,9 +57,10 @@ struct BookmarksListView: View {
                         }
                     }
                     .buttonStyle(.plain)
+                    .draggable(bm.url ?? URL(string: "https://apple.com")!)
                     .contextMenu {
-                        Button("Apply to cell") { applyBookmark(bm) }
-                        Button("Edit") { onEdit(bm) }
+                        Button(String(localized: "Apply to cell")) { applyBookmark(bm) }
+                        Button(String(localized: "Edit")) { onEdit(bm) }
                         Button(role: .destructive) {
                             onDelete(bm)
                         } label: {

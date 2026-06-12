@@ -5,171 +5,156 @@
 //  Created by Nick Molargik on 8/30/25.
 //
 
+import AppIntents
 import SwiftUI
 import SwiftData
-import StoreKit
 import WebKit
+import os
 
 @main
 struct WaffleApp: App {
-    @Environment(\.openWindow) private var openWindow
-    @State private var ensuredMainWindowThisRun: Bool = false
+    @Environment(\.scenePhase) private var scenePhase
 
     private let container: ModelContainer
-    private let storeManager = StoreManager()
+    private let storeManager: StoreManager
     private let coordinator: WaffleCoordinator
 
+    private let reviewRequester: ReviewRequesting = AppStoreReviewRequester()
+
     // Review prompt tracking
-    @Environment(\.scenePhase) private var scenePhase
     @AppStorage("launchCount") private var launchCount: Int = 0
     @State private var didIncrementThisRun: Bool = false
-    @State private var attemptedReviewThisActivation: Bool = false
-    @AppStorage("mainWindowOpen") private var mainWindowOpen: Bool = false
 
     init() {
+        container = Self.makeModelContainer()
+
+        let errorHandler = ErrorHandler()
+        let store = StoreManager()
+        let library = LibraryManager(container: container, errorHandler: errorHandler)
+        let state = WaffleState()
+
+        storeManager = store
+        let coordinator = WaffleCoordinator(
+            store: store,
+            library: library,
+            errorHandler: errorHandler,
+            waffleState: state
+        )
+        self.coordinator = coordinator
+
+        // Expose managers to App Intents (Siri, Shortcuts, Spotlight actions).
+        AppDependencyManager.shared.add(dependency: library)
+        AppDependencyManager.shared.add(dependency: coordinator)
+
+        // Keep Spotlight's semantic index in sync with the library.
+        let indexer = CoreSpotlightIndexer()
+        library.libraryDidChange = {
+            indexer.reindex(
+                presets: library.presets().map(PresetEntity.init),
+                bookmarks: library.bookmarks().map(BookmarkEntity.init)
+            )
+        }
+    }
+
+    /// Builds the SwiftData container, degrading gracefully when CloudKit is
+    /// unavailable: CloudKit-synced → local-only → in-memory.
+    private static func makeModelContainer() -> ModelContainer {
+        let schema = Schema([Bookmark.self, Preset.self])
+
         do {
-            let config = ModelConfiguration("iCloud.com.molargiksoftware.Waffle")
-            container = try ModelContainer(for: Bookmark.self, Preset.self, configurations: config)
-            self.coordinator = WaffleCoordinator(store: storeManager)
+            let cloud = ModelConfiguration(
+                "iCloud.com.molargiksoftware.Waffle",
+                schema: schema,
+                cloudKitDatabase: .private("iCloud.com.molargiksoftware.Waffle")
+            )
+            return try ModelContainer(for: schema, configurations: cloud)
         } catch {
-            fatalError("Failed to create ModelContainer: \(error)")
+            Log.app.error("CloudKit container unavailable, falling back to local store: \(error.localizedDescription)")
+        }
+
+        do {
+            let local = ModelConfiguration(schema: schema, cloudKitDatabase: .none)
+            return try ModelContainer(for: schema, configurations: local)
+        } catch {
+            Log.app.fault("Local store unavailable, falling back to in-memory: \(error.localizedDescription)")
+        }
+
+        do {
+            let memory = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+            return try ModelContainer(for: schema, configurations: memory)
+        } catch {
+            fatalError("Failed to create even an in-memory ModelContainer: \(error)")
         }
     }
 
     var body: some Scene {
         WindowGroup(id: "main") {
-            MainSceneHost(storeManager: storeManager, container: container, coordinator: coordinator)
+            RootView()
+                .frame(minWidth: 820, minHeight: 520)
+                .modelContainer(container)
+                .environment(coordinator)
+                .environment(storeManager)
                 .onChange(of: scenePhase) { _, newPhase in
                     handleScenePhaseChange(newPhase)
-                    ensureMainWindowIfNeeded(for: newPhase)
                 }
-                .onAppear {
-                    // Mark that a main window exists for this run and globally.
-                    ensuredMainWindowThisRun = true
-                    mainWindowOpen = true
+                .onOpenURL { url in
+                    guard let link = DeepLink(url: url) else { return }
+                    coordinator.handle(link)
                 }
-                .onDisappear {
-                    // If the last main window closes, mark it as not open.
-                    mainWindowOpen = false
+                .task {
+                    // Seed the Spotlight index (covers items synced via CloudKit
+                    // while the app wasn't running).
+                    coordinator.library.libraryDidChange?()
                 }
         }
-        .defaultSize(width: 520, height: 520)
-        .windowResizability(.contentSize)
+        .defaultSize(width: 1100, height: 800)
+        .windowResizability(.contentMinSize)
         .handlesExternalEvents(matching: ["main"])
         .commands {
-            GridCommands(coordinator: coordinator)
+            WaffleCommands(coordinator: coordinator)
         }
 
         WindowGroup(id: "DetachedWaffleCell", for: WaffleCell.self) { $waffleCell in
-            DetachedCellSceneHost(waffleCell: $waffleCell, storeManager: storeManager, container: container, coordinator: coordinator)
+            DetachedCellSceneHost(
+                waffleCell: $waffleCell,
+                storeManager: storeManager,
+                container: container,
+                coordinator: coordinator
+            )
         }
-        .defaultSize(width: 420, height: 420)
-        .windowResizability(.contentSize)
+        .defaultSize(width: 600, height: 600)
+        .windowResizability(.contentMinSize)
         .handlesExternalEvents(matching: ["DetachedWaffleCell"])
     }
 
     // MARK: - Review prompt logic
 
     private func handleScenePhaseChange(_ newPhase: ScenePhase) {
-        switch newPhase {
-        case .active:
-            // Increment launch count once per process run, at first activation.
-            if !didIncrementThisRun {
-                didIncrementThisRun = true
-                launchCount += 1
+        guard newPhase == .active else { return }
+
+        // Increment launch count once per process run, at first activation.
+        if !didIncrementThisRun {
+            didIncrementThisRun = true
+            launchCount += 1
+
+            // Ask for a review at the fifth launch milestone.
+            if launchCount == 5 {
+                reviewRequester.requestReview()
             }
-
-            // Attempt review on specific milestones (5th launch here).
-            if !attemptedReviewThisActivation, launchCount == 5 {
-                attemptedReviewThisActivation = true
-                requestReviewIfAppropriate()
-            }
-
-        case .inactive, .background:
-            // Reset per-activation guard so we could consider showing at a later activation if needed.
-            attemptedReviewThisActivation = false
-
-        @unknown default:
-            break
         }
     }
 
-    private func requestReviewIfAppropriate() {
-        // Find a foreground active UIWindowScene
-        guard let scene = UIApplication.shared.connectedScenes
-            .compactMap({ $0 as? UIWindowScene })
-            .first(where: { $0.activationState == .foregroundActive }) else {
-            // Fallback: requestReview() is deprecated, but no active scene was found.
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                AppStore.requestReview(in: windowScene)
-            }
-            return
-        }
-        AppStore.requestReview(in: scene)
-    }
-
-    // MARK: - Window management
-    private func ensureMainWindowIfNeeded(for newPhase: ScenePhase) {
-        // Only try when app becomes active, and only once per process run.
-        guard newPhase == .active, !ensuredMainWindowThisRun else { return }
-
-        // Count active foreground window scenes that belong to the "main" WindowGroup.
-        // If none are found, open one.
-        let hasActiveMain = UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .contains { scene in
-                scene.activationState == .foregroundActive &&
-                scene.session.role == .windowApplication &&
-                // We rely on our explicit id handling when opening below; if there is any
-                // foreground scene, we'll consider that sufficient. If only detached windows
-                // exist, we still want to force-open the main scene.
-                true
-            }
-
-        if !hasActiveMain {
-            // Open the explicitly-identified main WindowGroup.
-            openWindow(id: "main")
-            ensuredMainWindowThisRun = true
-        }
-    }
 }
 
-// MARK: - Scene Hosts
-private struct MainSceneHost: View {
-    let storeManager: StoreManager
-    let container: ModelContainer
-    let coordinator: WaffleCoordinator
-
-    init(storeManager: StoreManager, container: ModelContainer, coordinator: WaffleCoordinator) {
-        self.storeManager = storeManager
-        self.container = container
-        self.coordinator = coordinator
-    }
-
-    var body: some View {
-        RootView()
-            .frame(minWidth: 820)
-            .modelContainer(container)
-            .environment(coordinator)
-            .environment(storeManager)
-    }
-}
+// MARK: - Detached Cell Scene
 
 private struct DetachedCellSceneHost: View {
     @Environment(\.openWindow) private var openWindow
-    @AppStorage("mainWindowOpen") private var mainWindowOpen: Bool = false
 
     @Binding var waffleCell: WaffleCell?
     let storeManager: StoreManager
     let container: ModelContainer
     let coordinator: WaffleCoordinator
-
-    init(waffleCell: Binding<WaffleCell?>, storeManager: StoreManager, container: ModelContainer, coordinator: WaffleCoordinator) {
-        self._waffleCell = waffleCell
-        self.storeManager = storeManager
-        self.container = container
-        self.coordinator = coordinator
-    }
 
     var body: some View {
         if let waffleCell {
@@ -177,22 +162,29 @@ private struct DetachedCellSceneHost: View {
                 .environment(coordinator)
                 .environment(storeManager)
                 .modelContainer(container)
+                .task {
+                    // If only this detached window survived relaunch, bring
+                    // the main window back once scene restoration settles.
+                    try? await Task.sleep(for: .milliseconds(500))
+                    if coordinator.mainWindowCount == 0 {
+                        openWindow(id: "main")
+                    }
+                }
                 .onDisappear {
-                    // Safety net: ensure the popped cell is returned to the grid when this window closes
-                    // (e.g., if user swipes away the window instead of tapping Pop Back).
-                    // Only call popBack if the cell is still marked as popped out (prevents double-processing).
+                    // Safety net: return the popped cell to the grid when this
+                    // window closes (e.g. the user swipes the window away).
                     if coordinator.waffleState.poppedCell != nil {
-                        let addr = waffleCell.address.isEmpty ? (waffleCell.page.url?.absoluteString ?? "") : waffleCell.address
-                        if !addr.isEmpty {
-                            coordinator.waffleState.popBack(poppedCellAddress: addr)
-                        }
+                        let address = waffleCell.address.isEmpty
+                            ? (waffleCell.page.url?.absoluteString ?? "")
+                            : waffleCell.address
+                        coordinator.waffleState.popBack(poppedCellAddress: address)
                     }
 
-                    // Only bring the main window forward if it's not already open.
-                    // Use a delay to avoid WebKit animation race conditions.
-                    if !mainWindowOpen {
-                        Task { @MainActor in
-                            try? await Task.sleep(for: .milliseconds(200))
+                    // Reopen the main window only when none is left. Delay
+                    // slightly to avoid WebKit animation race conditions.
+                    Task { @MainActor in
+                        try? await Task.sleep(for: .milliseconds(200))
+                        if coordinator.mainWindowCount == 0 {
                             openWindow(id: "main")
                         }
                     }
@@ -203,44 +195,3 @@ private struct DetachedCellSceneHost: View {
         }
     }
 }
-
-// MARK: - Grid Commands
-
-struct GridCommands: Commands {
-    let coordinator: WaffleCoordinator
-
-    var body: some Commands {
-        CommandMenu("Grid") {
-            Button("Add Row") {
-                guard coordinator.waffleState.rowCount < coordinator.maxRows else { return }
-                coordinator.waffleState.rowCount += 1
-            }
-            .keyboardShortcut(.downArrow, modifiers: [.command, .shift])
-            .disabled(coordinator.waffleState.rowCount >= coordinator.maxRows)
-
-            Button("Remove Row") {
-                guard coordinator.waffleState.rowCount > 1 else { return }
-                coordinator.waffleState.rowCount -= 1
-            }
-            .keyboardShortcut(.upArrow, modifiers: [.command, .shift])
-            .disabled(coordinator.waffleState.rowCount <= 1)
-
-            Divider()
-
-            Button("Add Column") {
-                guard coordinator.waffleState.colCount < coordinator.maxCols else { return }
-                coordinator.waffleState.colCount += 1
-            }
-            .keyboardShortcut(.rightArrow, modifiers: [.command, .shift])
-            .disabled(coordinator.waffleState.colCount >= coordinator.maxCols)
-
-            Button("Remove Column") {
-                guard coordinator.waffleState.colCount > 1 else { return }
-                coordinator.waffleState.colCount -= 1
-            }
-            .keyboardShortcut(.leftArrow, modifiers: [.command, .shift])
-            .disabled(coordinator.waffleState.colCount <= 1)
-        }
-    }
-}
-
