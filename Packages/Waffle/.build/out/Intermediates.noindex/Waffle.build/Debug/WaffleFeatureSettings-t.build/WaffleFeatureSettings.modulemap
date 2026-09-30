@@ -1,0 +1,4 @@
+module WaffleFeatureSettings {
+header "WaffleFeatureSettings-Swift.h"
+export *
+}

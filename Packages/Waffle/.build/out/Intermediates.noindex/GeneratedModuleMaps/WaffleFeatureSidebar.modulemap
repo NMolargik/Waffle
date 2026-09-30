@@ -1,0 +1,4 @@
+module WaffleFeatureSidebar {
+header "WaffleFeatureSidebar-Swift.h"
+export *
+}

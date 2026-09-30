@@ -3,12 +3,14 @@
 //  Waffle
 //
 //  App Intents entities for presets and bookmarks, indexed into Spotlight
-//  for semantic search and Siri.
+//  for semantic search and Siri. Queries read through the session's use-cases.
 //
 
 import AppIntents
 import CoreSpotlight
 import Foundation
+import WaffleComposition
+import WaffleCore
 
 // MARK: - Preset
 
@@ -50,19 +52,19 @@ struct PresetEntity: AppEntity, IndexedEntity {
 }
 
 struct PresetEntityQuery: EntityQuery {
-    @Dependency private var library: LibraryManager
+    @Dependency private var session: SessionController
 
     func entities(for identifiers: [UUID]) async throws -> [PresetEntity] {
         await MainActor.run {
             identifiers.compactMap { id in
-                library.preset(id: id).map(PresetEntity.init)
+                (try? session.findPreset(id: id)).flatMap { $0 }.map(PresetEntity.init)
             }
         }
     }
 
     func suggestedEntities() async throws -> [PresetEntity] {
-        await MainActor.run {
-            library.presets().map(PresetEntity.init)
+        try await MainActor.run {
+            try session.loadPresets().map(PresetEntity.init)
         }
     }
 }
@@ -106,19 +108,19 @@ struct BookmarkEntity: AppEntity, IndexedEntity {
 }
 
 struct BookmarkEntityQuery: EntityQuery {
-    @Dependency private var library: LibraryManager
+    @Dependency private var session: SessionController
 
     func entities(for identifiers: [UUID]) async throws -> [BookmarkEntity] {
         await MainActor.run {
             identifiers.compactMap { id in
-                library.bookmark(id: id).map(BookmarkEntity.init)
+                (try? session.findBookmark(id: id)).flatMap { $0 }.map(BookmarkEntity.init)
             }
         }
     }
 
     func suggestedEntities() async throws -> [BookmarkEntity] {
-        await MainActor.run {
-            library.bookmarks().map(BookmarkEntity.init)
+        try await MainActor.run {
+            try session.loadBookmarks().map(BookmarkEntity.init)
         }
     }
 }

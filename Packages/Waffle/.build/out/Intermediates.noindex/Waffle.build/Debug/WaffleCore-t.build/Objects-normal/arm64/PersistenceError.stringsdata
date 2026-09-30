@@ -1,0 +1,24 @@
+{
+  "source": "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleCore/Services/PersistenceError.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Couldn't load your library. (%@)",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 22
+        }
+      },
+      {
+        "comment": "",
+        "key": "Couldn't save your changes. (%@)",
+        "location": {
+          "startingColumn": 57,
+          "startingLine": 23
+        }
+      }
+    ]
+  },
+  "version": 1
+}

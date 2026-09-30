@@ -1,0 +1,4 @@
+module WaffleFeatureSyrup {
+header "WaffleFeatureSyrup-Swift.h"
+export *
+}

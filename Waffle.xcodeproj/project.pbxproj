@@ -6,6 +6,15 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		DEC0DE000000000000000011 /* WaffleComposition in Frameworks */ = {isa = PBXBuildFile; productRef = DEC0DE000000000000000010 /* WaffleComposition */; };
+		DEC0DE000000000000000013 /* WaffleCore in Frameworks */ = {isa = PBXBuildFile; productRef = DEC0DE000000000000000012 /* WaffleCore */; };
+		DEC0DE000000000000000015 /* WaffleData in Frameworks */ = {isa = PBXBuildFile; productRef = DEC0DE000000000000000014 /* WaffleData */; };
+		DEC0DE000000000000000017 /* WaffleDesignSystem in Frameworks */ = {isa = PBXBuildFile; productRef = DEC0DE000000000000000016 /* WaffleDesignSystem */; };
+		DEC0DE000000000000000019 /* WaffleFeatureGrid in Frameworks */ = {isa = PBXBuildFile; productRef = DEC0DE000000000000000018 /* WaffleFeatureGrid */; };
+		DEC0DE00000000000000001B /* WaffleServices in Frameworks */ = {isa = PBXBuildFile; productRef = DEC0DE00000000000000001A /* WaffleServices */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		FAB1E00000000000000000AB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -65,6 +74,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DEC0DE000000000000000011 /* WaffleComposition in Frameworks */,
+				DEC0DE000000000000000013 /* WaffleCore in Frameworks */,
+				DEC0DE000000000000000015 /* WaffleData in Frameworks */,
+				DEC0DE000000000000000017 /* WaffleDesignSystem in Frameworks */,
+				DEC0DE000000000000000019 /* WaffleFeatureGrid in Frameworks */,
+				DEC0DE00000000000000001B /* WaffleServices in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -117,6 +132,12 @@
 			);
 			name = Waffle;
 			packageProductDependencies = (
+				DEC0DE000000000000000010 /* WaffleComposition */,
+				DEC0DE000000000000000012 /* WaffleCore */,
+				DEC0DE000000000000000014 /* WaffleData */,
+				DEC0DE000000000000000016 /* WaffleDesignSystem */,
+				DEC0DE000000000000000018 /* WaffleFeatureGrid */,
+				DEC0DE00000000000000001A /* WaffleServices */,
 			);
 			productName = Waffle;
 			productReference = EB0E1C912E63B51E0060F834 /* Waffle.app */;
@@ -176,6 +197,9 @@
 			);
 			mainGroup = EB0E1C882E63B51E0060F834;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				DEC0DE000000000000000001 /* XCLocalSwiftPackageReference "Packages/Waffle" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = EB0E1C922E63B51E0060F834 /* Products */;
 			projectDirPath = "";
@@ -290,7 +314,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -349,7 +373,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -385,7 +409,7 @@
 				MARKETING_VERSION = 1.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.molargiksoftware.Waffle;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -427,7 +451,7 @@
 				MARKETING_VERSION = 1.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.molargiksoftware.Waffle;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -518,6 +542,46 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		DEC0DE000000000000000001 /* XCLocalSwiftPackageReference "Packages/Waffle" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/Waffle;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		DEC0DE000000000000000010 /* WaffleComposition */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DEC0DE000000000000000001 /* XCLocalSwiftPackageReference "Packages/Waffle" */;
+			productName = WaffleComposition;
+		};
+		DEC0DE000000000000000012 /* WaffleCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DEC0DE000000000000000001 /* XCLocalSwiftPackageReference "Packages/Waffle" */;
+			productName = WaffleCore;
+		};
+		DEC0DE000000000000000014 /* WaffleData */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DEC0DE000000000000000001 /* XCLocalSwiftPackageReference "Packages/Waffle" */;
+			productName = WaffleData;
+		};
+		DEC0DE000000000000000016 /* WaffleDesignSystem */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DEC0DE000000000000000001 /* XCLocalSwiftPackageReference "Packages/Waffle" */;
+			productName = WaffleDesignSystem;
+		};
+		DEC0DE000000000000000018 /* WaffleFeatureGrid */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DEC0DE000000000000000001 /* XCLocalSwiftPackageReference "Packages/Waffle" */;
+			productName = WaffleFeatureGrid;
+		};
+		DEC0DE00000000000000001A /* WaffleServices */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DEC0DE000000000000000001 /* XCLocalSwiftPackageReference "Packages/Waffle" */;
+			productName = WaffleServices;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = EB0E1C892E63B51E0060F834 /* Project object */;
 }

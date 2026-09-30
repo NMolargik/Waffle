@@ -1,0 +1,19 @@
+{
+  "" : {
+    "diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureOnboarding-t.build/Objects-normal/arm64/WaffleFeatureOnboarding-primary.dia",
+    "emit-module-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureOnboarding-t.build/Objects-normal/arm64/WaffleFeatureOnboarding-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureOnboarding-t.build/Objects-normal/arm64/WaffleFeatureOnboarding-primary-emit-module.dia",
+    "pch" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureOnboarding-t.build/Objects-normal/arm64/WaffleFeatureOnboarding-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureOnboarding-t.build/Objects-normal/arm64/WaffleFeatureOnboarding-primary.swiftdeps"
+  },
+  "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleFeatureOnboarding/OnboardingView.swift" : {
+    "const-values" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureOnboarding-t.build/Objects-normal/arm64/OnboardingView.swiftconstvalues",
+    "dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureOnboarding-t.build/Objects-normal/arm64/OnboardingView.d",
+    "diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureOnboarding-t.build/Objects-normal/arm64/OnboardingView.dia",
+    "index-unit-output-path" : "/Waffle.build/Debug/WaffleFeatureOnboarding-t.build/Objects-normal/arm64/OnboardingView.o",
+    "llvm-bc" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureOnboarding-t.build/Objects-normal/arm64/OnboardingView.bc",
+    "object" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureOnboarding-t.build/Objects-normal/arm64/OnboardingView.o",
+    "swift-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureOnboarding-t.build/Objects-normal/arm64/OnboardingView.swiftdeps",
+    "swiftmodule" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureOnboarding-t.build/Objects-normal/arm64/OnboardingView~partial.swiftmodule"
+  }
+}

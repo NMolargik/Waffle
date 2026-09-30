@@ -1,0 +1,29 @@
+{
+  "" : {
+    "diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleCompositionTests-p.build/Objects-normal/arm64/WaffleCompositionTests-primary.dia",
+    "emit-module-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleCompositionTests-p.build/Objects-normal/arm64/WaffleCompositionTests-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleCompositionTests-p.build/Objects-normal/arm64/WaffleCompositionTests-primary-emit-module.dia",
+    "pch" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleCompositionTests-p.build/Objects-normal/arm64/WaffleCompositionTests-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleCompositionTests-p.build/Objects-normal/arm64/WaffleCompositionTests-primary.swiftdeps"
+  },
+  "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleCompositionTests-p.build/DerivedSources/test_entry_point.swift" : {
+    "const-values" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleCompositionTests-p.build/Objects-normal/arm64/test_entry_point.swiftconstvalues",
+    "dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleCompositionTests-p.build/Objects-normal/arm64/test_entry_point.d",
+    "diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleCompositionTests-p.build/Objects-normal/arm64/test_entry_point.dia",
+    "index-unit-output-path" : "/Waffle.build/Debug/WaffleCompositionTests-p.build/Objects-normal/arm64/test_entry_point.o",
+    "llvm-bc" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleCompositionTests-p.build/Objects-normal/arm64/test_entry_point.bc",
+    "object" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleCompositionTests-p.build/Objects-normal/arm64/test_entry_point.o",
+    "swift-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleCompositionTests-p.build/Objects-normal/arm64/test_entry_point.swiftdeps",
+    "swiftmodule" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleCompositionTests-p.build/Objects-normal/arm64/test_entry_point~partial.swiftmodule"
+  },
+  "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/Tests/WaffleCompositionTests/SessionControllerTests.swift" : {
+    "const-values" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleCompositionTests-p.build/Objects-normal/arm64/SessionControllerTests.swiftconstvalues",
+    "dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleCompositionTests-p.build/Objects-normal/arm64/SessionControllerTests.d",
+    "diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleCompositionTests-p.build/Objects-normal/arm64/SessionControllerTests.dia",
+    "index-unit-output-path" : "/Waffle.build/Debug/WaffleCompositionTests-p.build/Objects-normal/arm64/SessionControllerTests.o",
+    "llvm-bc" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleCompositionTests-p.build/Objects-normal/arm64/SessionControllerTests.bc",
+    "object" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleCompositionTests-p.build/Objects-normal/arm64/SessionControllerTests.o",
+    "swift-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleCompositionTests-p.build/Objects-normal/arm64/SessionControllerTests.swiftdeps",
+    "swiftmodule" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleCompositionTests-p.build/Objects-normal/arm64/SessionControllerTests~partial.swiftmodule"
+  }
+}

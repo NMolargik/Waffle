@@ -1,0 +1,49 @@
+{
+  "" : {
+    "diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/WaffleDesignSystem-primary.dia",
+    "emit-module-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/WaffleDesignSystem-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/WaffleDesignSystem-primary-emit-module.dia",
+    "pch" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/WaffleDesignSystem-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/WaffleDesignSystem-primary.swiftdeps"
+  },
+  "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleDesignSystem/AlignedIconLabelStyle.swift" : {
+    "const-values" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/AlignedIconLabelStyle.swiftconstvalues",
+    "dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/AlignedIconLabelStyle.d",
+    "diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/AlignedIconLabelStyle.dia",
+    "index-unit-output-path" : "/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/AlignedIconLabelStyle.o",
+    "llvm-bc" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/AlignedIconLabelStyle.bc",
+    "object" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/AlignedIconLabelStyle.o",
+    "swift-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/AlignedIconLabelStyle.swiftdeps",
+    "swiftmodule" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/AlignedIconLabelStyle~partial.swiftmodule"
+  },
+  "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleDesignSystem/BrandColors.swift" : {
+    "const-values" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/BrandColors.swiftconstvalues",
+    "dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/BrandColors.d",
+    "diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/BrandColors.dia",
+    "index-unit-output-path" : "/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/BrandColors.o",
+    "llvm-bc" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/BrandColors.bc",
+    "object" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/BrandColors.o",
+    "swift-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/BrandColors.swiftdeps",
+    "swiftmodule" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/BrandColors~partial.swiftmodule"
+  },
+  "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleDesignSystem/ErrorHandler.swift" : {
+    "const-values" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/ErrorHandler.swiftconstvalues",
+    "dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/ErrorHandler.d",
+    "diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/ErrorHandler.dia",
+    "index-unit-output-path" : "/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/ErrorHandler.o",
+    "llvm-bc" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/ErrorHandler.bc",
+    "object" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/ErrorHandler.o",
+    "swift-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/ErrorHandler.swiftdeps",
+    "swiftmodule" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/ErrorHandler~partial.swiftmodule"
+  },
+  "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleDesignSystem/WaffleButtonStyles.swift" : {
+    "const-values" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/WaffleButtonStyles.swiftconstvalues",
+    "dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/WaffleButtonStyles.d",
+    "diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/WaffleButtonStyles.dia",
+    "index-unit-output-path" : "/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/WaffleButtonStyles.o",
+    "llvm-bc" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/WaffleButtonStyles.bc",
+    "object" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/WaffleButtonStyles.o",
+    "swift-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/WaffleButtonStyles.swiftdeps",
+    "swiftmodule" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleDesignSystem-t.build/Objects-normal/arm64/WaffleButtonStyles~partial.swiftmodule"
+  }
+}

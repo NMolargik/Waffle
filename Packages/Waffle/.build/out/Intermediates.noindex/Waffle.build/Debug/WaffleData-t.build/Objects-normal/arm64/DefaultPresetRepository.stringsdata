@@ -1,0 +1,16 @@
+{
+  "source": "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleData/DefaultPresetRepository.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Preset %@",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 58
+        }
+      }
+    ]
+  },
+  "version": 1
+}

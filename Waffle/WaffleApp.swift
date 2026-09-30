@@ -2,22 +2,26 @@
 //  WaffleApp.swift
 //  Waffle
 //
-//  Created by Nick Molargik on 8/30/25.
+//  Thin shell: builds the SessionController (composition root in WaffleComposition),
+//  registers it for App Intents, and hosts the two scenes. All feature code lives in
+//  Packages/Waffle.
 //
 
 import AppIntents
-import SwiftUI
 import SwiftData
+import SwiftUI
+import WaffleComposition
+import WaffleCore
+import WaffleData
+import WaffleFeatureGrid
+import WaffleServices
 import WebKit
-import os
 
 @main
 struct WaffleApp: App {
     @Environment(\.scenePhase) private var scenePhase
 
-    private let container: ModelContainer
-    private let storeManager: StoreManager
-    private let coordinator: WaffleCoordinator
+    private let session: SessionController
 
     private let reviewRequester: ReviewRequesting = AppStoreReviewRequester()
 
@@ -26,101 +30,44 @@ struct WaffleApp: App {
     @State private var didIncrementThisRun: Bool = false
 
     init() {
-        container = Self.makeModelContainer()
-
-        let errorHandler = ErrorHandler()
-        let store = StoreManager()
-        let library = LibraryManager(container: container, errorHandler: errorHandler)
-        let state = WaffleState()
-
-        storeManager = store
-        let coordinator = WaffleCoordinator(
-            store: store,
-            library: library,
-            errorHandler: errorHandler,
-            waffleState: state
+        let session = SessionController(
+            presetDonator: WafflePresetDonator(),
+            indexer: CoreSpotlightIndexer(),
+            activityAnnotator: BrowsingActivityAnnotator()
         )
-        self.coordinator = coordinator
+        self.session = session
 
-        // Expose managers to App Intents (Siri, Shortcuts, Spotlight actions).
-        AppDependencyManager.shared.add(dependency: library)
-        AppDependencyManager.shared.add(dependency: coordinator)
-
-        // Keep Spotlight's semantic index in sync with the library.
-        let indexer = CoreSpotlightIndexer()
-        library.libraryDidChange = {
-            indexer.reindex(
-                presets: library.presets().map(PresetEntity.init),
-                bookmarks: library.bookmarks().map(BookmarkEntity.init)
-            )
-        }
-    }
-
-    /// Builds the SwiftData container, degrading gracefully when CloudKit is
-    /// unavailable: CloudKit-synced → local-only → in-memory.
-    private static func makeModelContainer() -> ModelContainer {
-        let schema = Schema([Bookmark.self, Preset.self])
-
-        do {
-            let cloud = ModelConfiguration(
-                "iCloud.com.molargiksoftware.Waffle",
-                schema: schema,
-                cloudKitDatabase: .private("iCloud.com.molargiksoftware.Waffle")
-            )
-            return try ModelContainer(for: schema, configurations: cloud)
-        } catch {
-            Log.app.error("CloudKit container unavailable, falling back to local store: \(error.localizedDescription)")
-        }
-
-        do {
-            let local = ModelConfiguration(schema: schema, cloudKitDatabase: .none)
-            return try ModelContainer(for: schema, configurations: local)
-        } catch {
-            Log.app.fault("Local store unavailable, falling back to in-memory: \(error.localizedDescription)")
-        }
-
-        do {
-            let memory = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-            return try ModelContainer(for: schema, configurations: memory)
-        } catch {
-            fatalError("Failed to create even an in-memory ModelContainer: \(error)")
-        }
+        // Expose the session to App Intents (Siri, Shortcuts, Spotlight actions).
+        AppDependencyManager.shared.add(dependency: session)
     }
 
     var body: some Scene {
         WindowGroup(id: "main") {
-            RootView()
+            RootView(session: session)
                 .frame(minWidth: 820, minHeight: 520)
-                .modelContainer(container)
-                .environment(coordinator)
-                .environment(storeManager)
+                .modelContainer(session.container)
                 .onChange(of: scenePhase) { _, newPhase in
                     handleScenePhaseChange(newPhase)
                 }
                 .onOpenURL { url in
                     guard let link = DeepLink(url: url) else { return }
-                    coordinator.handle(link)
+                    session.handle(link)
                 }
                 .task {
                     // Seed the Spotlight index (covers items synced via CloudKit
                     // while the app wasn't running).
-                    coordinator.library.libraryDidChange?()
+                    session.reindexLibrary()
                 }
         }
         .defaultSize(width: 1100, height: 800)
         .windowResizability(.contentMinSize)
         .handlesExternalEvents(matching: ["main"])
         .commands {
-            WaffleCommands(coordinator: coordinator)
+            WaffleCommands(session: session)
         }
 
         WindowGroup(id: "DetachedWaffleCell", for: WaffleCell.self) { $waffleCell in
-            DetachedCellSceneHost(
-                waffleCell: $waffleCell,
-                storeManager: storeManager,
-                container: container,
-                coordinator: coordinator
-            )
+            DetachedCellSceneHost(waffleCell: $waffleCell, session: session)
         }
         .defaultSize(width: 600, height: 600)
         .windowResizability(.contentMinSize)
@@ -143,7 +90,6 @@ struct WaffleApp: App {
             }
         }
     }
-
 }
 
 // MARK: - Detached Cell Scene
@@ -152,43 +98,45 @@ private struct DetachedCellSceneHost: View {
     @Environment(\.openWindow) private var openWindow
 
     @Binding var waffleCell: WaffleCell?
-    let storeManager: StoreManager
-    let container: ModelContainer
-    let coordinator: WaffleCoordinator
+    let session: SessionController
 
     var body: some View {
         if let waffleCell {
-            DetachedWaffleCellView(waffleCell: waffleCell)
-                .environment(coordinator)
-                .environment(storeManager)
-                .modelContainer(container)
-                .task {
-                    // If only this detached window survived relaunch, bring
-                    // the main window back once scene restoration settles.
-                    try? await Task.sleep(for: .milliseconds(500))
-                    if coordinator.mainWindowCount == 0 {
+            DetachedWaffleCellView(
+                waffleCell: waffleCell,
+                onPopBack: { address in
+                    session.grid.popBack(poppedCellAddress: address)
+                },
+                shouldReopenMainWindow: { session.mainWindowCount == 0 }
+            )
+            .modelContainer(session.container)
+            .task {
+                // If only this detached window survived relaunch, bring
+                // the main window back once scene restoration settles.
+                try? await Task.sleep(for: .milliseconds(500))
+                if session.mainWindowCount == 0 {
+                    openWindow(id: "main")
+                }
+            }
+            .onDisappear {
+                // Safety net: return the popped cell to the grid when this
+                // window closes (e.g. the user swipes the window away).
+                if session.grid.poppedCell != nil {
+                    let address = waffleCell.address.isEmpty
+                        ? (waffleCell.page.url?.absoluteString ?? "")
+                        : waffleCell.address
+                    session.grid.popBack(poppedCellAddress: address)
+                }
+
+                // Reopen the main window only when none is left. Delay
+                // slightly to avoid WebKit animation race conditions.
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(200))
+                    if session.mainWindowCount == 0 {
                         openWindow(id: "main")
                     }
                 }
-                .onDisappear {
-                    // Safety net: return the popped cell to the grid when this
-                    // window closes (e.g. the user swipes the window away).
-                    if coordinator.waffleState.poppedCell != nil {
-                        let address = waffleCell.address.isEmpty
-                            ? (waffleCell.page.url?.absoluteString ?? "")
-                            : waffleCell.address
-                        coordinator.waffleState.popBack(poppedCellAddress: address)
-                    }
-
-                    // Reopen the main window only when none is left. Delay
-                    // slightly to avoid WebKit animation race conditions.
-                    Task { @MainActor in
-                        try? await Task.sleep(for: .milliseconds(200))
-                        if coordinator.mainWindowCount == 0 {
-                            openWindow(id: "main")
-                        }
-                    }
-                }
+            }
         } else {
             Text("Oh, how'd you do that?\nPlease close this window. - Waffle")
                 .multilineTextAlignment(.center)

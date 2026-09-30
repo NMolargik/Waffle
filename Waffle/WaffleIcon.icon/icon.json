@@ -1,69 +1,95 @@
 {
+  "features" : [
+    "refractivity"
+  ],
   "fill" : {
     "linear-gradient" : [
-      "display-p3:0.96861,1.00000,0.98946,1.00000",
-      "display-p3:0.87290,0.65086,0.33999,1.00000"
-    ],
-    "orientation" : {
-      "start" : {
-        "x" : 0.5,
-        "y" : 0
-      },
-      "stop" : {
-        "x" : 0.5,
-        "y" : 0.7
-      }
-    }
+      "display-p3:0.97021,0.99805,0.99121,1.00000",
+      "display-p3:0.87158,0.65137,0.34058,1.00000"
+    ]
   },
   "groups" : [
     {
-      "blur-material" : null,
       "layers" : [
         {
-          "image-name" : "butter.png",
+          "image-name" : "butter.svg",
           "name" : "butter",
           "position" : {
-            "scale" : 0.85,
+            "scale" : 1,
             "translation-in-points" : [
-              115.84375,
-              -125.40625
-            ]
-          }
-        },
-        {
-          "image-name" : "cells.png",
-          "name" : "cells",
-          "position" : {
-            "scale" : 0.85,
-            "translation-in-points" : [
-              0,
-              0
-            ]
-          }
-        },
-        {
-          "blend-mode" : "normal",
-          "fill" : "automatic",
-          "image-name" : "waffle.png",
-          "name" : "waffle",
-          "position" : {
-            "scale" : 0.85,
-            "translation-in-points" : [
-              0,
-              0
+              115,
+              -115
             ]
           }
         }
       ],
-      "lighting" : "individual",
+      "refractivity" : {
+        "depth" : 0.2940234375,
+        "enabled" : true,
+        "strength" : -0.6898046875
+      },
       "shadow" : {
         "kind" : "neutral",
-        "opacity" : 0.5
+        "opacity" : 0.6
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.2
+      }
+    },
+    {
+      "layers" : [
+        {
+          "image-name" : "waffleIcon.svg",
+          "name" : "waffleIcon"
+        }
+      ],
+      "shadow" : {
+        "kind" : "none",
+        "opacity" : 0.6
+      },
+      "translucency" : {
+        "enabled" : false,
+        "value" : 0.2
+      }
+    },
+    {
+      "blur-material" : null,
+      "layers" : [
+        {
+          "image-name" : "cells1.svg",
+          "name" : "cells1"
+        }
+      ],
+      "refractivity" : {
+        "depth" : 0.113984375,
+        "enabled" : true,
+        "strength" : 0.3473828125
+      },
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 2.36
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.2
+      }
+    },
+    {
+      "layers" : [
+        {
+          "image-name" : "base.svg",
+          "name" : "base"
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 2
       },
       "specular" : true,
       "translucency" : {
-        "enabled" : false,
-        "value" : 0.5
+        "enabled" : true,
+        "value" : 0.2
       }
     }
   ],

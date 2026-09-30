@@ -6,7 +6,7 @@ A grid-based web browser for iPad that reimagines how users interact with multip
 
 ## Overview
 
-Unlike traditional tab-based browsers, Waffle organizes pages into a customizable grid. Each cell hosts its own browsing context, allowing users to visually organize workflows, research sets, and dashboards side-by-side. Built with SwiftUI and WebKit for iOS 27, it offers a lightweight, intuitive, and deeply Apple-native browsing experience.
+Unlike traditional tab-based browsers, Waffle organizes pages into a customizable grid. Each cell hosts its own browsing context, allowing users to visually organize workflows, research sets, and dashboards side-by-side. Built with SwiftUI and the native WebKit-for-SwiftUI APIs (`WebView`/`WebPage`) for iOS 27, it offers a lightweight, intuitive, and deeply Apple-native browsing experience.
 
 Waffle is designed for:
 - **iPad power users** who multitask visually
@@ -16,126 +16,126 @@ Waffle is designed for:
 ## Features
 
 ### Grid Browsing
-- Customizable grid layout (up to unlimited rows/columns with premium)
-- Independent browsing context per cell with full navigation
-- Drag and drop to rearrange cells
-- Pop-out windows for focused viewing
+- Customizable grid layout — free up to 2×2, up to 4×4 with Syrup
+- Independent browsing context per cell with full navigation, address bar, and per-cell reload
+- Rearrange sheet with drag-to-reorder and tap-to-swap
+- Pop-out cells into their own windows, fullscreen a single cell
+- Grid state persists automatically (debounced snapshots) and restores on launch
 
 ### Bookmarks & Presets
-- Save and organize bookmarks with drag-to-reorder
-- Create presets to save entire grid layouts
+- Save and organize bookmarks with drag-to-reorder, search, and drag-onto-a-cell
+- Create presets to save entire grid layouts — size and every page in it
 - Restore research sessions with one tap
 
-### Safari Integration
-- Share extension to save URLs directly into grid cells
-- Quick capture from any app via share sheet
-
 ### Platform Integration
-- **iCloud Sync**: Seamless bookmark and preset sync via CloudKit
-- **Multi-Window**: Scene-based architecture with independent grid persistence
-- **Fullscreen Mode**: Distraction-free browsing
+- **iCloud Sync**: Bookmarks and presets sync via CloudKit (private database)
+- **Siri & Shortcuts**: App Intents for opening presets/bookmarks, resizing the grid, and bookmarking the current page — donated so Siri learns your routines
+- **Spotlight**: Presets and bookmarks are semantically indexed
+- **Handoff**: The page you're browsing follows you across devices
+- **Deep links**: `waffle://preset/<uuid>`, `waffle://bookmark/<uuid>`, `waffle://grid/<rows>x<cols>`, `waffle://open?url=…`
+- **Menu bar & keyboard**: Full command menus and shortcuts with a hardware keyboard
+- **Localization**: English, Spanish, French (Canada), and Japanese
 
-### Premium Features (Syrup)
-- Grid dimensions beyond 2x2
+### Premium (Syrup)
+One-time purchase, shared with your family via Family Sharing. Unlocks:
+- Grid dimensions beyond 2×2 (up to 4×4)
 - Grid rearrangement
 - Pop-out windows
 - Fullscreen mode
-- Preset creation
+- Preset creation and application
 
 ## Requirements
 
-- iPadOS 27.0+
-- Xcode 27.0+
-- macOS 15.0+
+- iPadOS 27.0+ (also runs on Mac and Apple Vision as "Designed for iPad")
+- Xcode 27 beta (iOS 27 SDK)
 - Apple Developer account (for CloudKit capabilities)
 
 ## Setup
 
 1. Clone the repository
-2. Open `Waffle.xcodeproj` in Xcode
+2. **Open `Waffle.xcworkspace`** (not the bare `.xcodeproj`) — it resolves the local Swift package
 3. Configure signing with your Apple Developer account
-4. Update bundle identifiers and iCloud container identifiers
-5. Build and run on iPad simulator or device
+4. Update the bundle identifier and iCloud container identifier
+5. Build and run on an iPad simulator or device
 
 ### Required Capabilities
 
-Enable these in your Xcode project:
 - iCloud (CloudKit with private database)
-- App Groups
 
 ## Architecture
 
-### App Lifecycle
-
-The app uses two window scenes:
-- **main**: Primary grid browser interface
-- **DetachedWaffleCell**: Pop-out windows for individual cells
-
-### Coordinator Pattern
+Waffle is a **thin app target on top of an SPM umbrella package** (`Packages/Waffle`) of layered, single-responsibility modules. Dependencies point inward: features depend on the design system and core; data implements core's protocols; core depends on nothing.
 
 ```
-WaffleApp
-    └── WaffleCoordinator (@Observable)
-            ├── WaffleState (grid state, snapshots)
-            └── StoreManager (in-app purchases)
+Waffle (app target — thin shell)
+    └── WaffleComposition        SessionController (composition root) + RootView/MainView
+            ├── WaffleFeature*   Grid · Sidebar · Settings · Onboarding · Syrup
+            ├── WaffleServices   StoreManager (StoreKit 2) · review requester
+            ├── WaffleData       SwiftData repositories · CloudKit store
+            ├── WaffleDesignSystem  brand colors · button styles · error/toast UI
+            └── WaffleCore       models · domain logic · protocols · seams (pure)
 ```
 
 ### Key Components
 
 | Component | Responsibility |
 |-----------|---------------|
-| `WaffleCoordinator` | Central coordinator managing state and subscriptions |
-| `WaffleState` | Observable grid state with 2D cell array |
-| `WaffleCell` | Individual grid cell with WebPage context |
-| `StoreManager` | StoreKit 2 subscription management |
+| `SessionController` | Composition root: builds the dependency graph, owns Syrup gating, deep-link routing, and the one-primary-window rule |
+| `GridModel` | Observable grid state (cells, selection, pop-out) with debounced snapshot persistence |
+| `WaffleCell` | Individual grid cell wrapping a `WebPage` |
+| `BookmarkRepository` / `PresetRepository` | Protocol boundaries over SwiftData, consumed through single-verb use-cases with typed errors |
+| `StoreManager` | StoreKit 2 purchase/restore; feature gating flows through an `EntitlementProviding` seam |
 
-### Data Layer
+### Key Patterns
 
-- **SwiftData** with iCloud CloudKit sync for bookmarks and presets
-- **AppStorage** for user preferences
-- **Codable Snapshots** for grid state persistence
+- **Repositories + use-cases**: views never touch SwiftData; every read/write goes through a single-verb use-case (`LoadBookmarks`, `SavePreset`, …) with typed `throws(PersistenceError)`
+- **Observable view models over protocol seams**: each feature screen is backed by a cross-platform `@Observable` model, unit-tested on macOS against in-memory fakes — no simulator required
+- **Change stream**: one multicast `AsyncStream` notifies screens and the Spotlight indexer after every successful write, including CloudKit imports
+- **Graceful persistence degradation**: CloudKit → local-only → in-memory, never a launch crash
 
 ### Data Models
 
 | Model | Description |
 |-------|-------------|
-| `WaffleCell` | In-memory grid cell with WebPage |
-| `Bookmark` | Saved URLs with sortIndex for reordering |
-| `Preset` | Saved grid layouts (name, dimensions, URLs) |
+| `Bookmark` | Saved URL with `sortIndex` for reordering (SwiftData, CloudKit-synced) |
+| `Preset` | Saved grid layout — name, dimensions, URLs (SwiftData, CloudKit-synced) |
+| `Snapshot` | Codable grid-state capture for automatic persistence |
 | `SearchProvider` | Search engine enum (Google, DuckDuckGo) |
-
-### Key Patterns
-
-- **Layered, environment-injected architecture**: SwiftUI views read `@Observable` managers from the environment; pure domain logic and protocol seams over system frameworks keep everything unit-testable
-- **Dependency Injection**: Coordinator injected via SwiftUI `@Environment`
-- **Feature Gating**: Premium features controlled via `hasSyrup` flag
 
 ## Project Structure
 
 ```
-Waffle/
-├── WaffleApp.swift             # App entry point with window scenes
-├── WaffleCoordinator.swift     # Central state coordinator
-├── WaffleState.swift           # Grid state management
-├── Models/
-│   ├── WaffleCell.swift        # Grid cell model
-│   ├── Bookmark.swift          # SwiftData bookmark
-│   └── Preset.swift            # SwiftData preset
-├── Views/
-│   ├── Main/                   # Primary interface
-│   │   ├── MainView.swift      # Root navigation
-│   │   ├── SidebarView.swift   # Navigation sidebar
-│   │   └── WaffleGridView.swift # Grid container
-│   ├── Cell/                   # Cell views
-│   │   ├── WaffleCellView.swift
-│   │   └── EmptyCellView.swift
-│   ├── Settings/               # Preferences
-│   └── Syrup/                  # Subscription UI
-├── WebKit/                     # WKWebView wrapper
-└── Extensions/                 # Utilities
-
-WaffleShareExtension/           # Safari share extension
+Waffle.xcworkspace              # Open this
+├── Waffle/                     # Thin app target
+│   ├── WaffleApp.swift         # Two window scenes, session wiring
+│   ├── WaffleCommands.swift    # Menu bar commands
+│   └── Intents/                # App Intents, entities, Spotlight indexer
+├── Packages/Waffle/            # The real app (SPM umbrella package)
+│   ├── Sources/
+│   │   ├── WaffleCore/         # Models, domain, protocols, seams
+│   │   ├── WaffleData/         # SwiftData repositories, CloudKit store
+│   │   ├── WaffleServices/     # StoreKit 2
+│   │   ├── WaffleDesignSystem/ # Colors, styles, error surfaces
+│   │   ├── WaffleFeatureGrid/  # Grid, cells, address bar, rearrange
+│   │   ├── WaffleFeatureSidebar/    # Bookmarks & presets
+│   │   ├── WaffleFeatureSettings/
+│   │   ├── WaffleFeatureOnboarding/
+│   │   ├── WaffleFeatureSyrup/
+│   │   └── WaffleComposition/  # SessionController, RootView, MainView
+│   └── Tests/                  # Host-run suite (swift test, no simulator)
+├── WaffleTests/                # App-glue tests (hosted)
+└── Scripts/                    # Localization pinning tooling
 ```
+
+## Testing
+
+The bulk of the suite lives in the package and runs on the Mac host in seconds — no simulator:
+
+```sh
+cd Packages/Waffle && swift test
+```
+
+Domain, repositories, feature view models (over fake use-cases), and composition policy (Syrup gating, deep links) are all covered there. The hosted `WaffleTests` target covers app-target glue only.
 
 ## Privacy
 

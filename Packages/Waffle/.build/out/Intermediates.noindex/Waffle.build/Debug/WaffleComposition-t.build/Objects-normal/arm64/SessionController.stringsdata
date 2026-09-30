@@ -1,0 +1,32 @@
+{
+  "source": "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleComposition/SessionController.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Nothing to bookmark yet",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 171
+        }
+      },
+      {
+        "comment": "",
+        "key": "That preset is no longer available",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 205
+        }
+      },
+      {
+        "comment": "",
+        "key": "That bookmark is no longer available",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 219
+        }
+      }
+    ]
+  },
+  "version": 1
+}

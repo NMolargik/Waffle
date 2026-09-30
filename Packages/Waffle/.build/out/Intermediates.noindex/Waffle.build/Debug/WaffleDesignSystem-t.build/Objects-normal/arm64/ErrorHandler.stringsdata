@@ -1,0 +1,32 @@
+{
+  "source": "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleDesignSystem/ErrorHandler.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Data Error",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 54
+        }
+      },
+      {
+        "comment": "",
+        "key": "Network Error",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 67
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 125
+        }
+      }
+    ]
+  },
+  "version": 1
+}

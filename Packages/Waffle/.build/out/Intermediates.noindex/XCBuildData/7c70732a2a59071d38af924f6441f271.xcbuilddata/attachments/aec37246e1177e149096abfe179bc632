@@ -1,0 +1,89 @@
+{
+  "" : {
+    "diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/WaffleFeatureGrid-primary.dia",
+    "emit-module-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/WaffleFeatureGrid-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/WaffleFeatureGrid-primary-emit-module.dia",
+    "pch" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/WaffleFeatureGrid-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/WaffleFeatureGrid-primary.swiftdeps"
+  },
+  "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleFeatureGrid/AddressBarView.swift" : {
+    "const-values" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/AddressBarView.swiftconstvalues",
+    "dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/AddressBarView.d",
+    "diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/AddressBarView.dia",
+    "index-unit-output-path" : "/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/AddressBarView.o",
+    "llvm-bc" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/AddressBarView.bc",
+    "object" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/AddressBarView.o",
+    "swift-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/AddressBarView.swiftdeps",
+    "swiftmodule" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/AddressBarView~partial.swiftmodule"
+  },
+  "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleFeatureGrid/DetachedWaffleCellView.swift" : {
+    "const-values" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/DetachedWaffleCellView.swiftconstvalues",
+    "dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/DetachedWaffleCellView.d",
+    "diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/DetachedWaffleCellView.dia",
+    "index-unit-output-path" : "/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/DetachedWaffleCellView.o",
+    "llvm-bc" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/DetachedWaffleCellView.bc",
+    "object" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/DetachedWaffleCellView.o",
+    "swift-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/DetachedWaffleCellView.swiftdeps",
+    "swiftmodule" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/DetachedWaffleCellView~partial.swiftmodule"
+  },
+  "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleFeatureGrid/EmptyCellView.swift" : {
+    "const-values" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/EmptyCellView.swiftconstvalues",
+    "dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/EmptyCellView.d",
+    "diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/EmptyCellView.dia",
+    "index-unit-output-path" : "/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/EmptyCellView.o",
+    "llvm-bc" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/EmptyCellView.bc",
+    "object" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/EmptyCellView.o",
+    "swift-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/EmptyCellView.swiftdeps",
+    "swiftmodule" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/EmptyCellView~partial.swiftmodule"
+  },
+  "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleFeatureGrid/FullScreenCellView.swift" : {
+    "const-values" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/FullScreenCellView.swiftconstvalues",
+    "dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/FullScreenCellView.d",
+    "diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/FullScreenCellView.dia",
+    "index-unit-output-path" : "/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/FullScreenCellView.o",
+    "llvm-bc" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/FullScreenCellView.bc",
+    "object" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/FullScreenCellView.o",
+    "swift-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/FullScreenCellView.swiftdeps",
+    "swiftmodule" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/FullScreenCellView~partial.swiftmodule"
+  },
+  "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleFeatureGrid/GridModel.swift" : {
+    "const-values" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/GridModel.swiftconstvalues",
+    "dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/GridModel.d",
+    "diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/GridModel.dia",
+    "index-unit-output-path" : "/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/GridModel.o",
+    "llvm-bc" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/GridModel.bc",
+    "object" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/GridModel.o",
+    "swift-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/GridModel.swiftdeps",
+    "swiftmodule" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/GridModel~partial.swiftmodule"
+  },
+  "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleFeatureGrid/RearrangeWaffleView.swift" : {
+    "const-values" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/RearrangeWaffleView.swiftconstvalues",
+    "dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/RearrangeWaffleView.d",
+    "diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/RearrangeWaffleView.dia",
+    "index-unit-output-path" : "/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/RearrangeWaffleView.o",
+    "llvm-bc" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/RearrangeWaffleView.bc",
+    "object" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/RearrangeWaffleView.o",
+    "swift-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/RearrangeWaffleView.swiftdeps",
+    "swiftmodule" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/RearrangeWaffleView~partial.swiftmodule"
+  },
+  "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleFeatureGrid/WaffleCell.swift" : {
+    "const-values" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/WaffleCell.swiftconstvalues",
+    "dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/WaffleCell.d",
+    "diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/WaffleCell.dia",
+    "index-unit-output-path" : "/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/WaffleCell.o",
+    "llvm-bc" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/WaffleCell.bc",
+    "object" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/WaffleCell.o",
+    "swift-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/WaffleCell.swiftdeps",
+    "swiftmodule" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/WaffleCell~partial.swiftmodule"
+  },
+  "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleFeatureGrid/WaffleGridView.swift" : {
+    "const-values" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/WaffleGridView.swiftconstvalues",
+    "dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/WaffleGridView.d",
+    "diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/WaffleGridView.dia",
+    "index-unit-output-path" : "/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/WaffleGridView.o",
+    "llvm-bc" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/WaffleGridView.bc",
+    "object" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/WaffleGridView.o",
+    "swift-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/WaffleGridView.swiftdeps",
+    "swiftmodule" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureGrid-t.build/Objects-normal/arm64/WaffleGridView~partial.swiftmodule"
+  }
+}

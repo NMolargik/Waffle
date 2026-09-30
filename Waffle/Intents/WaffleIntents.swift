@@ -2,11 +2,15 @@
 //  WaffleIntents.swift
 //  Waffle
 //
-//  App Intents for Siri, Shortcuts, and Spotlight actions.
+//  App Intents for Siri, Shortcuts, and Spotlight actions. Intents route through the
+//  session: deep links for navigation, use-cases for writes.
 //
 
 import AppIntents
 import Foundation
+import WaffleComposition
+import WaffleCore
+import WaffleFeatureGrid
 import WebKit
 
 // MARK: - Open Preset
@@ -25,11 +29,11 @@ struct OpenPresetIntent: AppIntent {
     @Parameter(title: "Preset")
     var preset: PresetEntity
 
-    @Dependency private var coordinator: WaffleCoordinator
+    @Dependency private var session: SessionController
 
     @MainActor
     func perform() async throws -> some IntentResult {
-        coordinator.handle(.openPreset(preset.id))
+        session.handle(.openPreset(preset.id))
         return .result()
     }
 }
@@ -50,11 +54,11 @@ struct OpenBookmarkIntent: AppIntent {
     @Parameter(title: "Bookmark")
     var bookmark: BookmarkEntity
 
-    @Dependency private var coordinator: WaffleCoordinator
+    @Dependency private var session: SessionController
 
     @MainActor
     func perform() async throws -> some IntentResult {
-        coordinator.handle(.openBookmark(bookmark.id))
+        session.handle(.openBookmark(bookmark.id))
         return .result()
     }
 }
@@ -78,11 +82,11 @@ struct SetGridSizeIntent: AppIntent {
     @Parameter(title: "Columns", default: 2, inclusiveRange: (1, 4))
     var columns: Int
 
-    @Dependency private var coordinator: WaffleCoordinator
+    @Dependency private var session: SessionController
 
     @MainActor
     func perform() async throws -> some IntentResult {
-        coordinator.handle(.setGrid(rows: rows, cols: columns))
+        session.handle(.setGrid(rows: rows, cols: columns))
         return .result()
     }
 }
@@ -97,14 +101,14 @@ struct BookmarkCurrentPageIntent: AppIntent {
     )
     static let openAppWhenRun = true
 
-    @Dependency private var coordinator: WaffleCoordinator
+    @Dependency private var session: SessionController
 
     @MainActor
     func perform() async throws -> some IntentResult & ProvidesDialog {
-        guard let cell = coordinator.waffleState.selectedCell, !cell.address.isEmpty else {
+        guard let cell = session.grid.selectedCell, !cell.address.isEmpty else {
             return .result(dialog: IntentDialog("There's no page loaded in the selected cell yet."))
         }
-        let bookmark = coordinator.library.addBookmark(urlString: cell.address, title: cell.page.title)
+        let bookmark = try session.addBookmark(urlString: cell.address, title: cell.page.title)
         if let bookmark {
             return .result(dialog: IntentDialog("Bookmarked \(bookmark.title)."))
         }

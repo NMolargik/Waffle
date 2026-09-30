@@ -1,0 +1,59 @@
+{
+  "" : {
+    "diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/WaffleFeatureSidebar-primary.dia",
+    "emit-module-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/WaffleFeatureSidebar-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/WaffleFeatureSidebar-primary-emit-module.dia",
+    "pch" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/WaffleFeatureSidebar-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/WaffleFeatureSidebar-primary.swiftdeps"
+  },
+  "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleFeatureSidebar/BookmarksListView.swift" : {
+    "const-values" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/BookmarksListView.swiftconstvalues",
+    "dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/BookmarksListView.d",
+    "diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/BookmarksListView.dia",
+    "index-unit-output-path" : "/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/BookmarksListView.o",
+    "llvm-bc" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/BookmarksListView.bc",
+    "object" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/BookmarksListView.o",
+    "swift-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/BookmarksListView.swiftdeps",
+    "swiftmodule" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/BookmarksListView~partial.swiftmodule"
+  },
+  "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleFeatureSidebar/PresetsListView.swift" : {
+    "const-values" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/PresetsListView.swiftconstvalues",
+    "dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/PresetsListView.d",
+    "diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/PresetsListView.dia",
+    "index-unit-output-path" : "/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/PresetsListView.o",
+    "llvm-bc" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/PresetsListView.bc",
+    "object" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/PresetsListView.o",
+    "swift-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/PresetsListView.swiftdeps",
+    "swiftmodule" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/PresetsListView~partial.swiftmodule"
+  },
+  "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleFeatureSidebar/SidebarModel.swift" : {
+    "const-values" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/SidebarModel.swiftconstvalues",
+    "dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/SidebarModel.d",
+    "diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/SidebarModel.dia",
+    "index-unit-output-path" : "/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/SidebarModel.o",
+    "llvm-bc" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/SidebarModel.bc",
+    "object" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/SidebarModel.o",
+    "swift-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/SidebarModel.swiftdeps",
+    "swiftmodule" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/SidebarModel~partial.swiftmodule"
+  },
+  "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleFeatureSidebar/SidebarSectionHeader.swift" : {
+    "const-values" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/SidebarSectionHeader.swiftconstvalues",
+    "dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/SidebarSectionHeader.d",
+    "diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/SidebarSectionHeader.dia",
+    "index-unit-output-path" : "/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/SidebarSectionHeader.o",
+    "llvm-bc" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/SidebarSectionHeader.bc",
+    "object" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/SidebarSectionHeader.o",
+    "swift-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/SidebarSectionHeader.swiftdeps",
+    "swiftmodule" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/SidebarSectionHeader~partial.swiftmodule"
+  },
+  "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleFeatureSidebar/SidebarView.swift" : {
+    "const-values" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/SidebarView.swiftconstvalues",
+    "dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/SidebarView.d",
+    "diagnostics" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/SidebarView.dia",
+    "index-unit-output-path" : "/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/SidebarView.o",
+    "llvm-bc" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/SidebarView.bc",
+    "object" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/SidebarView.o",
+    "swift-dependencies" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/SidebarView.swiftdeps",
+    "swiftmodule" : "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/.build/out/Intermediates.noindex/Waffle.build/Debug/WaffleFeatureSidebar-t.build/Objects-normal/arm64/SidebarView~partial.swiftmodule"
+  }
+}

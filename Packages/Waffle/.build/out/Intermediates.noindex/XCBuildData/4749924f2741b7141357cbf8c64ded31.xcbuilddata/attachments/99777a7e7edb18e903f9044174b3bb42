@@ -1,0 +1,4 @@
+module WaffleData {
+header "WaffleData-Swift.h"
+export *
+}

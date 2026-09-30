@@ -1,0 +1,16 @@
+{
+  "source": "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleFeatureSettings/SettingsModel.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Added example data",
+        "location": {
+          "startingColumn": 54,
+          "startingLine": 105
+        }
+      }
+    ]
+  },
+  "version": 1
+}

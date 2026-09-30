@@ -1,0 +1,17 @@
+/Users/nickmolargik/Developer/Molargik\ Software\ LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleCore/Domain/AddressNormalizer.swift
+/Users/nickmolargik/Developer/Molargik\ Software\ LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleCore/Domain/AppConfiguration.swift
+/Users/nickmolargik/Developer/Molargik\ Software\ LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleCore/Domain/GridLayout.swift
+/Users/nickmolargik/Developer/Molargik\ Software\ LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleCore/Domain/RearrangeCell.swift
+/Users/nickmolargik/Developer/Molargik\ Software\ LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleCore/Domain/SearchProvider.swift
+/Users/nickmolargik/Developer/Molargik\ Software\ LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleCore/Domain/Snapshot.swift
+/Users/nickmolargik/Developer/Molargik\ Software\ LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleCore/Domain/URLDisplayFormatter.swift
+/Users/nickmolargik/Developer/Molargik\ Software\ LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleCore/Logging/Log.swift
+/Users/nickmolargik/Developer/Molargik\ Software\ LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleCore/Models/Bookmark.swift
+/Users/nickmolargik/Developer/Molargik\ Software\ LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleCore/Models/Preset.swift
+/Users/nickmolargik/Developer/Molargik\ Software\ LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleCore/Navigation/DeepLink.swift
+/Users/nickmolargik/Developer/Molargik\ Software\ LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleCore/Services/AppError.swift
+/Users/nickmolargik/Developer/Molargik\ Software\ LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleCore/Services/BookmarkRepository.swift
+/Users/nickmolargik/Developer/Molargik\ Software\ LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleCore/Services/LibraryChangeCenter.swift
+/Users/nickmolargik/Developer/Molargik\ Software\ LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleCore/Services/PersistenceError.swift
+/Users/nickmolargik/Developer/Molargik\ Software\ LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleCore/Services/PresetRepository.swift
+/Users/nickmolargik/Developer/Molargik\ Software\ LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleCore/Services/Seams.swift

@@ -1,0 +1,40 @@
+{
+  "source": "/Users/nickmolargik/Developer/Molargik Software LLC/Apps/Waffle/Packages/Waffle/Sources/WaffleServices/StoreManager.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Failed to load products: %@",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 47
+        }
+      },
+      {
+        "comment": "",
+        "key": "Product not available.",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 55
+        }
+      },
+      {
+        "comment": "",
+        "key": "Purchase failed: %@",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 78
+        }
+      },
+      {
+        "comment": "",
+        "key": "Restore failed: %@",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 92
+        }
+      }
+    ]
+  },
+  "version": 1
+}
