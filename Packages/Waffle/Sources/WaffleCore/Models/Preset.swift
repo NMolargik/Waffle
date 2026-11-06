@@ -24,14 +24,18 @@ public final class Preset {
     public var urls: [String] = []
     /// Timestamp of when the preset was created.
     public var createdAt: Date = Date.now
+    /// Per-cell auto-refresh periods in seconds, row-major (0 or missing = off). Empty for
+    /// presets saved before 1.5.0.
+    public var refreshIntervals: [Int] = []
 
     /// Creates a new preset with the given layout and URLs (row-major, `rows * cols`).
-    public init(name: String, rows: Int, cols: Int, urls: [String]) {
+    public init(name: String, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int] = []) {
         self.id = UUID()
         self.name = name
         self.rows = rows
         self.cols = cols
         self.urls = urls
+        self.refreshIntervals = refreshIntervals
         self.createdAt = Date.now
     }
 }

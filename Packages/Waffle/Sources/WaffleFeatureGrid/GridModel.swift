@@ -41,8 +41,77 @@ public final class GridModel {
     private let defaults: any KeyValueStoring
     private var persistenceTask: Task<Void, Never>?
 
+    // MARK: - Auto-refresh
+
+    /// Whether the app scene is active. Cell timers only run (and only reload) while true;
+    /// `MainView` drives this from `scenePhase`.
+    public private(set) var isAppActive = true
+
+    @ObservationIgnored
+    private var refreshTasks: [UUID: Task<Void, Never>] = [:]
+
     public init(defaults: any KeyValueStoring = UserDefaults.standard) {
         self.defaults = defaults
+    }
+
+    /// Sets a cell's auto-refresh cadence, restarts its timer and persists the grid.
+    public func setRefreshInterval(_ interval: RefreshInterval, for cell: WaffleCell) {
+        cell.refreshInterval = interval
+        restartRefreshTimer(for: cell)
+        persistDebounced()
+    }
+
+    /// Pauses every timer while the app is inactive/backgrounded; resuming restarts the
+    /// countdowns from now (no burst of overdue reloads).
+    public func setAppActive(_ active: Bool) {
+        guard active != isAppActive else { return }
+        isAppActive = active
+        restartAllRefreshTimers()
+    }
+
+    /// Row-major seconds per cell, for snapshots and presets.
+    public func flattenedRefreshIntervals() -> [Int] {
+        waffleRows.flatMap { row in row.map(\.refreshInterval.rawValue) }
+    }
+
+    /// Cells that currently have auto-refresh scheduled (timers alive).
+    public var autoRefreshingCellIDs: Set<UUID> { Set(refreshTasks.keys) }
+
+    private func restartAllRefreshTimers() {
+        let live = Set(waffleRows.joined().map(\.id))
+        for (id, task) in refreshTasks where !live.contains(id) {
+            task.cancel()
+            refreshTasks[id] = nil
+        }
+        for cell in waffleRows.joined() {
+            restartRefreshTimer(for: cell)
+        }
+    }
+
+    private func restartRefreshTimer(for cell: WaffleCell) {
+        refreshTasks[cell.id]?.cancel()
+        refreshTasks[cell.id] = nil
+
+        var scheduler = AutoRefreshScheduler(interval: cell.refreshInterval, isAppActive: isAppActive, now: Date())
+        guard scheduler.isEnabled else { return }
+
+        refreshTasks[cell.id] = Task { @MainActor [weak self, weak cell] in
+            while !Task.isCancelled {
+                guard let next = scheduler.nextFireDate() else { return }
+                let delay = max(0, next.timeIntervalSinceNow)
+                try? await Task.sleep(for: .seconds(delay))
+                guard !Task.isCancelled, let self, let cell else { return }
+                guard self.isAppActive else {
+                    // Timers are cancelled on deactivation; this is a safety net.
+                    scheduler.appDidResignActive()
+                    return
+                }
+                if scheduler.fireIfDue(now: Date()), !cell.address.isEmpty, !cell.isLoading {
+                    Log.grid.debug("Auto-refreshing cell \(cell.id.uuidString, privacy: .public)")
+                    cell.reloadCell()
+                }
+            }
+        }
     }
 
     /// Schedules a debounced snapshot write, coalescing rapid mutations.
@@ -86,6 +155,7 @@ public final class GridModel {
         if let selected = selectedCell, !contains(selected) {
             select(waffleRows.first?.first)
         }
+        restartAllRefreshTimers()
         persistDebounced()
     }
 
@@ -184,12 +254,13 @@ public final class GridModel {
             rows: max(1, rowCount),
             cols: max(1, colCount),
             urls: flattenedAddresses(),
-            selectedIndex: selectedIndex
+            selectedIndex: selectedIndex,
+            refreshIntervals: flattenedRefreshIntervals()
         )
     }
 
     public func apply(snapshot: Snapshot) {
-        rebuildGrid(rows: snapshot.rows, cols: snapshot.cols, urls: snapshot.urls)
+        rebuildGrid(rows: snapshot.rows, cols: snapshot.cols, urls: snapshot.urls, refreshIntervals: snapshot.refreshIntervals)
 
         if let flat = snapshot.selectedIndex, flat >= 0 {
             let position = GridLayout.position(of: flat, columnCount: colCount)
@@ -203,28 +274,42 @@ public final class GridModel {
 
     public func apply(preset: Preset, maxRows: Int, maxCols: Int) {
         let clamped = GridLayout.clamped(rows: preset.rows, cols: preset.cols, maxRows: maxRows, maxCols: maxCols)
-        rebuildGrid(rows: clamped.rows, cols: clamped.cols, urls: preset.urls)
+        // Intervals are row-major against the preset's own column count; re-flow them
+        // when clamping changes the shape so each URL keeps its own cadence.
+        let intervals = GridLayout.rowMajorURLs(
+            preset.refreshIntervals.map(String.init), rows: preset.rows, cols: preset.cols, fill: "0"
+        )
+        .prefix(clamped.rows).flatMap { $0.prefix(clamped.cols) }.compactMap { Int($0) }
+        let urls = GridLayout.rowMajorURLs(preset.urls, rows: preset.rows, cols: preset.cols, fill: AppConfiguration.fallbackURL)
+            .prefix(clamped.rows).flatMap { $0.prefix(clamped.cols) }
+        rebuildGrid(rows: clamped.rows, cols: clamped.cols, urls: Array(urls), refreshIntervals: intervals)
         select(waffleRows.first?.first)
     }
 
-    /// Replaces every cell using a reordered flat URL list (rearrange sheet).
+    /// Replaces every cell using a reordered flat URL list (rearrange sheet). Cadences
+    /// follow their URL.
     public func applyReorderedURLs(_ urls: [String]) {
-        rebuildGrid(rows: rowCount, cols: colCount, urls: urls)
+        let byAddress = Dictionary(waffleRows.joined().map { ($0.address, $0.refreshInterval.rawValue) }, uniquingKeysWith: { first, _ in first })
+        let intervals = urls.map { byAddress[$0] ?? 0 }
+        rebuildGrid(rows: rowCount, cols: colCount, urls: urls, refreshIntervals: intervals)
         select(waffleRows.first?.first)
     }
 
-    private func rebuildGrid(rows: Int, cols: Int, urls: [String]) {
+    private func rebuildGrid(rows: Int, cols: Int, urls: [String], refreshIntervals: [Int] = []) {
         rowCount = max(1, rows)
         colCount = max(1, cols)
 
         let layout = GridLayout.rowMajorURLs(urls, rows: rowCount, cols: colCount, fill: AppConfiguration.fallbackURL)
-        waffleRows = layout.map { row in
-            row.map { urlString in
+        let intervals = RefreshInterval.intervals(from: refreshIntervals, count: rowCount * colCount)
+        waffleRows = layout.enumerated().map { rowIndex, row in
+            row.enumerated().map { columnIndex, urlString in
                 let cell = WaffleCell()
+                cell.refreshInterval = intervals[GridLayout.index(row: rowIndex, column: columnIndex, columnCount: colCount)]
                 cell.loadURL(urlString: urlString)
                 return cell
             }
         }
+        restartAllRefreshTimers()
         persistDebounced()
     }
 }

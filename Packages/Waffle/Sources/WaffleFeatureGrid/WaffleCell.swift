@@ -8,6 +8,7 @@
 //
 
 import SwiftUI
+import WaffleCore
 import WebKit
 
 @Observable
@@ -15,6 +16,8 @@ public final class WaffleCell: Identifiable, Hashable, Codable {
     public let id: UUID
     public let page = WebPage()
     public var address: String = ""
+    /// Auto-refresh cadence; `GridModel` owns the timer that honors it.
+    public var refreshInterval: RefreshInterval = .off
 
     /// Whether the web page is currently loading
     public var isLoading: Bool {
@@ -67,18 +70,21 @@ public final class WaffleCell: Identifiable, Hashable, Codable {
     private enum CodingKeys: String, CodingKey {
         case id
         case address
+        case refreshInterval
     }
 
     public required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.id = try container.decode(UUID.self, forKey: .id)
         self.address = try container.decode(String.self, forKey: .address)
+        self.refreshInterval = RefreshInterval(persisted: try container.decodeIfPresent(Int.self, forKey: .refreshInterval) ?? 0)
     }
 
     public func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
         try container.encode(address, forKey: .address)
+        try container.encode(refreshInterval.rawValue, forKey: .refreshInterval)
     }
 
     // MARK: Hashable Conformance

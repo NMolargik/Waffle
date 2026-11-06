@@ -172,3 +172,73 @@ struct GridModelTests {
         #expect(state.flattenedAddresses() == ["https://b.example", "https://a.example"])
     }
 }
+
+// MARK: - Auto-refresh
+
+@Suite("GridModel auto-refresh")
+@MainActor
+struct GridModelAutoRefreshTests {
+    @Test func intervalsPersistInSnapshot() {
+        let store = FakeKeyValueStore()
+        let state = GridModel(defaults: store)
+        state.makeInitialItem()
+        state.colCount = 2
+        state.waffleRows[0][0].address = "https://a.example"
+        state.waffleRows[0][1].address = "https://b.example"
+        state.setRefreshInterval(.fiveMinutes, for: state.waffleRows[0][1])
+        state.persistNow()
+
+        let restored = GridModel(defaults: store)
+        #expect(restored.restoreFromSnapshotIfAvailable())
+        #expect(restored.flattenedRefreshIntervals() == [0, 300])
+        #expect(restored.waffleRows[0][1].refreshInterval == .fiveMinutes)
+    }
+
+    @Test func presetIntervalsFollowTheirURLs() {
+        let state = GridModel(defaults: FakeKeyValueStore())
+        let preset = Preset(
+            name: "Dash", rows: 1, cols: 3,
+            urls: ["https://a.example", "https://b.example", "https://c.example"],
+            refreshIntervals: [30, 0, 900]
+        )
+        state.apply(preset: preset, maxRows: 4, maxCols: 4)
+        #expect(state.flattenedRefreshIntervals() == [30, 0, 900])
+
+        // Clamping to 1x2 keeps each URL's own cadence.
+        let clamped = GridModel(defaults: FakeKeyValueStore())
+        clamped.apply(preset: preset, maxRows: 1, maxCols: 2)
+        #expect(clamped.flattenedAddresses() == ["https://a.example", "https://b.example"])
+        #expect(clamped.flattenedRefreshIntervals() == [30, 0])
+    }
+
+    @Test func timersOnlyRunWhileActive() {
+        let state = GridModel(defaults: FakeKeyValueStore())
+        state.makeInitialItem()
+        let cell = state.waffleRows[0][0]
+        cell.address = "https://a.example"
+        #expect(state.autoRefreshingCellIDs.isEmpty)
+
+        state.setRefreshInterval(.thirtySeconds, for: cell)
+        #expect(state.autoRefreshingCellIDs == [cell.id])
+
+        state.setAppActive(false)
+        #expect(state.autoRefreshingCellIDs.isEmpty)
+
+        state.setAppActive(true)
+        #expect(state.autoRefreshingCellIDs == [cell.id])
+
+        state.setRefreshInterval(.off, for: cell)
+        #expect(state.autoRefreshingCellIDs.isEmpty)
+    }
+
+    @Test func reorderKeepsCadenceWithURL() {
+        let state = GridModel(defaults: FakeKeyValueStore())
+        state.makeInitialItem()
+        state.colCount = 2
+        state.waffleRows[0][0].address = "https://a.example"
+        state.waffleRows[0][1].address = "https://b.example"
+        state.setRefreshInterval(.oneMinute, for: state.waffleRows[0][0])
+        state.applyReorderedURLs(["https://b.example", "https://a.example"])
+        #expect(state.flattenedRefreshIntervals() == [0, 60])
+    }
+}

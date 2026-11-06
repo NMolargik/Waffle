@@ -133,6 +133,13 @@ private struct WaffleCellContainer: View {
                             Button(String(localized: "Copy To Selected Cell")) {
                                 model.loadInSelectedCell(waffleCell.address)
                             }
+                            Button(String(localized: "Reload"), systemImage: "arrow.clockwise") {
+                                waffleCell.reloadCell()
+                            }
+                            AutoRefreshMenu(
+                                selection: waffleCell.refreshInterval,
+                                onSelect: { model.setRefreshInterval($0, for: waffleCell) }
+                            )
                         }
                     }
             }

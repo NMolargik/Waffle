@@ -50,23 +50,24 @@ public final class DefaultPresetRepository: PresetRepository {
     // MARK: - Writing
 
     @discardableResult
-    public func savePreset(named providedName: String?, rows: Int, cols: Int, urls: [String], now: Date) throws(PersistenceError) -> Preset {
+    public func savePreset(named providedName: String?, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int], now: Date) throws(PersistenceError) -> Preset {
         let name: String = {
             if let providedName, !providedName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 return providedName
             }
             return String(localized: "Preset \(now.formatted(date: .numeric, time: .shortened))")
         }()
-        let preset = Preset(name: name, rows: rows, cols: cols, urls: urls)
+        let preset = Preset(name: name, rows: rows, cols: cols, urls: urls, refreshIntervals: refreshIntervals)
         context.insert(preset)
         try save(operation: "save preset")
         return preset
     }
 
-    public func overwritePreset(_ preset: Preset, rows: Int, cols: Int, urls: [String]) throws(PersistenceError) {
+    public func overwritePreset(_ preset: Preset, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int]) throws(PersistenceError) {
         preset.rows = max(1, rows)
         preset.cols = max(1, cols)
         preset.urls = urls
+        preset.refreshIntervals = refreshIntervals
         try save(operation: "overwrite preset")
     }
 

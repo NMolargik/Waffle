@@ -81,20 +81,21 @@ private final class FakeLibrary {
     struct SaveP: SavePreset {
         let lib: FakeLibrary
         @discardableResult
-        func callAsFunction(named name: String?, rows: Int, cols: Int, urls: [String], now: Date) throws(PersistenceError) -> Preset {
+        func callAsFunction(named name: String?, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int], now: Date) throws(PersistenceError) -> Preset {
             if let error = lib.errorToThrow { throw error }
-            let preset = Preset(name: name ?? "Preset", rows: rows, cols: cols, urls: urls)
+            let preset = Preset(name: name ?? "Preset", rows: rows, cols: cols, urls: urls, refreshIntervals: refreshIntervals)
             lib.presets.insert(preset, at: 0)
             return preset
         }
     }
     struct OverwriteP: OverwritePreset {
         let lib: FakeLibrary
-        func callAsFunction(_ preset: Preset, rows: Int, cols: Int, urls: [String]) throws(PersistenceError) {
+        func callAsFunction(_ preset: Preset, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int]) throws(PersistenceError) {
             if let error = lib.errorToThrow { throw error }
             preset.rows = rows
             preset.cols = cols
             preset.urls = urls
+            preset.refreshIntervals = refreshIntervals
         }
     }
     struct RenameP: RenamePreset {

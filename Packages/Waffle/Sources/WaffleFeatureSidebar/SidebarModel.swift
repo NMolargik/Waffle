@@ -34,6 +34,9 @@ public final class SidebarModel {
     public private(set) var presets: [Preset] = []
     public var searchText: String = ""
 
+    /// Fired after every successful preset save (composition hooks the review milestone here).
+    public var onPresetSaved: (() -> Void)?
+
     public init(
         loadBookmarks: any LoadBookmarks,
         addBookmark: any AddBookmark,
@@ -146,18 +149,19 @@ public final class SidebarModel {
 
     // MARK: - Preset mutations
 
-    public func savePreset(named name: String?, rows: Int, cols: Int, urls: [String]) {
+    public func savePreset(named name: String?, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int] = []) {
         do {
-            try savePresetUseCase(named: name, rows: rows, cols: cols, urls: urls)
+            try savePresetUseCase(named: name, rows: rows, cols: cols, urls: urls, refreshIntervals: refreshIntervals)
             load()
+            onPresetSaved?()
         } catch {
             errorHandler.showPersistenceError(error)
         }
     }
 
-    public func overwritePreset(_ preset: Preset, rows: Int, cols: Int, urls: [String]) {
+    public func overwritePreset(_ preset: Preset, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int] = []) {
         do {
-            try overwritePresetUseCase(preset, rows: rows, cols: cols, urls: urls)
+            try overwritePresetUseCase(preset, rows: rows, cols: cols, urls: urls, refreshIntervals: refreshIntervals)
             load()
         } catch {
             errorHandler.showPersistenceError(error)

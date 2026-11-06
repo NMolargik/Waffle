@@ -19,7 +19,7 @@ public struct SidebarView: View {
     /// Loads a URL into the selected grid cell.
     let applyBookmark: (String) -> Void
     /// The live grid layout, captured when saving/overwriting a preset.
-    let currentGrid: () -> (rows: Int, cols: Int, urls: [String])
+    let currentGrid: () -> (rows: Int, cols: Int, urls: [String], refreshIntervals: [Int])
     /// The selected cell's address/title, captured when quick-saving a bookmark.
     let currentCell: () -> (address: String, title: String)?
     let isSyrupEnabled: Bool
@@ -38,7 +38,7 @@ public struct SidebarView: View {
         model: SidebarModel,
         applyPreset: @escaping (Preset) -> Void,
         applyBookmark: @escaping (String) -> Void,
-        currentGrid: @escaping () -> (rows: Int, cols: Int, urls: [String]),
+        currentGrid: @escaping () -> (rows: Int, cols: Int, urls: [String], refreshIntervals: [Int]),
         currentCell: @escaping () -> (address: String, title: String)?,
         isSyrupEnabled: Bool,
         canMakePresets: Bool,
@@ -150,7 +150,7 @@ public struct SidebarView: View {
             return
         }
         let grid = currentGrid()
-        model.savePreset(named: name, rows: grid.rows, cols: grid.cols, urls: grid.urls)
+        model.savePreset(named: name, rows: grid.rows, cols: grid.cols, urls: grid.urls, refreshIntervals: grid.refreshIntervals)
     }
 
     private func overwritePreset(_ preset: Preset) {
@@ -159,7 +159,7 @@ public struct SidebarView: View {
             return
         }
         let grid = currentGrid()
-        model.overwritePreset(preset, rows: grid.rows, cols: grid.cols, urls: grid.urls)
+        model.overwritePreset(preset, rows: grid.rows, cols: grid.cols, urls: grid.urls, refreshIntervals: grid.refreshIntervals)
     }
 
     // MARK: - Preset Prompt
