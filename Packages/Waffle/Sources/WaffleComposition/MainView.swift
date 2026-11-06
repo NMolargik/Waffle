@@ -62,7 +62,9 @@ public struct MainView: View {
                 model: sidebarModel,
                 applyPreset: { self.session.applyPreset($0) },
                 applyBookmark: { grid.loadInSelectedCell($0) },
-                currentGrid: { (rows: grid.rowCount, cols: grid.colCount, urls: grid.flattenedAddresses()) },
+                currentGrid: {
+                    (rows: grid.rowCount, cols: grid.colCount, urls: grid.flattenedAddresses(), refreshIntervals: grid.flattenedRefreshIntervals())
+                },
                 currentCell: {
                     guard let cell = grid.selectedCell, !cell.address.isEmpty else { return nil }
                     return (address: cell.address, title: cell.page.title)
@@ -113,11 +115,13 @@ public struct MainView: View {
                 addressToolbar
                 trailingToolbar
             }
-            .onChange(of: scenePhase) { _, newPhase in
-                // Persist immediately on lifecycle changes (no debounce).
+            .onChange(of: scenePhase, initial: true) { _, newPhase in
+                // Persist immediately on lifecycle changes (no debounce), and gate the
+                // per-cell auto-refresh timers on the scene being active.
                 if newPhase == .inactive || newPhase == .background {
                     grid.persistNow()
                 }
+                grid.setAppActive(newPhase == .active)
             }
             .sheet(isPresented: $session.presentSyrupSheet) {
                 SyrupView(
@@ -208,21 +212,30 @@ public struct MainView: View {
         ToolbarItem(placement: .principal) {
             HStack(spacing: 8) {
                 if !isEditingAddress {
-                    Button {
-                        grid.selectedCell?.reloadCell()
+                    // Tap reloads; long-press opens the selected cell's auto-refresh menu.
+                    Menu {
+                        if let cell = grid.selectedCell {
+                            AutoRefreshMenu(
+                                selection: cell.refreshInterval,
+                                onSelect: { grid.setRefreshInterval($0, for: cell) }
+                            )
+                        }
                     } label: {
-                        Image(systemName: "arrow.clockwise")
+                        Image(systemName: grid.selectedCell?.refreshInterval == .off || grid.selectedCell == nil
+                              ? "arrow.clockwise" : "arrow.trianglehead.2.clockwise.rotate.90")
                             .frame(
                                 width: AppConfiguration.barControlHeight,
                                 height: AppConfiguration.barControlHeight
                             )
                             .contentShape(Circle())
+                    } primaryAction: {
+                        grid.selectedCell?.reloadCell()
                     }
                     .keyboardShortcut("r", modifiers: .command)
                     .buttonStyle(.plain)
                     .glassEffect(.regular.interactive(), in: .circle)
                     .accessibilityLabel(Text("Reload"))
-                    .accessibilityHint(Text("Reloads the selected cell"))
+                    .accessibilityHint(Text("Reloads the selected cell. Touch and hold for auto-refresh options"))
                     .transition(.scale.combined(with: .opacity))
                 }
 

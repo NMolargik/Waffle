@@ -34,6 +34,9 @@ public final class SessionController {
 
     private let entitlements: any EntitlementProviding
     private let presetDonator: (any PresetDonating)?
+    private let reviewRequester: (any ReviewRequesting)?
+    private let reviewPolicy: ReviewMilestonePolicy
+    private let appVersion: String
     private let indexer: (any LibraryIndexing)?
     private let activityAnnotator: (any BrowsingActivityAnnotating)?
 
@@ -79,13 +82,18 @@ public final class SessionController {
         entitlements: (any EntitlementProviding)? = nil,
         presetDonator: (any PresetDonating)? = nil,
         indexer: (any LibraryIndexing)? = nil,
-        activityAnnotator: (any BrowsingActivityAnnotating)? = nil
+        activityAnnotator: (any BrowsingActivityAnnotating)? = nil,
+        reviewRequester: (any ReviewRequesting)? = nil,
+        appVersion: String = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
     ) {
         let container = container ?? WaffleStore.makeContainer()
         self.container = container
         self.errorHandler = ErrorHandler()
         self.grid = GridModel(defaults: defaults)
         self.presetDonator = presetDonator
+        self.reviewRequester = reviewRequester
+        self.reviewPolicy = ReviewMilestonePolicy(defaults: defaults)
+        self.appVersion = appVersion
         self.indexer = indexer
         self.activityAnnotator = activityAnnotator
 
@@ -152,6 +160,7 @@ public final class SessionController {
         grid.apply(preset: preset, maxRows: maxRows, maxCols: maxCols)
         // Donate so Siri learns which presets the user reaches for.
         presetDonator?.donateOpenPreset(preset)
+        noteGridShown()
         return true
     }
 
@@ -161,6 +170,23 @@ public final class SessionController {
             requestSyrup()
         }
         grid.setGridSize(rows: rows, cols: cols, maxRows: maxRows, maxCols: maxCols)
+        noteGridShown()
+    }
+
+    // MARK: - Review milestones
+
+    /// Value moment: the user just saved a preset (sidebar or menu bar).
+    public func notePresetSaved() {
+        if reviewPolicy.recordPresetSaved(appVersion: appVersion) {
+            reviewRequester?.requestReview()
+        }
+    }
+
+    /// Value moment: the grid reached 3x3 or larger for the first time (Syrup users).
+    public func noteGridShown() {
+        if reviewPolicy.recordGridShown(rows: grid.rowCount, cols: grid.colCount, appVersion: appVersion) {
+            reviewRequester?.requestReview()
+        }
     }
 
     /// Bookmarks the selected cell's page (menu bar / keyboard action).
@@ -182,7 +208,14 @@ public final class SessionController {
             return
         }
         do {
-            try savePreset(named: nil, rows: grid.rowCount, cols: grid.colCount, urls: grid.flattenedAddresses())
+            try savePreset(
+                named: nil,
+                rows: grid.rowCount,
+                cols: grid.colCount,
+                urls: grid.flattenedAddresses(),
+                refreshIntervals: grid.flattenedRefreshIntervals()
+            )
+            notePresetSaved()
         } catch {
             errorHandler.showPersistenceError(error)
         }
@@ -272,7 +305,7 @@ public final class SessionController {
     // MARK: - View-model factories
 
     public func makeSidebarModel() -> SidebarModel {
-        SidebarModel(
+        let model = SidebarModel(
             loadBookmarks: loadBookmarks,
             addBookmark: addBookmark,
             updateBookmark: updateBookmark,
@@ -286,6 +319,8 @@ public final class SessionController {
             deletePreset: deletePreset,
             errorHandler: errorHandler
         )
+        model.onPresetSaved = { [weak self] in self?.notePresetSaved() }
+        return model
     }
 
     public func makeSettingsModel() -> SettingsModel {

@@ -19,21 +19,16 @@ import WebKit
 
 @main
 struct WaffleApp: App {
-    @Environment(\.scenePhase) private var scenePhase
-
     private let session: SessionController
 
-    private let reviewRequester: ReviewRequesting = AppStoreReviewRequester()
-
-    // Review prompt tracking
-    @AppStorage("launchCount") private var launchCount: Int = 0
-    @State private var didIncrementThisRun: Bool = false
-
     init() {
+        // The review prompt fires at value moments (second saved preset, first 3x3+
+        // grid) decided by ReviewMilestonePolicy inside the session — not by launch count.
         let session = SessionController(
             presetDonator: WafflePresetDonator(),
             indexer: CoreSpotlightIndexer(),
-            activityAnnotator: BrowsingActivityAnnotator()
+            activityAnnotator: BrowsingActivityAnnotator(),
+            reviewRequester: AppStoreReviewRequester()
         )
         self.session = session
 
@@ -46,9 +41,6 @@ struct WaffleApp: App {
             RootView(session: session)
                 .frame(minWidth: 820, minHeight: 520)
                 .modelContainer(session.container)
-                .onChange(of: scenePhase) { _, newPhase in
-                    handleScenePhaseChange(newPhase)
-                }
                 .onOpenURL { url in
                     guard let link = DeepLink(url: url) else { return }
                     session.handle(link)
@@ -74,22 +66,6 @@ struct WaffleApp: App {
         .handlesExternalEvents(matching: ["DetachedWaffleCell"])
     }
 
-    // MARK: - Review prompt logic
-
-    private func handleScenePhaseChange(_ newPhase: ScenePhase) {
-        guard newPhase == .active else { return }
-
-        // Increment launch count once per process run, at first activation.
-        if !didIncrementThisRun {
-            didIncrementThisRun = true
-            launchCount += 1
-
-            // Ask for a review at the fifth launch milestone.
-            if launchCount == 5 {
-                reviewRequester.requestReview()
-            }
-        }
-    }
 }
 
 // MARK: - Detached Cell Scene

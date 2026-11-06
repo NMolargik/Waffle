@@ -20,6 +20,12 @@ private final class FakeEntitlements: EntitlementProviding {
 }
 
 @MainActor
+private final class FakeReviewRequester: ReviewRequesting {
+    private(set) var requestCount = 0
+    func requestReview() { requestCount += 1 }
+}
+
+@MainActor
 private final class FakePresetDonator: PresetDonating {
     private(set) var donated: [Preset] = []
     func donateOpenPreset(_ preset: Preset) { donated.append(preset) }
@@ -43,7 +49,8 @@ struct SessionControllerTests {
 
     private func makeSession(
         purchased: Bool = false,
-        donator: FakePresetDonator? = nil
+        donator: FakePresetDonator? = nil,
+        reviewRequester: FakeReviewRequester? = nil
     ) throws -> SessionController {
         let storeURL = URL.temporaryDirectory.appending(path: "waffle-test-\(UUID().uuidString).store")
         let config = ModelConfiguration(url: storeURL, cloudKitDatabase: .none)
@@ -52,8 +59,71 @@ struct SessionControllerTests {
             container: container,
             defaults: FakeKeyValueStore(),
             entitlements: FakeEntitlements(isPurchased: purchased),
-            presetDonator: donator
+            presetDonator: donator,
+            reviewRequester: reviewRequester,
+            appVersion: "1.5.0"
         )
+    }
+
+    // MARK: - Review milestones
+
+    @Test func secondSavedPresetRequestsReviewOnce() throws {
+        let requester = FakeReviewRequester()
+        let session = try makeSession(purchased: true, reviewRequester: requester)
+        session.grid.makeInitialItem()
+
+        session.saveCurrentGridAsPreset()
+        #expect(requester.requestCount == 0)
+        session.saveCurrentGridAsPreset()
+        #expect(requester.requestCount == 1)
+        session.saveCurrentGridAsPreset()
+        #expect(requester.requestCount == 1)
+    }
+
+    @Test func sidebarPresetSavesCountTowardTheMilestone() throws {
+        let requester = FakeReviewRequester()
+        let session = try makeSession(purchased: true, reviewRequester: requester)
+        let sidebar = session.makeSidebarModel()
+
+        sidebar.savePreset(named: "One", rows: 1, cols: 1, urls: ["https://apple.com"])
+        session.saveCurrentGridAsPreset()
+        #expect(requester.requestCount == 1)
+    }
+
+    @Test func firstLargeGridRequestsReviewOncePerVersion() throws {
+        let requester = FakeReviewRequester()
+        let session = try makeSession(purchased: true, reviewRequester: requester)
+        session.grid.makeInitialItem()
+
+        session.setGridSize(rows: 2, cols: 2)
+        #expect(requester.requestCount == 0)
+        session.setGridSize(rows: 3, cols: 3)
+        #expect(requester.requestCount == 1)
+        session.setGridSize(rows: 4, cols: 4)
+        #expect(requester.requestCount == 1)
+        // The preset milestone is still blocked for this version.
+        session.saveCurrentGridAsPreset()
+        session.saveCurrentGridAsPreset()
+        #expect(requester.requestCount == 1)
+    }
+
+    @Test func freeUsersNeverReachTheLargeGridMilestone() throws {
+        let requester = FakeReviewRequester()
+        let session = try makeSession(purchased: false, reviewRequester: requester)
+        session.grid.makeInitialItem()
+        session.setGridSize(rows: 3, cols: 3)
+        #expect(requester.requestCount == 0)
+    }
+
+    @Test func savedPresetCarriesRefreshIntervals() throws {
+        let session = try makeSession(purchased: true)
+        session.grid.makeInitialItem()
+        session.grid.colCount = 2
+        session.grid.setRefreshInterval(.oneMinute, for: session.grid.waffleRows[0][1])
+
+        session.saveCurrentGridAsPreset()
+        let saved = try session.loadPresets().first
+        #expect(saved?.refreshIntervals == [0, 60])
     }
 
     // MARK: - Entitlement gating
