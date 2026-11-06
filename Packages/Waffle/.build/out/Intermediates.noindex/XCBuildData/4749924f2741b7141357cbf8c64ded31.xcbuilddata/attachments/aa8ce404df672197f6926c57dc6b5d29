@@ -1,4 +1,0 @@
-module WaffleComposition {
-header "WaffleComposition-Swift.h"
-export *
-}

@@ -1,4 +1,0 @@
-module WaffleCore {
-header "WaffleCore-Swift.h"
-export *
-}

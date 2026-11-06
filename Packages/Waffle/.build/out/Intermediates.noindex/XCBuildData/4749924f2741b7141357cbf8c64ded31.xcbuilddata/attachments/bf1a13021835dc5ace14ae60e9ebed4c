@@ -1,4 +1,0 @@
-module WaffleDesignSystem {
-header "WaffleDesignSystem-Swift.h"
-export *
-}

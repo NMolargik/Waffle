@@ -1,4 +1,0 @@
-module WaffleFeatureGrid {
-header "WaffleFeatureGrid-Swift.h"
-export *
-}
