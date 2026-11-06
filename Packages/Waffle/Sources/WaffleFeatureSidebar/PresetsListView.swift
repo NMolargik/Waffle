@@ -105,6 +105,12 @@ struct PresetsListView: View {
                 .contextMenu {
                     Button(String(localized: "Apply")) { applyPreset(preset) }
                     Button(String(localized: "Rename")) { onRename(preset) }
+                    ShareLink(
+                        item: PresetShare.text(for: preset),
+                        subject: Text(preset.name.isEmpty ? String(localized: "Untitled Preset") : preset.name)
+                    ) {
+                        Label("Share Preset", systemImage: "square.and.arrow.up")
+                    }
                     Button(role: .destructive) {
                         onDelete(preset)
                     } label: {
