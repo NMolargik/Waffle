@@ -13,6 +13,19 @@ Waffle is designed for:
 - **Researchers and developers** who reference multiple sources simultaneously
 - **Designers and creatives** who prefer spatial memory over tab stacks
 
+## What's New in 1.5.0
+
+Per-cell auto-refresh, share presets, smarter review prompt, Family Sharing for Syrup, fixes.
+
+### App Store "What's New" text
+
+> Per-cell auto-refresh, share presets, smarter review prompt, Family Sharing for Syrup, fixes.
+
+- **Per-cell auto-refresh** — pick Off / 30 s / 1 min / 5 min / 15 min from a cell's menu (or touch and hold the toolbar Reload button for the selected cell). Reloads only while Waffle is active; saved with the grid and with presets. Free for everyone.
+- **Share presets** — share a preset as a `waffle://preset` link plus its page URLs.
+- **Smarter review prompt** — asks after your second saved preset or your first 3x3+ grid, at most once per version (no more fifth-launch prompt).
+- **Family Sharing for Syrup** — Syrup purchased by a family member unlocks on your devices; Restore Purchases picks it up.
+
 ## Features
 
 ### Grid Browsing
