@@ -96,14 +96,18 @@ public final class StoreManager: EntitlementProviding {
 
     // MARK: - Entitlements
 
+    /// Syrup is Family Sharing-enabled: `Transaction.currentEntitlements` includes
+    /// transactions the user owns *and* ones shared by a family organizer
+    /// (`ownershipType == .familyShared`), so one pass over it covers both. Revoked
+    /// transactions (refunds, a member leaving the family) are excluded by StoreKit, and
+    /// `revocationDate` is checked anyway so a revocation observed via `Transaction.updates`
+    /// never leaves Syrup enabled.
     private func updateEntitlements() async {
         var hasSyrup = false
         for await result in Transaction.currentEntitlements {
-            if case .verified(let transaction) = result {
-                if transaction.productID == productID {
-                    hasSyrup = true
-                }
-            }
+            guard case .verified(let transaction) = result else { continue }
+            guard transaction.productID == productID, transaction.revocationDate == nil else { continue }
+            hasSyrup = true
         }
         self.isPurchased = hasSyrup
     }
@@ -113,10 +117,11 @@ public final class StoreManager: EntitlementProviding {
         updatesTask = Task { [weak self] in
             guard let self else { return }
             for await result in Transaction.updates {
+                // Re-derive from currentEntitlements on every update (purchase, Ask to Buy
+                // approval, family share granted, or revocation) rather than trusting the
+                // single transaction.
                 if case .verified(let transaction) = result {
-                    if transaction.productID == self.productID {
-                        await self.updateEntitlements()
-                    }
+                    await self.updateEntitlements()
                     await transaction.finish()
                 }
             }
