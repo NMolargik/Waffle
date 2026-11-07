@@ -4634,6 +4634,30 @@
         }
       }
     },
+    "Tap two cells to swap them": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toca dos celdas para intercambiarlas"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Touchez deux cellules pour les échanger"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2つのセルをタップして入れ替えます"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "Temporarily focus on a single cell, then jump back to the grid": {
       "extractionState": "manual",
       "localizations": {

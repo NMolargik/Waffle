@@ -250,7 +250,7 @@ public struct MainView: View {
                 )
             }
         }
-        .visibilityPriority(.high)
+        .wafflePriority(.high)
     }
 
     @ToolbarContentBuilder
@@ -260,14 +260,14 @@ public struct MainView: View {
                 fullscreenButton
             }
         }
-        .visibilityPriority(ToolbarItemVisibilityPriority(lowerThan: .low))
+        .wafflePriority(.lowest)
 
         ToolbarItem(placement: .topBarTrailing) {
             if !isEditingAddress, (grid.rowCount > 1 || grid.colCount > 1) && fullScreenCell == nil {
                 popOutButton
             }
         }
-        .visibilityPriority(.low)
+        .wafflePriority(.low)
 
         ToolbarItem(placement: .topBarTrailing) {
             if !isEditingAddress, fullScreenCell == nil {

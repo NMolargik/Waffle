@@ -10,7 +10,7 @@ The app is a **thin app target on top of an SPM umbrella package** (`Packages/Wa
 
 ## Build & Run
 
-**Open `Waffle.xcworkspace`** (not the bare `.xcodeproj`) — it resolves the local package. No external dependencies. Built against the iOS 27 SDK (Xcode 27 beta). If `xcodebuild` fails with a CommandLineTools error, prefix commands with `DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer`.
+**Open `Waffle.xcworkspace`** (not the bare `.xcodeproj`) — it resolves the local package. No external dependencies. Built against the iOS 27 SDK (Xcode 27 beta), deploying to iOS/macOS 26.0 (iOS 27-only APIs are behind `#available` shims). If `xcodebuild` fails with a CommandLineTools error, prefix commands with `DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer`.
 
 **Swift 6 language mode**, MainActor default isolation everywhere: the app target sets `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`; package targets use `swiftSettings: [.defaultIsolation(MainActor.self)]`. Pure value types used from nonisolated contexts (`GridLayout`, `AddressNormalizer`, `DeepLink`, `AppConfiguration`, `Snapshot`, …) are marked `nonisolated` explicitly. `#MemberImportVisibility` is on: every file must import the module that defines any member it uses (e.g. `import WebKit` for `WebPage.title`, `import os` for `Log`).
 
@@ -145,5 +145,5 @@ Container `iCloud.com.molargiksoftware.Waffle` (private DB), SwiftData sync for 
 - `ModelContext` does not retain its `ModelContainer` — repositories hold the container.
 - `WebPage.title` is non-optional in the iOS 27 SDK.
 - `@ContentBuilder` is the iOS 27 spelling of `@ViewBuilder` (typealias). `@ToolbarContentBuilder` is a different type — leave it alone.
-- The rearrange sheet uses iOS 27 `reorderContainer(for:)` + `.reorderable()`; deployment target is 27.0. Package platforms use string initializers (`.iOS("27.0"), .macOS("27.0")`) because PackageDescription has no `.v27` enum case; the macOS floor exists for host `swift test`.
+- The rearrange sheet uses iOS 27 `reorderContainer(for:)` + `.reorderable()`; deployment target is 26.0 with an `#available(iOS 27)` fallback (tap-to-swap only). `visibilityPriority` goes through `wafflePriority(_:)` in WaffleDesignSystem. Package platforms use string initializers (`.iOS("26.0"), .macOS("26.0")`) because PackageDescription has no `.v27` enum case; the macOS floor exists for host `swift test`.
 - The debounced snapshot persistence in `GridModel` is deliberate — don't add extra persist calls in views; lifecycle changes call `persistNow()` from `MainView`.

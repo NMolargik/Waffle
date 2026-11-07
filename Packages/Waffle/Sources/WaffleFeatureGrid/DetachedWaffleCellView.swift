@@ -93,7 +93,7 @@ public struct DetachedWaffleCellView: View {
                         .accessibilityHint(Text("Goes forward a page"))
                     }
                 }
-                .visibilityPriority(.low)
+                .wafflePriority(.low)
 
                 ToolbarItem(placement: .principal) {
                     HStack(spacing: 8) {
@@ -129,7 +129,7 @@ public struct DetachedWaffleCellView: View {
                         )
                     }
                 }
-                .visibilityPriority(.high)
+                .wafflePriority(.high)
 
                 ToolbarItem(placement: .topBarTrailing) {
                     if !isEditingAddress {
@@ -139,7 +139,7 @@ public struct DetachedWaffleCellView: View {
                         .accessibilityHint(Text("Returns this cell to the grid"))
                     }
                 }
-                .visibilityPriority(.high)
+                .wafflePriority(.high)
             }
             .toolbarTitleDisplayMode(.inline)
         }

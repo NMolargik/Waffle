@@ -131,7 +131,11 @@ public struct RearrangeWaffleView: View {
 
             Group {
                 if swapSource == nil {
-                    Text("Drag a cell to reorder, or tap two cells to swap them")
+                    if #available(iOS 27.0, macOS 27.0, *) {
+                        Text("Drag a cell to reorder, or tap two cells to swap them")
+                    } else {
+                        Text("Tap two cells to swap them")
+                    }
                 } else {
                     Label(String(localized: "Now tap another cell to swap"), systemImage: "arrow.left.arrow.right")
                         .foregroundStyle(Color.accentColor)
@@ -155,7 +159,34 @@ public struct RearrangeWaffleView: View {
         let tileHeight = max(60, (size.height - spacing * CGFloat(rowCount - 1)) / CGFloat(rowCount))
         let columns = Array(repeating: GridItem(.flexible(), spacing: spacing), count: max(1, cols))
 
-        return LazyVGrid(columns: columns, spacing: spacing) {
+        let grid = LazyVGrid(columns: columns, spacing: spacing) {
+            ForEach(Array(cells.enumerated()), id: \.element.id) { index, cell in
+                RearrangeTileView(
+                    cell: cell,
+                    index: index,
+                    isSwapSource: swapSource == cell.id,
+                    onTap: { handleTap(cell.id) },
+                    onClear: { clearCell(cell.id) }
+                )
+                .frame(height: tileHeight)
+            }
+        }
+
+        return Group {
+            if #available(iOS 27.0, macOS 27.0, *) {
+                reorderableGrid(columns: columns, spacing: spacing, tileHeight: tileHeight)
+            } else {
+                // iOS 26 has no reorder container; tap-to-swap remains the way to rearrange.
+                grid
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .accessibilityLabel(Text("Rearrangeable grid"))
+    }
+
+    @available(iOS 27.0, macOS 27.0, *)
+    private func reorderableGrid(columns: [GridItem], spacing: CGFloat, tileHeight: CGFloat) -> some View {
+        LazyVGrid(columns: columns, spacing: spacing) {
             ForEach(Array(cells.enumerated()), id: \.element.id) { index, cell in
                 RearrangeTileView(
                     cell: cell,
@@ -173,12 +204,11 @@ public struct RearrangeWaffleView: View {
                 applyReorder(difference)
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .accessibilityLabel(Text("Rearrangeable grid"))
     }
 
     // MARK: - Actions
 
+    @available(iOS 27.0, macOS 27.0, *)
     private func applyReorder(_ difference: ReorderDifference<RearrangeCell.ID, ReorderableSingleCollectionIdentifier>) {
         let ids = Set(difference.sources)
         let destination: RearrangeCell.ID? = switch difference.destination.position {
