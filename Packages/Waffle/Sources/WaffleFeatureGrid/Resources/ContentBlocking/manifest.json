@@ -1,0 +1,25 @@
+{
+  "lists": [
+    {
+      "id": "ads",
+      "title": "EasyList",
+      "source": "https://easylist.to/easylist/easylist.txt",
+      "version": "202611071935",
+      "rules": 61865
+    },
+    {
+      "id": "privacy",
+      "title": "EasyPrivacy",
+      "source": "https://easylist.to/easylist/easyprivacy.txt",
+      "version": "202611071935",
+      "rules": 56405
+    },
+    {
+      "id": "cookies",
+      "title": "Easylist Cookie List",
+      "source": "https://secure.fanboy.co.nz/fanboy-cookiemonster.txt",
+      "version": "2026-11-06 22:25 UTC",
+      "rules": 9708
+    }
+  ]
+}

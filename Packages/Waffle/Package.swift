@@ -9,7 +9,7 @@ import PackageDescription
 let package = Package(
     name: "Waffle",
     defaultLocalization: "en",
-    platforms: [.iOS("27.0"), .macOS("27.0")],
+    platforms: [.iOS("26.0"), .macOS("26.0")],
 
     products: [
         .library(name: "WaffleCore",             targets: ["WaffleCore"]),
@@ -49,6 +49,7 @@ let package = Package(
         .target(
             name: "WaffleFeatureGrid",
             dependencies: ["WaffleCore", "WaffleDesignSystem"],
+            resources: [.copy("Resources/ContentBlocking")],
             swiftSettings: [.defaultIsolation(MainActor.self)]
         ),
         .target(

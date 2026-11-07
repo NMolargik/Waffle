@@ -140,6 +140,15 @@ private struct WaffleCellContainer: View {
                                 selection: waffleCell.refreshInterval,
                                 onSelect: { model.setRefreshInterval($0, for: waffleCell) }
                             )
+                            ContentBlockingMenu(
+                                mode: waffleCell.contentBlockingMode,
+                                isActive: model.contentBlocking.isActive(for: waffleCell),
+                                globalEnabled: model.contentBlocking.isGloballyEnabled,
+                                siteHasException: model.contentBlocking.hasException(for: waffleCell.address),
+                                canExceptSite: ContentBlockingPolicy.normalizedHost(from: waffleCell.address) != nil,
+                                onSelect: { model.setContentBlockingMode($0, for: waffleCell) },
+                                onToggleSite: { model.toggleBlockingException(for: waffleCell) }
+                            )
                         }
                     }
             }
@@ -161,6 +170,21 @@ private struct WaffleCellContainer: View {
                     .animation(.easeInOut(duration: 0.2), value: waffleCell.loadingProgress)
                     .allowsHitTesting(false)
                     .transition(.opacity)
+            }
+        }
+        .overlay(alignment: .topTrailing) {
+            if !isEmpty, !isPoppedOut, waffleCell.blockedCount > 0,
+               model.contentBlocking.isActive(for: waffleCell) {
+                BlockedCountBadge(count: waffleCell.blockedCount)
+                    .padding(8)
+            }
+        }
+        .task(id: isPoppedOut) {
+            // The blocker can't report counts directly; poll the page's counter lightly.
+            guard !isPoppedOut else { return }
+            while !Task.isCancelled {
+                await waffleCell.refreshBlockedCount()
+                try? await Task.sleep(for: .seconds(1.5))
             }
         }
         .onHover { hovering in

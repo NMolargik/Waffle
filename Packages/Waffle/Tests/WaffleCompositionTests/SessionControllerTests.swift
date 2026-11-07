@@ -61,7 +61,8 @@ struct SessionControllerTests {
             entitlements: FakeEntitlements(isPurchased: purchased),
             presetDonator: donator,
             reviewRequester: reviewRequester,
-            appVersion: "1.5.0"
+            appVersion: "1.5.0",
+            blocksContent: false
         )
     }
 

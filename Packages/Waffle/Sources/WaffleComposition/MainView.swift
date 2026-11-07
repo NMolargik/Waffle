@@ -96,6 +96,7 @@ public struct MainView: View {
             .animation(.snappy, value: grid.poppedCell)
             .animation(.snappy, value: grid.selectedCell)
             .onAppear {
+                grid.contentBlocking.start()
                 if !grid.restoreFromSnapshotIfAvailable() {
                     grid.makeInitialItem()
                 }
@@ -136,7 +137,16 @@ public struct MainView: View {
                     model: session.makeSettingsModel(),
                     isSyrupEnabled: session.isSyrupEnabled,
                     requestSyrup: { self.session.requestSyrup() },
-                    openInApp: { grid.loadInSelectedCell($0) }
+                    openInApp: { grid.loadInSelectedCell($0) },
+                    contentBlocking: ContentBlockingSettingsBinding(
+                        isEnabled: Binding(
+                            get: { grid.contentBlocking.isGloballyEnabled },
+                            set: { grid.contentBlocking.isGloballyEnabled = $0 }
+                        ),
+                        exceptionHosts: grid.contentBlocking.exceptionHosts,
+                        removeException: { grid.contentBlocking.removeException(host: $0) },
+                        listTitles: grid.contentBlocking.listTitles
+                    )
                 )
             }
             .sheet(isPresented: $showRearrangeSheet) {
@@ -250,7 +260,7 @@ public struct MainView: View {
                 )
             }
         }
-        .visibilityPriority(.high)
+        .wafflePriority(.high)
     }
 
     @ToolbarContentBuilder
@@ -260,14 +270,14 @@ public struct MainView: View {
                 fullscreenButton
             }
         }
-        .visibilityPriority(ToolbarItemVisibilityPriority(lowerThan: .low))
+        .wafflePriority(.lowest)
 
         ToolbarItem(placement: .topBarTrailing) {
             if !isEditingAddress, (grid.rowCount > 1 || grid.colCount > 1) && fullScreenCell == nil {
                 popOutButton
             }
         }
-        .visibilityPriority(.low)
+        .wafflePriority(.low)
 
         ToolbarItem(placement: .topBarTrailing) {
             if !isEditingAddress, fullScreenCell == nil {

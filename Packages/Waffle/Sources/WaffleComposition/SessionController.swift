@@ -84,12 +84,13 @@ public final class SessionController {
         indexer: (any LibraryIndexing)? = nil,
         activityAnnotator: (any BrowsingActivityAnnotating)? = nil,
         reviewRequester: (any ReviewRequesting)? = nil,
-        appVersion: String = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
+        appVersion: String = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0",
+        blocksContent: Bool = true
     ) {
         let container = container ?? WaffleStore.makeContainer()
         self.container = container
         self.errorHandler = ErrorHandler()
-        self.grid = GridModel(defaults: defaults)
+        self.grid = GridModel(defaults: defaults, blocksContent: blocksContent)
         self.presetDonator = presetDonator
         self.reviewRequester = reviewRequester
         self.reviewPolicy = ReviewMilestonePolicy(defaults: defaults)
