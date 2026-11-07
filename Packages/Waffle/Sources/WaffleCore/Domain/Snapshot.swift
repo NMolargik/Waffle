@@ -15,17 +15,21 @@ nonisolated public struct Snapshot: Codable, Equatable, Sendable {
     public let selectedIndex: Int?
     /// Per-cell auto-refresh periods in seconds (row-major; 0 or missing = off).
     public let refreshIntervals: [Int]
+    /// Per-cell content-blocking overrides (`ContentBlockingMode` raw values, row-major;
+    /// missing = follow the global setting).
+    public let contentBlockingModes: [Int]
 
-    public init(rows: Int, cols: Int, urls: [String], selectedIndex: Int?, refreshIntervals: [Int] = []) {
+    public init(rows: Int, cols: Int, urls: [String], selectedIndex: Int?, refreshIntervals: [Int] = [], contentBlockingModes: [Int] = []) {
         self.rows = rows
         self.cols = cols
         self.urls = urls
         self.selectedIndex = selectedIndex
         self.refreshIntervals = refreshIntervals
+        self.contentBlockingModes = contentBlockingModes
     }
 
     private enum CodingKeys: String, CodingKey {
-        case rows, cols, urls, selectedIndex, refreshIntervals
+        case rows, cols, urls, selectedIndex, refreshIntervals, contentBlockingModes
     }
 
     /// Snapshots written before 1.5.0 have no `refreshIntervals`; decode them as all-off.
@@ -36,5 +40,6 @@ nonisolated public struct Snapshot: Codable, Equatable, Sendable {
         urls = try container.decode([String].self, forKey: .urls)
         selectedIndex = try container.decodeIfPresent(Int.self, forKey: .selectedIndex)
         refreshIntervals = try container.decodeIfPresent([Int].self, forKey: .refreshIntervals) ?? []
+        contentBlockingModes = try container.decodeIfPresent([Int].self, forKey: .contentBlockingModes) ?? []
     }
 }

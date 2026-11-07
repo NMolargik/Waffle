@@ -49,6 +49,7 @@ let package = Package(
         .target(
             name: "WaffleFeatureGrid",
             dependencies: ["WaffleCore", "WaffleDesignSystem"],
+            resources: [.copy("Resources/ContentBlocking")],
             swiftSettings: [.defaultIsolation(MainActor.self)]
         ),
         .target(

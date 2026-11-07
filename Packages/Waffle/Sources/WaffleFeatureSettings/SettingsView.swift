@@ -19,6 +19,7 @@ public struct SettingsView: View {
     private let requestSyrup: () -> Void
     /// Loads a URL into the selected grid cell (the app browses its own links).
     private let openInApp: (String) -> Void
+    private let contentBlocking: ContentBlockingSettingsBinding
 
     @AppStorage("searchProvider") private var searchProviderRawValue: String = SearchProvider.google.rawValue
     @State private var showDeleteBookmarksConfirm = false
@@ -28,8 +29,10 @@ public struct SettingsView: View {
         model: SettingsModel,
         isSyrupEnabled: Bool,
         requestSyrup: @escaping () -> Void,
-        openInApp: @escaping (String) -> Void
+        openInApp: @escaping (String) -> Void,
+        contentBlocking: ContentBlockingSettingsBinding
     ) {
+        self.contentBlocking = contentBlocking
         self.model = model
         self.isSyrupEnabled = isSyrupEnabled
         self.requestSyrup = requestSyrup
@@ -87,6 +90,27 @@ public struct SettingsView: View {
                         }
                     }
                     .pickerStyle(.segmented)
+                }
+
+                Section {
+                    Toggle(isOn: contentBlocking.isEnabled) {
+                        Label(String(localized: "Block Ads, Trackers & Cookie Banners"), systemImage: "shield.lefthalf.filled")
+                    }
+                    ForEach(contentBlocking.exceptionHosts, id: \.self) { host in
+                        Text(verbatim: host)
+                    }
+                    .onDelete { offsets in
+                        for index in offsets { contentBlocking.removeException(contentBlocking.exceptionHosts[index]) }
+                    }
+                } header: {
+                    Text("Content Blocking")
+                } footer: {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Applies to every cell. Override it for a single cell or site from the cell's context menu. Sites listed here are never blocked.")
+                        if !contentBlocking.listTitles.isEmpty {
+                            Text("Filter lists: \(listNames) (easylist.to), licensed CC BY-SA 3.0 and CC BY 3.0.")
+                        }
+                    }
                 }
 
                 Section(String(localized: "Data")) {
@@ -172,9 +196,14 @@ public struct SettingsView: View {
         }
     }
 
+    private var listNames: String {
+        contentBlocking.listTitles.formatted(.list(type: .and))
+    }
+
     private func openLink(_ urlString: String) {
         openInApp(urlString)
         dismiss()
     }
 }
 #endif
+

@@ -57,6 +57,30 @@
         }
       }
     },
+    "%lld items blocked": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld elementos bloqueados"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld éléments bloqués"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld件をブロックしました"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "%lldx%lld": {
       "comment": "A label displaying the number of rows and columns in a grid. The first argument is the number of rows. The second argument is the number of columns.",
       "extractionState": "manual",
@@ -364,6 +388,54 @@
         }
       }
     },
+    "Always Block": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloquear siempre"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toujours bloquer"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "常にブロック"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Applies to every cell. Override it for a single cell or site from the cell's context menu. Sites listed here are never blocked.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se aplica a todas las celdas. Puedes cambiarlo para una celda o un sitio desde el menú contextual de la celda. Los sitios de esta lista nunca se bloquean."
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "S'applique à toutes les cellules. Modifiez-le pour une cellule ou un site depuis le menu contextuel de la cellule. Les sites listés ici ne sont jamais bloqués."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべてのセルに適用されます。セルのコンテキストメニューから、セルまたはサイトごとに変更できます。ここに表示されたサイトはブロックされません。"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "Apply": {
       "extractionState": "manual",
       "localizations": {
@@ -479,6 +551,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "戻る・進む・再読み込みは選択中のセルに作用します"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Block Ads, Trackers & Cookie Banners": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloquear anuncios, rastreadores y avisos de cookies"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloquer les publicités, les traqueurs et les bannières de témoins"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "広告、トラッカー、Cookieバナーをブロック"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Block on This Site": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloquear en este sitio"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloquer sur ce site"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このサイトでブロックする"
           }
         }
       },
@@ -855,6 +975,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "会社"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Content Blocking": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloqueo de contenido"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocage de contenu"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コンテンツブロック"
           }
         }
       },
@@ -1239,6 +1383,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "開発者"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Don't Block on This Site": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No bloquear en este sitio"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ne pas bloquer sur ce site"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このサイトではブロックしない"
           }
         }
       },
@@ -1741,6 +1909,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "製品の読み込みに失敗しました：%@"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Filter lists: %@ (easylist.to), licensed CC BY-SA 3.0 and CC BY 3.0.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listas de filtros: %@ (easylist.to), con licencia CC BY-SA 3.0 y CC BY 3.0."
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listes de filtres : %@ (easylist.to), sous licences CC BY-SA 3.0 et CC BY 3.0."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フィルタリスト：%@（easylist.to）、ライセンス：CC BY-SA 3.0 および CC BY 3.0。"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Follow Settings": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seguir los ajustes"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivre les réglages"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定に従う"
           }
         }
       },
@@ -2311,6 +2527,30 @@
       },
       "shouldGenerateSymbol": false
     },
+    "Never Block": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No bloquear nunca"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ne jamais bloquer"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ブロックしない"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "New": {
       "extractionState": "manual",
       "localizations": {
@@ -2572,6 +2812,30 @@
           }
         }
       }
+    },
+    "On": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activado"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activé"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "オン"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
     },
     "Only %@. One time. No subscription!": {
       "extractionState": "manual",

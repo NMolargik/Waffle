@@ -18,3 +18,4 @@ Packages/*/.swiftpm/
 
 # Scratch
 build/
+.blocklist-src/

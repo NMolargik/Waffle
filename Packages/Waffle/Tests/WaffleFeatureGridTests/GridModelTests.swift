@@ -13,7 +13,7 @@ import WaffleCore
 struct GridModelTests {
     private func makeState() -> (GridModel, FakeKeyValueStore) {
         let store = FakeKeyValueStore()
-        return (GridModel(defaults: store), store)
+        return (GridModel(defaults: store, blocksContent: false), store)
     }
 
     // MARK: - Grid sizing
@@ -123,7 +123,7 @@ struct GridModelTests {
 
     @Test func persistAndRestoreThroughKeyValueStore() {
         let store = FakeKeyValueStore()
-        let state = GridModel(defaults: store)
+        let state = GridModel(defaults: store, blocksContent: false)
         state.makeInitialItem()
         state.colCount = 2
         state.waffleRows[0][0].address = "https://apple.com"
@@ -131,7 +131,7 @@ struct GridModelTests {
 
         #expect(store.data(forKey: GridModel.snapshotKey) != nil)
 
-        let restored = GridModel(defaults: store)
+        let restored = GridModel(defaults: store, blocksContent: false)
         #expect(restored.restoreFromSnapshotIfAvailable())
         #expect(restored.colCount == 2)
         #expect(restored.flattenedAddresses().first == "https://apple.com")
@@ -180,7 +180,7 @@ struct GridModelTests {
 struct GridModelAutoRefreshTests {
     @Test func intervalsPersistInSnapshot() {
         let store = FakeKeyValueStore()
-        let state = GridModel(defaults: store)
+        let state = GridModel(defaults: store, blocksContent: false)
         state.makeInitialItem()
         state.colCount = 2
         state.waffleRows[0][0].address = "https://a.example"
@@ -188,14 +188,14 @@ struct GridModelAutoRefreshTests {
         state.setRefreshInterval(.fiveMinutes, for: state.waffleRows[0][1])
         state.persistNow()
 
-        let restored = GridModel(defaults: store)
+        let restored = GridModel(defaults: store, blocksContent: false)
         #expect(restored.restoreFromSnapshotIfAvailable())
         #expect(restored.flattenedRefreshIntervals() == [0, 300])
         #expect(restored.waffleRows[0][1].refreshInterval == .fiveMinutes)
     }
 
     @Test func presetIntervalsFollowTheirURLs() {
-        let state = GridModel(defaults: FakeKeyValueStore())
+        let state = GridModel(defaults: FakeKeyValueStore(), blocksContent: false)
         let preset = Preset(
             name: "Dash", rows: 1, cols: 3,
             urls: ["https://a.example", "https://b.example", "https://c.example"],
@@ -205,14 +205,14 @@ struct GridModelAutoRefreshTests {
         #expect(state.flattenedRefreshIntervals() == [30, 0, 900])
 
         // Clamping to 1x2 keeps each URL's own cadence.
-        let clamped = GridModel(defaults: FakeKeyValueStore())
+        let clamped = GridModel(defaults: FakeKeyValueStore(), blocksContent: false)
         clamped.apply(preset: preset, maxRows: 1, maxCols: 2)
         #expect(clamped.flattenedAddresses() == ["https://a.example", "https://b.example"])
         #expect(clamped.flattenedRefreshIntervals() == [30, 0])
     }
 
     @Test func timersOnlyRunWhileActive() {
-        let state = GridModel(defaults: FakeKeyValueStore())
+        let state = GridModel(defaults: FakeKeyValueStore(), blocksContent: false)
         state.makeInitialItem()
         let cell = state.waffleRows[0][0]
         cell.address = "https://a.example"
@@ -232,7 +232,7 @@ struct GridModelAutoRefreshTests {
     }
 
     @Test func reorderKeepsCadenceWithURL() {
-        let state = GridModel(defaults: FakeKeyValueStore())
+        let state = GridModel(defaults: FakeKeyValueStore(), blocksContent: false)
         state.makeInitialItem()
         state.colCount = 2
         state.waffleRows[0][0].address = "https://a.example"

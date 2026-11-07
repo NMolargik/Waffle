@@ -50,8 +50,47 @@ public final class GridModel {
     @ObservationIgnored
     private var refreshTasks: [UUID: Task<Void, Never>] = [:]
 
-    public init(defaults: any KeyValueStoring = UserDefaults.standard) {
+    // MARK: - Content blocking
+
+    public let contentBlocking: ContentBlockingController
+
+    public init(defaults: any KeyValueStoring = UserDefaults.standard, blocksContent: Bool = true) {
         self.defaults = defaults
+        self.contentBlocking = ContentBlockingController(defaults: defaults, compilesRules: blocksContent)
+        contentBlocking.cells = { [weak self] in self?.waffleRows.joined().map { $0 } ?? [] }
+    }
+
+    /// Creates a cell wired to the content blocker. All grid cells come through here.
+    private func makeCell() -> WaffleCell {
+        let cell = WaffleCell()
+        cell.blocker = contentBlocking
+        return cell
+    }
+
+    /// Sets a cell's content-blocking override and applies it right away.
+    public func setContentBlockingMode(_ mode: ContentBlockingMode, for cell: WaffleCell) {
+        cell.contentBlockingMode = mode
+        contentBlocking.refresh(cell)
+        persistDebounced()
+    }
+
+    /// Adds or removes the cell's current site from the blocking exceptions.
+    public func toggleBlockingException(for cell: WaffleCell) {
+        if contentBlocking.hasException(for: cell.address) {
+            if let host = ContentBlockingPolicy.normalizedHost(from: cell.address) {
+                // Remove the exact entry or the parent entry that covers this host.
+                for entry in contentBlocking.exceptionHosts where ContentBlockingPolicy.isException(host: host, in: [entry]) {
+                    contentBlocking.removeException(host: entry)
+                }
+            }
+        } else {
+            contentBlocking.addException(for: cell.address)
+        }
+    }
+
+    /// Row-major raw modes, for snapshots.
+    public func flattenedContentBlockingModes() -> [Int] {
+        waffleRows.flatMap { row in row.map(\.contentBlockingMode.rawValue) }
     }
 
     /// Sets a cell's auto-refresh cadence, restarts its timer and persists the grid.
@@ -151,7 +190,7 @@ public final class GridModel {
     // MARK: - Grid Structure
 
     private func resizeGrid() {
-        waffleRows = GridLayout.resized(waffleRows, rows: rowCount, cols: colCount) { WaffleCell() }
+        waffleRows = GridLayout.resized(waffleRows, rows: rowCount, cols: colCount) { makeCell() }
         if let selected = selectedCell, !contains(selected) {
             select(waffleRows.first?.first)
         }
@@ -168,7 +207,7 @@ public final class GridModel {
 
     public func makeInitialItem() {
         guard waffleRows.isEmpty else { return }
-        let firstRow = [WaffleCell()]
+        let firstRow = [makeCell()]
         waffleRows = [firstRow]
         select(firstRow.first)
     }
@@ -199,6 +238,7 @@ public final class GridModel {
 
     /// Called when a cell's page navigates, to keep the address bar in sync.
     public func noteAddressChange(for cell: WaffleCell) {
+        contentBlocking.refresh(cell)
         if selectedCell == cell {
             addressText = cell.address
         }
@@ -255,12 +295,13 @@ public final class GridModel {
             cols: max(1, colCount),
             urls: flattenedAddresses(),
             selectedIndex: selectedIndex,
-            refreshIntervals: flattenedRefreshIntervals()
+            refreshIntervals: flattenedRefreshIntervals(),
+            contentBlockingModes: flattenedContentBlockingModes()
         )
     }
 
     public func apply(snapshot: Snapshot) {
-        rebuildGrid(rows: snapshot.rows, cols: snapshot.cols, urls: snapshot.urls, refreshIntervals: snapshot.refreshIntervals)
+        rebuildGrid(rows: snapshot.rows, cols: snapshot.cols, urls: snapshot.urls, refreshIntervals: snapshot.refreshIntervals, contentBlockingModes: snapshot.contentBlockingModes)
 
         if let flat = snapshot.selectedIndex, flat >= 0 {
             let position = GridLayout.position(of: flat, columnCount: colCount)
@@ -291,20 +332,25 @@ public final class GridModel {
     public func applyReorderedURLs(_ urls: [String]) {
         let byAddress = Dictionary(waffleRows.joined().map { ($0.address, $0.refreshInterval.rawValue) }, uniquingKeysWith: { first, _ in first })
         let intervals = urls.map { byAddress[$0] ?? 0 }
-        rebuildGrid(rows: rowCount, cols: colCount, urls: urls, refreshIntervals: intervals)
+        let modesByAddress = Dictionary(waffleRows.joined().map { ($0.address, $0.contentBlockingMode.rawValue) }, uniquingKeysWith: { first, _ in first })
+        let modes = urls.map { modesByAddress[$0] ?? 0 }
+        rebuildGrid(rows: rowCount, cols: colCount, urls: urls, refreshIntervals: intervals, contentBlockingModes: modes)
         select(waffleRows.first?.first)
     }
 
-    private func rebuildGrid(rows: Int, cols: Int, urls: [String], refreshIntervals: [Int] = []) {
+    private func rebuildGrid(rows: Int, cols: Int, urls: [String], refreshIntervals: [Int] = [], contentBlockingModes: [Int] = []) {
         rowCount = max(1, rows)
         colCount = max(1, cols)
 
         let layout = GridLayout.rowMajorURLs(urls, rows: rowCount, cols: colCount, fill: AppConfiguration.fallbackURL)
         let intervals = RefreshInterval.intervals(from: refreshIntervals, count: rowCount * colCount)
+        let modes = ContentBlockingMode.modes(from: contentBlockingModes, count: rowCount * colCount)
         waffleRows = layout.enumerated().map { rowIndex, row in
             row.enumerated().map { columnIndex, urlString in
-                let cell = WaffleCell()
-                cell.refreshInterval = intervals[GridLayout.index(row: rowIndex, column: columnIndex, columnCount: colCount)]
+                let cell = makeCell()
+                let flat = GridLayout.index(row: rowIndex, column: columnIndex, columnCount: colCount)
+                cell.refreshInterval = intervals[flat]
+                cell.contentBlockingMode = modes[flat]
                 cell.loadURL(urlString: urlString)
                 return cell
             }
