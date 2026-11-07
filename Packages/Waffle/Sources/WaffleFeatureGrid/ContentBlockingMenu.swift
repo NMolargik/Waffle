@@ -57,8 +57,11 @@ public struct ContentBlockingMenu: View {
             }
         } label: {
             Label {
+                // One concatenated title: a second Text is dropped as a subtitle in context menus,
+                // which hid the On/Off state.
                 Text("Content Blocking")
-                Text(isActive ? LocalizedStringKey("On") : LocalizedStringKey("Off"))
+                    + Text(verbatim: " · ")
+                    + Text(isActive ? LocalizedStringKey("On") : LocalizedStringKey("Off"))
             } icon: {
                 Image(systemName: isActive ? "shield.lefthalf.filled" : "shield.slash")
             }
