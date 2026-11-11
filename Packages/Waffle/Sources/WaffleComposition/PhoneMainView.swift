@@ -527,6 +527,13 @@ public struct PhoneMainView: View {
             // This pane's page, in one submenu so the menu stays short enough to show
             // Settings without scrolling.
             Menu {
+                if let selected, selected.blockedCount > 0, grid.contentBlocking.isActive(for: selected) {
+                    // The count the iPad shows as a badge over the page.
+                    Button {} label: {
+                        Label("\(selected.blockedCount) items blocked on this page", systemImage: "shield.lefthalf.filled")
+                    }
+                    .disabled(true)
+                }
                 Button { grid.selectedCell?.goForward() } label: {
                     Label("Forward", systemImage: "chevron.forward")
                 }

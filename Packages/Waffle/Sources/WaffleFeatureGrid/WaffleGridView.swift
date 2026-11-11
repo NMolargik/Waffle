@@ -187,7 +187,8 @@ struct WaffleCellContainer: View {
             }
         }
         .overlay(alignment: .topTrailing) {
-            if !isEmpty, !isPoppedOut, waffleCell.blockedCount > 0,
+            // Phone panes report the count in the ••• menu instead of over the page.
+            if !isPhonePane, !isEmpty, !isPoppedOut, waffleCell.blockedCount > 0,
                model.contentBlocking.isActive(for: waffleCell) {
                 BlockedCountBadge(count: waffleCell.blockedCount)
                     .padding(8)
