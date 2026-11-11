@@ -50,24 +50,26 @@ public final class DefaultPresetRepository: PresetRepository {
     // MARK: - Writing
 
     @discardableResult
-    public func savePreset(named providedName: String?, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int], now: Date) throws(PersistenceError) -> Preset {
+    public func savePreset(named providedName: String?, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int], paneCount: Int, paneRatios: [Double], now: Date) throws(PersistenceError) -> Preset {
         let name: String = {
             if let providedName, !providedName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 return providedName
             }
             return String(localized: "Preset \(now.formatted(date: .numeric, time: .shortened))")
         }()
-        let preset = Preset(name: name, rows: rows, cols: cols, urls: urls, refreshIntervals: refreshIntervals)
+        let preset = Preset(name: name, rows: rows, cols: cols, urls: urls, refreshIntervals: refreshIntervals, paneCount: max(0, paneCount), paneRatios: paneRatios)
         context.insert(preset)
         try save(operation: "save preset")
         return preset
     }
 
-    public func overwritePreset(_ preset: Preset, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int]) throws(PersistenceError) {
+    public func overwritePreset(_ preset: Preset, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int], paneCount: Int, paneRatios: [Double]) throws(PersistenceError) {
         preset.rows = max(1, rows)
         preset.cols = max(1, cols)
         preset.urls = urls
         preset.refreshIntervals = refreshIntervals
+        preset.paneCount = max(0, paneCount)
+        preset.paneRatios = paneRatios
         try save(operation: "overwrite preset")
     }
 

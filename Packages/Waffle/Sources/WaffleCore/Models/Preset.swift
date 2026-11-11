@@ -27,15 +27,22 @@ public final class Preset {
     /// Per-cell auto-refresh periods in seconds, row-major (0 or missing = off). Empty for
     /// presets saved before 1.5.0.
     public var refreshIntervals: [Int] = []
+    /// Number of panes when saved from iPhone or iPhone Duo (0 = an iPad grid preset). The
+    /// URLs are still row-major in `urls`, so iPads open the same layout as a small grid.
+    public var paneCount: Int = 0
+    /// `PaneRatios.array` (`[primary, stackA, stackB]`) for pane layouts; empty = even splits.
+    public var paneRatios: [Double] = []
 
     /// Creates a new preset with the given layout and URLs (row-major, `rows * cols`).
-    public init(name: String, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int] = []) {
+    public init(name: String, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int] = [], paneCount: Int = 0, paneRatios: [Double] = []) {
         self.id = UUID()
         self.name = name
         self.rows = rows
         self.cols = cols
         self.urls = urls
         self.refreshIntervals = refreshIntervals
+        self.paneCount = paneCount
+        self.paneRatios = paneRatios
         self.createdAt = Date.now
     }
 }

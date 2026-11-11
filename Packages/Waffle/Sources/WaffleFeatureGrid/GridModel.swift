@@ -26,6 +26,12 @@ public final class GridModel {
 
     public var canPopOut: Bool { selectedCell != nil && poppedCell == nil }
 
+    /// iPhone/Duo pane ratios. Only meaningful on phones; persisted with the snapshot so a
+    /// layout survives relaunch and fold transitions exactly as the user left it.
+    public var paneRatios = PaneRatios.default {
+        didSet { persistDebounced() }
+    }
+
     public var rowCount = 1 {
         didSet { resizeGrid() }
     }
@@ -115,6 +121,8 @@ public final class GridModel {
 
     /// Cells that currently have auto-refresh scheduled (timers alive).
     public var autoRefreshingCellIDs: Set<UUID> { Set(refreshTasks.keys) }
+
+    func restartAllRefreshTimersForPanes() { restartAllRefreshTimers() }
 
     private func restartAllRefreshTimers() {
         let live = Set(waffleRows.joined().map(\.id))
@@ -296,12 +304,14 @@ public final class GridModel {
             urls: flattenedAddresses(),
             selectedIndex: selectedIndex,
             refreshIntervals: flattenedRefreshIntervals(),
-            contentBlockingModes: flattenedContentBlockingModes()
+            contentBlockingModes: flattenedContentBlockingModes(),
+            paneRatios: paneRatios.array
         )
     }
 
     public func apply(snapshot: Snapshot) {
         rebuildGrid(rows: snapshot.rows, cols: snapshot.cols, urls: snapshot.urls, refreshIntervals: snapshot.refreshIntervals, contentBlockingModes: snapshot.contentBlockingModes)
+        paneRatios = PaneRatios(array: snapshot.paneRatios)
 
         if let flat = snapshot.selectedIndex, flat >= 0 {
             let position = GridLayout.position(of: flat, columnCount: colCount)
@@ -366,5 +376,109 @@ public extension GridModel {
         waffleRows.flatMap { row in
             row.map { RearrangeCell(id: UUID(), url: $0.address, title: $0.page.title) }
         }
+    }
+}
+
+// MARK: - Panes (iPhone and iPhone Duo)
+
+/// What applying a saved layout to the phone workspace did.
+public struct PaneApplyResult: Equatable, Sendable {
+    /// Panes now open.
+    public let opened: Int
+    /// Panes the saved layout held; greater than `opened` when this display or plan can't fit them all.
+    public let saved: Int
+    public var wasTruncated: Bool { opened < saved }
+}
+
+/// Phones keep their panes in the grid's single row (`rowCount == 1`, `colCount == panes`)
+/// so snapshots, auto-refresh, content blocking and selection all work unchanged, and
+/// cells (and therefore loaded pages) survive every layout change without reloading.
+public extension GridModel {
+    /// The open panes in order.
+    var panes: [WaffleCell] { waffleRows.flatMap { $0 } }
+
+    var paneCount: Int { panes.count }
+
+    var selectedPaneIndex: Int? {
+        selectedCell.flatMap { panes.firstIndex(of: $0) }
+    }
+
+    /// Appends an empty pane and selects it.
+    @discardableResult
+    func addPane() -> WaffleCell? {
+        guard !waffleRows.isEmpty, paneCount < PaneLimits.maxInnerPanes else { return nil }
+        if rowCount != 1 { rowCount = 1 }
+        colCount = paneCount + 1
+        guard let added = panes.last else { return nil }
+        select(added)
+        return added
+    }
+
+    /// Closes a pane (never the last one), selecting its neighbour.
+    func removePane(_ cell: WaffleCell) {
+        var list = panes
+        guard list.count > 1, let index = list.firstIndex(of: cell) else { return }
+        let wasSelected = selectedCell == cell
+        list.remove(at: index)
+        waffleRows = [list]
+        rowCount = 1
+        colCount = list.count
+        if wasSelected { select(list[min(index, list.count - 1)]) }
+        restartAllRefreshTimersForPanes()
+        persistDebounced()
+    }
+
+    /// Swaps two panes' positions without touching their pages.
+    func swapPanes(_ first: Int, _ second: Int) {
+        let swapped = GridLayout.swapped(panes, first, second)
+        guard swapped != panes else { return }
+        waffleRows = [swapped]
+        persistDebounced()
+    }
+
+    /// Trims a restored grid to what the phone workspace can hold: a single row of at
+    /// most `maxPanes` panes. A no-op (no reloads) when it already fits.
+    func adaptToPanes(maxPanes: Int) {
+        let limit = max(1, maxPanes)
+        guard !waffleRows.isEmpty, rowCount > 1 || colCount > limit else { return }
+        let snapshot = makeSnapshot()
+        let keep = min(limit, snapshot.urls.count)
+        let selected = snapshot.selectedIndex.flatMap { $0 < keep ? $0 : nil }
+        apply(snapshot: Snapshot(
+            rows: 1,
+            cols: keep,
+            urls: Array(snapshot.urls.prefix(keep)),
+            selectedIndex: selected ?? 0,
+            refreshIntervals: Array(snapshot.refreshIntervals.prefix(keep)),
+            contentBlockingModes: Array(snapshot.contentBlockingModes.prefix(keep)),
+            paneRatios: paneRatios.array
+        ))
+    }
+
+    /// Opens a saved layout in the phone workspace: its first `maxPanes` panes, with its
+    /// saved ratios. An iPad grid preset opens its first cells in row-major order.
+    @discardableResult
+    func apply(preset: Preset, maxPanes: Int, keepsAutoRefresh: Bool) -> PaneApplyResult {
+        let saved = PaneLimits.savedSlotCount(paneCount: preset.paneCount, rows: preset.rows, cols: preset.cols)
+        let opened = max(1, min(saved, maxPanes))
+        let urls = GridLayout.rowMajorURLs(preset.urls, rows: preset.rows, cols: preset.cols, fill: AppConfiguration.fallbackURL)
+            .flatMap { $0 }
+        let intervals = keepsAutoRefresh ? Array(preset.refreshIntervals.prefix(opened)) : []
+        applyPaneLayout(urls: Array(urls.prefix(opened)), refreshIntervals: intervals, ratios: PaneRatios(array: preset.paneRatios))
+        return PaneApplyResult(opened: opened, saved: saved)
+    }
+
+    /// Replaces every pane with `urls` (one row) and the given ratios.
+    func applyPaneLayout(urls: [String], refreshIntervals: [Int] = [], ratios: PaneRatios) {
+        let count = max(1, urls.count)
+        let snapshot = Snapshot(
+            rows: 1,
+            cols: count,
+            urls: urls.isEmpty ? [AppConfiguration.fallbackURL] : urls,
+            selectedIndex: 0,
+            refreshIntervals: refreshIntervals,
+            paneRatios: ratios.array
+        )
+        apply(snapshot: snapshot)
     }
 }

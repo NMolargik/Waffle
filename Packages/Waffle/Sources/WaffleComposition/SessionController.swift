@@ -174,6 +174,93 @@ public final class SessionController {
         noteGridShown()
     }
 
+    // MARK: - Phone workspace (iPhone and iPhone Duo)
+
+    /// Auto-refresh is free on iPad; on iPhone and Duo it is part of Syrup.
+    public var canUsePaneAutoRefresh: Bool { isSyrupEnabled }
+    /// Desk mode (half-folded laptop pose) is part of Syrup.
+    public var canUseDeskMode: Bool { isSyrupEnabled }
+
+    /// Panes the user may have right now on a display.
+    public func paneLimit(for mode: PaneMode) -> Int {
+        PaneLimits.allowedMax(for: mode, isSyrupEnabled: isSyrupEnabled)
+    }
+
+    /// Trims a restored workspace to the entitlement's pane count (panes three and four
+    /// are Syrup). Display-independent on purpose: the Duo's outer display must not
+    /// discard panes the inner display is showing.
+    public func adaptWorkspaceToEntitlement() {
+        grid.adaptToPanes(maxPanes: PaneLimits.entitlementMax(isSyrupEnabled: isSyrupEnabled))
+    }
+
+    /// Adds a pane, presenting the Syrup paywall for panes three and four.
+    /// - Returns: true when a pane was added.
+    @discardableResult
+    public func addPane(mode: PaneMode) -> Bool {
+        switch PaneLimits.addPane(currentCount: grid.paneCount, mode: mode, isSyrupEnabled: isSyrupEnabled) {
+        case .allowed:
+            return grid.addPane() != nil
+        case .needsSyrup:
+            requestSyrup()
+            return false
+        case .atDeviceLimit:
+            errorHandler.showToast(String(localized: "This display fits \(PaneLimits.deviceMax(for: mode)) panes"))
+            return false
+        }
+    }
+
+    public func removePane(_ cell: WaffleCell) {
+        grid.removePane(cell)
+    }
+
+    /// Whether another layout may be saved without Syrup.
+    public func canSaveAnotherLayout() -> Bool {
+        let existing = (try? loadPresets().count) ?? 0
+        return PaneLimits.canSaveLayout(existingCount: existing, isSyrupEnabled: isSyrupEnabled)
+    }
+
+    /// Saves the open panes (count, ratios, URLs, refresh timers) as a layout. The free
+    /// plan keeps one layout; saving a second presents the paywall.
+    /// - Returns: true when saved.
+    @discardableResult
+    public func savePaneLayout(named name: String? = nil) -> Bool {
+        guard canSaveAnotherLayout() else {
+            requestSyrup()
+            return false
+        }
+        let count = grid.paneCount
+        let shape = PaneLimits.gridShape(forPaneCount: count)
+        do {
+            try savePreset(
+                named: name,
+                rows: shape.rows,
+                cols: shape.cols,
+                urls: grid.flattenedAddresses(),
+                refreshIntervals: grid.flattenedRefreshIntervals(),
+                paneCount: count,
+                paneRatios: grid.paneRatios.array
+            )
+            notePresetSaved()
+            return true
+        } catch {
+            errorHandler.showPersistenceError(error)
+            return false
+        }
+    }
+
+    /// Opens a saved layout in the phone workspace with one tap. Free for everyone to
+    /// open; a layout with more panes than this display or plan allows opens its first
+    /// panes and says so.
+    @discardableResult
+    public func applyPaneLayout(_ preset: Preset, mode: PaneMode) -> Bool {
+        let result = grid.apply(preset: preset, maxPanes: paneLimit(for: mode), keepsAutoRefresh: canUsePaneAutoRefresh)
+        presetDonator?.donateOpenPreset(preset)
+        if result.wasTruncated {
+            errorHandler.showToast(String(localized: "Opened the first \(result.opened) of \(result.saved) panes"))
+        }
+        return true
+    }
+
     // MARK: - Review milestones
 
     /// Value moment: the user just saved a preset (sidebar or menu bar).

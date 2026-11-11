@@ -18,18 +18,21 @@ nonisolated public struct Snapshot: Codable, Equatable, Sendable {
     /// Per-cell content-blocking overrides (`ContentBlockingMode` raw values, row-major;
     /// missing = follow the global setting).
     public let contentBlockingModes: [Int]
+    /// iPhone/Duo pane ratios (`PaneRatios.array`); empty on iPad and in older snapshots.
+    public let paneRatios: [Double]
 
-    public init(rows: Int, cols: Int, urls: [String], selectedIndex: Int?, refreshIntervals: [Int] = [], contentBlockingModes: [Int] = []) {
+    public init(rows: Int, cols: Int, urls: [String], selectedIndex: Int?, refreshIntervals: [Int] = [], contentBlockingModes: [Int] = [], paneRatios: [Double] = []) {
         self.rows = rows
         self.cols = cols
         self.urls = urls
         self.selectedIndex = selectedIndex
         self.refreshIntervals = refreshIntervals
         self.contentBlockingModes = contentBlockingModes
+        self.paneRatios = paneRatios
     }
 
     private enum CodingKeys: String, CodingKey {
-        case rows, cols, urls, selectedIndex, refreshIntervals, contentBlockingModes
+        case rows, cols, urls, selectedIndex, refreshIntervals, contentBlockingModes, paneRatios
     }
 
     /// Snapshots written before 1.5.0 have no `refreshIntervals`; decode them as all-off.
@@ -41,5 +44,6 @@ nonisolated public struct Snapshot: Codable, Equatable, Sendable {
         selectedIndex = try container.decodeIfPresent(Int.self, forKey: .selectedIndex)
         refreshIntervals = try container.decodeIfPresent([Int].self, forKey: .refreshIntervals) ?? []
         contentBlockingModes = try container.decodeIfPresent([Int].self, forKey: .contentBlockingModes) ?? []
+        paneRatios = try container.decodeIfPresent([Double].self, forKey: .paneRatios) ?? []
     }
 }

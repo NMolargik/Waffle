@@ -149,9 +149,9 @@ public final class SidebarModel {
 
     // MARK: - Preset mutations
 
-    public func savePreset(named name: String?, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int] = []) {
+    public func savePreset(named name: String?, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int] = [], paneCount: Int = 0, paneRatios: [Double] = []) {
         do {
-            try savePresetUseCase(named: name, rows: rows, cols: cols, urls: urls, refreshIntervals: refreshIntervals)
+            try savePresetUseCase(named: name, rows: rows, cols: cols, urls: urls, refreshIntervals: refreshIntervals, paneCount: paneCount, paneRatios: paneRatios)
             load()
             onPresetSaved?()
         } catch {
@@ -159,9 +159,9 @@ public final class SidebarModel {
         }
     }
 
-    public func overwritePreset(_ preset: Preset, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int] = []) {
+    public func overwritePreset(_ preset: Preset, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int] = [], paneCount: Int = 0, paneRatios: [Double] = []) {
         do {
-            try overwritePresetUseCase(preset, rows: rows, cols: cols, urls: urls, refreshIntervals: refreshIntervals)
+            try overwritePresetUseCase(preset, rows: rows, cols: cols, urls: urls, refreshIntervals: refreshIntervals, paneCount: paneCount, paneRatios: paneRatios)
             load()
         } catch {
             errorHandler.showPersistenceError(error)

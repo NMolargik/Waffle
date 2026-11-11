@@ -81,21 +81,23 @@ private final class FakeLibrary {
     struct SaveP: SavePreset {
         let lib: FakeLibrary
         @discardableResult
-        func callAsFunction(named name: String?, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int], now: Date) throws(PersistenceError) -> Preset {
+        func callAsFunction(named name: String?, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int], paneCount: Int, paneRatios: [Double], now: Date) throws(PersistenceError) -> Preset {
             if let error = lib.errorToThrow { throw error }
-            let preset = Preset(name: name ?? "Preset", rows: rows, cols: cols, urls: urls, refreshIntervals: refreshIntervals)
+            let preset = Preset(name: name ?? "Preset", rows: rows, cols: cols, urls: urls, refreshIntervals: refreshIntervals, paneCount: paneCount, paneRatios: paneRatios)
             lib.presets.insert(preset, at: 0)
             return preset
         }
     }
     struct OverwriteP: OverwritePreset {
         let lib: FakeLibrary
-        func callAsFunction(_ preset: Preset, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int]) throws(PersistenceError) {
+        func callAsFunction(_ preset: Preset, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int], paneCount: Int, paneRatios: [Double]) throws(PersistenceError) {
             if let error = lib.errorToThrow { throw error }
             preset.rows = rows
             preset.cols = cols
             preset.urls = urls
             preset.refreshIntervals = refreshIntervals
+            preset.paneCount = paneCount
+            preset.paneRatios = paneRatios
         }
     }
     struct RenameP: RenamePreset {

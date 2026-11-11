@@ -229,4 +229,117 @@ struct SessionControllerTests {
         // The sidebar wrote through the same repository the session's use-cases read.
         #expect(try session.loadBookmarks().count == 1)
     }
+
+    // MARK: - Phone workspace gating
+
+    @Test func freeUserCanAddASecondPaneButHitsThePaywallOnTheThird() throws {
+        let session = try makeSession(purchased: false)
+        session.grid.makeInitialItem()
+
+        #expect(session.addPane(mode: .inner))
+        #expect(session.grid.paneCount == 2)
+        #expect(!session.presentSyrupSheet)
+
+        #expect(!session.addPane(mode: .inner))
+        #expect(session.grid.paneCount == 2)
+        #expect(session.presentSyrupSheet)
+    }
+
+    @Test func syrupUserGetsFourPanesOnTheInnerDisplayOnly() throws {
+        let session = try makeSession(purchased: true)
+        session.grid.makeInitialItem()
+        #expect(session.addPane(mode: .inner))
+        #expect(session.addPane(mode: .inner))
+        #expect(session.addPane(mode: .inner))
+        #expect(session.grid.paneCount == 4)
+        #expect(!session.addPane(mode: .inner))
+        #expect(!session.presentSyrupSheet)
+
+        let compact = try makeSession(purchased: true)
+        compact.grid.makeInitialItem()
+        #expect(compact.addPane(mode: .compact))
+        #expect(!compact.addPane(mode: .compact))
+        #expect(compact.grid.paneCount == 2)
+        #expect(!compact.presentSyrupSheet, "a display limit is not a paywall")
+    }
+
+    @Test func freeUserSavesOneLayoutAndTheSecondShowsThePaywall() throws {
+        let session = try makeSession(purchased: false)
+        session.grid.makeInitialItem()
+        session.addPane(mode: .compact)
+
+        #expect(session.savePaneLayout())
+        #expect(try session.loadPresets().count == 1)
+        #expect(!session.presentSyrupSheet)
+
+        #expect(!session.savePaneLayout())
+        #expect(try session.loadPresets().count == 1)
+        #expect(session.presentSyrupSheet)
+    }
+
+    @Test func syrupUserSavesUnlimitedLayoutsWithRatios() throws {
+        let session = try makeSession(purchased: true)
+        session.grid.applyPaneLayout(urls: ["https://a.example", "https://b.example", "https://c.example"], ratios: PaneRatios(primary: 0.4, stackA: 0.5, stackB: 0.7))
+        #expect(session.savePaneLayout(named: "One"))
+        #expect(session.savePaneLayout(named: "Two"))
+        #expect(session.savePaneLayout(named: "Three"))
+        let saved = try #require(try session.loadPresets().first)
+        #expect(saved.paneCount == 3)
+        #expect(saved.paneRatios == [0.4, 0.5, 0.7])
+        #expect(saved.urls == ["https://a.example", "https://b.example", "https://c.example"])
+        #expect(saved.rows == 2 && saved.cols == 2)
+    }
+
+    @Test func savedLayoutRestoresPaneCountRatiosAndURLs() throws {
+        let session = try makeSession(purchased: true)
+        session.grid.applyPaneLayout(urls: ["https://a.example", "https://b.example"], ratios: PaneRatios(primary: 0.3))
+        session.savePaneLayout(named: "Pair")
+        let preset = try #require(try session.loadPresets().first)
+
+        session.grid.applyPaneLayout(urls: ["https://z.example"], ratios: .default)
+        #expect(session.applyPaneLayout(preset, mode: .compact))
+        #expect(session.grid.panes.map(\.address) == ["https://a.example", "https://b.example"])
+        #expect(session.grid.paneRatios.primary == 0.3)
+    }
+
+    @Test func iPadPresetOnAPhoneOpensItsFirstPanesAndSaysSo() throws {
+        let session = try makeSession(purchased: true)
+        let preset = try session.savePreset(named: "Wall", rows: 3, cols: 3, urls: (0..<9).map { "https://wall.example/\($0)" })
+        session.grid.makeInitialItem()
+
+        #expect(session.applyPaneLayout(preset, mode: .compact))
+        #expect(session.grid.paneCount == 2)
+        #expect(session.errorHandler.toastMessage != nil)
+        #expect(!session.presentSyrupSheet)
+    }
+
+    @Test func freeUserOpeningAFourPaneLayoutOnTheInnerDisplayGetsTwo() throws {
+        let session = try makeSession(purchased: false)
+        let preset = try session.savePreset(named: "Four", rows: 2, cols: 2, urls: (0..<4).map { "https://four.example/\($0)" }, paneCount: 4)
+        #expect(session.applyPaneLayout(preset, mode: .inner))
+        #expect(session.grid.paneCount == 2)
+    }
+
+    @Test func freeUserAutoRefreshAndDeskModeAreSyrup() throws {
+        let free = try makeSession(purchased: false)
+        #expect(!free.canUsePaneAutoRefresh && !free.canUseDeskMode)
+        let paid = try makeSession(purchased: true)
+        #expect(paid.canUsePaneAutoRefresh && paid.canUseDeskMode)
+    }
+
+    @Test func lapsedEntitlementTrimsRestoredPanesToTwo() throws {
+        let session = try makeSession(purchased: false)
+        session.grid.applyPaneLayout(urls: (0..<4).map { "https://example.com/\($0)" }, ratios: .default)
+        session.adaptWorkspaceToEntitlement()
+        #expect(session.grid.paneCount == 2)
+    }
+
+    @Test func ipadGatingIsUnchanged() throws {
+        let free = try makeSession(purchased: false)
+        #expect(free.maxRows == 2 && free.maxCols == 2)
+        #expect(!free.canMakePresets)
+        let paid = try makeSession(purchased: true)
+        #expect(paid.maxRows == 4 && paid.maxCols == 4)
+        #expect(paid.canMakePresets)
+    }
 }

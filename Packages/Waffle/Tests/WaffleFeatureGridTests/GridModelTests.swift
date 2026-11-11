@@ -242,3 +242,135 @@ struct GridModelAutoRefreshTests {
         #expect(state.flattenedRefreshIntervals() == [0, 60])
     }
 }
+
+// MARK: - Phone panes
+
+@Suite("GridModel panes")
+@MainActor
+struct GridModelPaneTests {
+    private func makeModel(panes: Int) -> GridModel {
+        let model = GridModel(defaults: FakeKeyValueStore(), blocksContent: false)
+        model.applyPaneLayout(urls: (0..<panes).map { "https://example.com/\($0)" }, ratios: .default)
+        return model
+    }
+
+    @Test func panesLiveInOneRow() {
+        let model = makeModel(panes: 3)
+        #expect(model.rowCount == 1 && model.colCount == 3)
+        #expect(model.paneCount == 3)
+        #expect(model.panes.map(\.address) == ["https://example.com/0", "https://example.com/1", "https://example.com/2"])
+    }
+
+    @Test func addingAPaneSelectsItAndKeepsTheOthers() {
+        let model = makeModel(panes: 2)
+        let before = model.panes.map(\.id)
+        let added = model.addPane()
+        #expect(model.paneCount == 3)
+        #expect(model.selectedCell == added)
+        #expect(Array(model.panes.map(\.id).prefix(2)) == before)
+    }
+
+    @Test func neverMoreThanFourPanes() {
+        let model = makeModel(panes: 4)
+        #expect(model.addPane() == nil)
+        #expect(model.paneCount == 4)
+    }
+
+    @Test func removingAPaneKeepsTheSurvivorsPages() {
+        let model = makeModel(panes: 3)
+        let ids = model.panes.map(\.id)
+        model.removePane(model.panes[1])
+        #expect(model.panes.map(\.id) == [ids[0], ids[2]])
+        #expect(model.colCount == 2)
+    }
+
+    @Test func lastPaneCannotBeClosed() {
+        let model = makeModel(panes: 1)
+        model.removePane(model.panes[0])
+        #expect(model.paneCount == 1)
+    }
+
+    @Test func closingTheSelectedPaneSelectsANeighbour() {
+        let model = makeModel(panes: 3)
+        model.select(model.panes[2])
+        model.removePane(model.panes[2])
+        #expect(model.selectedCell == model.panes[1])
+    }
+
+    @Test func swapKeepsCellIdentity() {
+        let model = makeModel(panes: 2)
+        let ids = model.panes.map(\.id)
+        model.swapPanes(0, 1)
+        #expect(model.panes.map(\.id) == ids.reversed())
+    }
+
+    @Test func ratiosSurviveASnapshotRoundTrip() {
+        let store = FakeKeyValueStore()
+        let model = GridModel(defaults: store, blocksContent: false)
+        model.applyPaneLayout(urls: ["https://a.example", "https://b.example"], ratios: PaneRatios(primary: 0.3, stackA: 0.5, stackB: 0.6))
+        model.persistNow()
+
+        let restored = GridModel(defaults: store, blocksContent: false)
+        #expect(restored.restoreFromSnapshotIfAvailable())
+        #expect(restored.paneRatios == PaneRatios(primary: 0.3, stackA: 0.5, stackB: 0.6))
+        #expect(restored.paneCount == 2)
+    }
+
+    @Test func adaptingToAPaneLimitKeepsTheFirstPanes() {
+        let model = makeModel(panes: 4)
+        model.select(model.panes[3])
+        model.adaptToPanes(maxPanes: 2)
+        #expect(model.paneCount == 2)
+        #expect(model.panes.map(\.address) == ["https://example.com/0", "https://example.com/1"])
+        #expect(model.selectedCell == model.panes[0])
+    }
+
+    @Test func adaptingIsANoOpWhenItAlreadyFits() {
+        let model = makeModel(panes: 2)
+        let ids = model.panes.map(\.id)
+        model.adaptToPanes(maxPanes: 4)
+        #expect(model.panes.map(\.id) == ids)
+    }
+
+    @Test func ipadGridAdaptsToOneRowOfFirstCells() {
+        let model = GridModel(defaults: FakeKeyValueStore(), blocksContent: false)
+        model.apply(snapshot: Snapshot(rows: 3, cols: 3, urls: (0..<9).map { "https://example.com/\($0)" }, selectedIndex: 0))
+        model.adaptToPanes(maxPanes: 2)
+        #expect(model.rowCount == 1 && model.colCount == 2)
+        #expect(model.panes.map(\.address) == ["https://example.com/0", "https://example.com/1"])
+    }
+
+    @Test func presetFromAnIPadOpensItsFirstPanes() {
+        let model = makeModel(panes: 1)
+        let preset = Preset(name: "Big", rows: 3, cols: 3, urls: (0..<9).map { "https://big.example/\($0)" })
+        let result = model.apply(preset: preset, maxPanes: 2, keepsAutoRefresh: false)
+        #expect(result == PaneApplyResult(opened: 2, saved: 9))
+        #expect(result.wasTruncated)
+        #expect(model.panes.map(\.address) == ["https://big.example/0", "https://big.example/1"])
+    }
+
+    @Test func paneLayoutRestoresRatiosAndURLs() {
+        let model = makeModel(panes: 1)
+        let preset = Preset(name: "Three", rows: 2, cols: 2, urls: ["https://a.example", "https://b.example", "https://c.example"], paneCount: 3, paneRatios: [0.4, 0.5, 0.65])
+        let result = model.apply(preset: preset, maxPanes: 4, keepsAutoRefresh: true)
+        #expect(!result.wasTruncated)
+        #expect(model.paneCount == 3)
+        #expect(model.paneRatios == PaneRatios(primary: 0.4, stackA: 0.5, stackB: 0.65))
+        #expect(model.panes.map(\.address) == ["https://a.example", "https://b.example", "https://c.example"])
+    }
+
+    @Test func freeUsersDoNotGetSavedRefreshTimers() {
+        let model = makeModel(panes: 1)
+        let preset = Preset(name: "Timed", rows: 1, cols: 2, urls: ["https://a.example", "https://b.example"], refreshIntervals: [30, 60], paneCount: 2)
+        model.apply(preset: preset, maxPanes: 2, keepsAutoRefresh: false)
+        #expect(model.flattenedRefreshIntervals() == [0, 0])
+        model.apply(preset: preset, maxPanes: 2, keepsAutoRefresh: true)
+        #expect(model.flattenedRefreshIntervals() == [30, 60])
+    }
+
+    @Test func olderSnapshotsDecodeWithEvenRatios() throws {
+        let json = #"{"rows":1,"cols":2,"urls":["a","b"],"selectedIndex":0}"#
+        let snapshot = try JSONDecoder().decode(Snapshot.self, from: Data(json.utf8))
+        #expect(PaneRatios(array: snapshot.paneRatios) == .default)
+    }
+}

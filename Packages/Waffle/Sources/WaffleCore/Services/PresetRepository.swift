@@ -18,10 +18,10 @@ public protocol PresetRepository: AnyObject {
     /// Inserts a new preset, defaulting the name to a timestamp when blank.
     /// `refreshIntervals` are per-cell seconds, row-major (empty = all off).
     @discardableResult
-    func savePreset(named providedName: String?, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int], now: Date) throws(PersistenceError) -> Preset
+    func savePreset(named providedName: String?, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int], paneCount: Int, paneRatios: [Double], now: Date) throws(PersistenceError) -> Preset
 
     /// Replaces an existing preset's layout with the current grid.
-    func overwritePreset(_ preset: Preset, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int]) throws(PersistenceError)
+    func overwritePreset(_ preset: Preset, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int], paneCount: Int, paneRatios: [Double]) throws(PersistenceError)
 
     /// Renames a preset; blank names are ignored.
     func renamePreset(_ preset: Preset, to name: String) throws(PersistenceError)
@@ -37,12 +37,12 @@ public extension PresetRepository {
     /// Saves with every cell's auto-refresh off.
     @discardableResult
     func savePreset(named providedName: String?, rows: Int, cols: Int, urls: [String], now: Date) throws(PersistenceError) -> Preset {
-        try savePreset(named: providedName, rows: rows, cols: cols, urls: urls, refreshIntervals: [], now: now)
+        try savePreset(named: providedName, rows: rows, cols: cols, urls: urls, refreshIntervals: [], paneCount: 0, paneRatios: [], now: now)
     }
 
     /// Overwrites layout/URLs and clears per-cell auto-refresh.
     func overwritePreset(_ preset: Preset, rows: Int, cols: Int, urls: [String]) throws(PersistenceError) {
-        try overwritePreset(preset, rows: rows, cols: cols, urls: urls, refreshIntervals: [])
+        try overwritePreset(preset, rows: rows, cols: cols, urls: urls, refreshIntervals: [], paneCount: 0, paneRatios: [])
     }
 }
 
@@ -77,13 +77,13 @@ public struct FindPresetUseCase: FindPreset {
 @MainActor
 public protocol SavePreset {
     @discardableResult
-    func callAsFunction(named name: String?, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int], now: Date) throws(PersistenceError) -> Preset
+    func callAsFunction(named name: String?, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int], paneCount: Int, paneRatios: [Double], now: Date) throws(PersistenceError) -> Preset
 }
 
 public extension SavePreset {
     @discardableResult
-    func callAsFunction(named name: String?, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int] = []) throws(PersistenceError) -> Preset {
-        try callAsFunction(named: name, rows: rows, cols: cols, urls: urls, refreshIntervals: refreshIntervals, now: .now)
+    func callAsFunction(named name: String?, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int] = [], paneCount: Int = 0, paneRatios: [Double] = []) throws(PersistenceError) -> Preset {
+        try callAsFunction(named: name, rows: rows, cols: cols, urls: urls, refreshIntervals: refreshIntervals, paneCount: paneCount, paneRatios: paneRatios, now: .now)
     }
 }
 
@@ -91,27 +91,27 @@ public struct SavePresetUseCase: SavePreset {
     private let repository: any PresetRepository
     public init(repository: any PresetRepository) { self.repository = repository }
     @discardableResult
-    public func callAsFunction(named name: String?, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int], now: Date) throws(PersistenceError) -> Preset {
-        try repository.savePreset(named: name, rows: rows, cols: cols, urls: urls, refreshIntervals: refreshIntervals, now: now)
+    public func callAsFunction(named name: String?, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int], paneCount: Int, paneRatios: [Double], now: Date) throws(PersistenceError) -> Preset {
+        try repository.savePreset(named: name, rows: rows, cols: cols, urls: urls, refreshIntervals: refreshIntervals, paneCount: paneCount, paneRatios: paneRatios, now: now)
     }
 }
 
 @MainActor
 public protocol OverwritePreset {
-    func callAsFunction(_ preset: Preset, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int]) throws(PersistenceError)
+    func callAsFunction(_ preset: Preset, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int], paneCount: Int, paneRatios: [Double]) throws(PersistenceError)
 }
 
 public extension OverwritePreset {
-    func callAsFunction(_ preset: Preset, rows: Int, cols: Int, urls: [String]) throws(PersistenceError) {
-        try callAsFunction(preset, rows: rows, cols: cols, urls: urls, refreshIntervals: [])
+    func callAsFunction(_ preset: Preset, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int] = [], paneCount: Int = 0, paneRatios: [Double] = []) throws(PersistenceError) {
+        try callAsFunction(preset, rows: rows, cols: cols, urls: urls, refreshIntervals: refreshIntervals, paneCount: paneCount, paneRatios: paneRatios)
     }
 }
 
 public struct OverwritePresetUseCase: OverwritePreset {
     private let repository: any PresetRepository
     public init(repository: any PresetRepository) { self.repository = repository }
-    public func callAsFunction(_ preset: Preset, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int]) throws(PersistenceError) {
-        try repository.overwritePreset(preset, rows: rows, cols: cols, urls: urls, refreshIntervals: refreshIntervals)
+    public func callAsFunction(_ preset: Preset, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int], paneCount: Int, paneRatios: [Double]) throws(PersistenceError) {
+        try repository.overwritePreset(preset, rows: rows, cols: cols, urls: urls, refreshIntervals: refreshIntervals, paneCount: paneCount, paneRatios: paneRatios)
     }
 }
 
