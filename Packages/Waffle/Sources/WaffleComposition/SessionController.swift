@@ -242,9 +242,17 @@ public final class SessionController {
         }
         let count = grid.paneCount
         let shape = PaneLimits.gridShape(forPaneCount: count)
+        let addresses = grid.flattenedAddresses()
+        let existing = ((try? loadPresets()) ?? []).map(\.name)
+        // Named after the sites in the panes ("Wikipedia + Apple"); a dated name only when no
+        // pane has a page yet.
+        let trimmed = name?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let finalName = (trimmed?.isEmpty == false ? trimmed : nil)
+            ?? LayoutNaming.suggestedName(addresses: addresses, existingNames: existing)
+            ?? String(localized: "Layout \(Date.now.formatted(date: .numeric, time: .shortened))")
         do {
-            try savePreset(
-                named: name,
+            let saved = try savePreset(
+                named: finalName,
                 rows: shape.rows,
                 cols: shape.cols,
                 urls: grid.flattenedAddresses(),
@@ -253,6 +261,7 @@ public final class SessionController {
                 paneRatios: grid.paneRatios.array
             )
             notePresetSaved()
+            errorHandler.showToast(String(localized: "Saved as “\(saved.name)”"))
             return true
         } catch {
             errorHandler.showPersistenceError(error)

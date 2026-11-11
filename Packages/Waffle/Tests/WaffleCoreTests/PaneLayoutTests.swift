@@ -470,3 +470,41 @@ struct FoldableDeviceTests {
         #expect(FoldableDevice.limitMessage(mode: .inner, isFoldable: true) == .displayFits(4))
     }
 }
+
+@Suite("LayoutNaming")
+struct LayoutNamingTests {
+    @Test func namesALayoutFromItsSites() {
+        let name = LayoutNaming.siteTitle(forAddresses: ["https://en.wikipedia.org/wiki/Waffle", "https://www.apple.com/"])
+        #expect(name == "Wikipedia + Apple")
+    }
+
+    @Test func repeatedSitesAndEmptyPanesAreSkipped() {
+        #expect(LayoutNaming.siteTitle(forAddresses: ["https://apple.com", "", "https://www.apple.com/mac"]) == "Apple")
+        #expect(LayoutNaming.siteTitle(forAddresses: ["", " "]) == nil)
+    }
+
+    @Test func twoLabelPublicSuffixesKeepTheSiteLabel() {
+        #expect(LayoutNaming.siteName(forAddress: "https://www.bbc.co.uk/news") == "Bbc")
+    }
+
+    @Test func takenNamesAreNumbered() {
+        let existing = ["Wikipedia + Apple", "Wikipedia + Apple 2"]
+        #expect(LayoutNaming.suggestedName(addresses: ["wikipedia.org", "apple.com"], existingNames: existing) == "Wikipedia + Apple 3")
+        #expect(LayoutNaming.suggestedName(addresses: ["wikipedia.org", "apple.com"], existingNames: []) == "Wikipedia + Apple")
+        #expect(LayoutNaming.suggestedName(addresses: [], existingNames: []) == nil)
+    }
+
+    @Test func hostSummaryListsRegistrableDomainsOfTheOpenPanes() {
+        let urls = ["https://en.wikipedia.org/wiki/X", "https://www.apple.com/", "https://apple.com/mac", "https://ignored.com"]
+        #expect(LayoutNaming.hostSummary(urls: urls, paneCount: 3) == "wikipedia.org, apple.com")
+    }
+
+    @Test func sharingALayoutSaysPanesNotAGrid() {
+        let preset = Preset(name: "Wikipedia + Apple", rows: 1, cols: 2, urls: ["https://wikipedia.org", "https://apple.com"], paneCount: 2)
+        let text = PresetShare.text(for: preset)
+        #expect(text.hasPrefix("Wikipedia + Apple (2 panes)"))
+        #expect(!text.contains("1x2"))
+        let grid = Preset(name: "Grid", rows: 2, cols: 2, urls: [])
+        #expect(PresetShare.text(for: grid).hasPrefix("Grid (2x2)"))
+    }
+}

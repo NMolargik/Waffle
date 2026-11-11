@@ -60,36 +60,18 @@ public struct SidebarView: View {
     }
 
     public var body: some View {
-        VStack {
-            BookmarksHeaderView(
-                onQuickSaveCurrent: { quickSaveBookmark() },
-                onSaveAs: { beginBookmarkCreation() }
-            )
-            bookmarksListView
-
-            PresetsHeaderView(
-                isPhoneLayouts: isPhoneLayouts,
-                onQuickSave: { savePreset(named: nil) },
-                onSaveAs: { beginPresetNaming() }
-            )
-
-            PresetsListView(
-                presets: model.filteredPresets,
-                isSyrupEnabled: isSyrupEnabled,
-                isPhoneLayouts: isPhoneLayouts,
-                canMakePresets: canMakePresets,
-                requestSyrup: requestSyrup,
-                applyPreset: { applyPreset($0) },
-                overwritePreset: { overwritePreset($0) },
-                onRename: { beginPresetRenaming($0) },
-                onDelete: { model.deletePreset($0) }
-            )
+        Group {
+            if isPhoneLayouts {
+                phoneContent
+            } else {
+                gridContent
+            }
         }
         .searchable(
             text: $model.searchText,
             prompt: isPhoneLayouts ? Text("Search bookmarks & layouts") : Text("Search bookmarks & presets")
         )
-        .alert(presetToRename == nil ? Text("Save Preset") : Text("Rename Preset"), isPresented: $showingPresetNamePrompt) {
+        .alert(presetToRename == nil ? Text(LocalizedStringKey(isPhoneLayouts ? "Save Layout" : "Save Preset")) : Text(LocalizedStringKey(isPhoneLayouts ? "Rename Layout" : "Rename Preset")), isPresented: $showingPresetNamePrompt) {
             TextField(String(localized: "Name"), text: $newPresetName)
             Button(String(localized: "Cancel"), role: .cancel) { resetPresetPrompt() }
             Button(presetToRename == nil ? String(localized: "Save") : String(localized: "Rename")) {
@@ -101,7 +83,7 @@ public struct SidebarView: View {
                 resetPresetPrompt()
             }
         } message: {
-            Text("Enter a name for this grid layout.")
+            Text(LocalizedStringKey(isPhoneLayouts ? "Enter a name for this layout." : "Enter a name for this grid layout."))
         }
         .alert(bookmarkToEdit == nil ? Text("Save Bookmark") : Text("Rename Bookmark"), isPresented: $showingBookmarkNamePrompt) {
             TextField(String(localized: "Title"), text: $newBookmarkTitle)
@@ -126,6 +108,57 @@ public struct SidebarView: View {
         .onAppear {
             model.load()
             model.normalizeBookmarkOrder()
+        }
+    }
+
+    // MARK: - Content
+
+    private var phoneContent: some View {
+        PhoneLayoutsView(
+            presets: model.filteredPresets,
+            hasAnyPresets: !model.presets.isEmpty,
+            bookmarks: model.filteredBookmarks,
+            hasAnyBookmarks: !model.bookmarks.isEmpty,
+            canSaveAnotherLayout: canMakePresets,
+            requestSyrup: requestSyrup,
+            onSaveOpenPanes: { savePreset(named: nil) },
+            onSaveLayoutAs: { beginPresetNaming() },
+            applyPreset: { applyPreset($0) },
+            // Updating a layout you already have is not adding one: free for everyone.
+            updatePreset: { updatePhoneLayout($0) },
+            onRename: { beginPresetRenaming($0) },
+            onDeletePreset: { model.deletePreset($0) },
+            onBookmarkCurrentPage: { quickSaveBookmark() },
+            onSaveBookmarkAs: { beginBookmarkCreation() },
+            applyBookmark: { applyBookmark($0.urlString) },
+            onEditBookmark: { beginBookmarkEditing($0) },
+            onDeleteBookmark: { model.deleteBookmark($0) },
+            onMoveBookmarks: model.canReorderBookmarks ? { from, to in model.moveBookmarks(from: from, to: to) } : nil
+        )
+    }
+
+    private var gridContent: some View {
+        VStack {
+            BookmarksHeaderView(
+                onQuickSaveCurrent: { quickSaveBookmark() },
+                onSaveAs: { beginBookmarkCreation() }
+            )
+            bookmarksListView
+
+            PresetsHeaderView(
+                onQuickSave: { savePreset(named: nil) },
+                onSaveAs: { beginPresetNaming() }
+            )
+
+            PresetsListView(
+                presets: model.filteredPresets,
+                isSyrupEnabled: isSyrupEnabled,
+                requestSyrup: requestSyrup,
+                applyPreset: { applyPreset($0) },
+                overwritePreset: { overwritePreset($0) },
+                onRename: { beginPresetRenaming($0) },
+                onDelete: { model.deletePreset($0) }
+            )
         }
     }
 
@@ -161,7 +194,16 @@ public struct SidebarView: View {
             return
         }
         let grid = currentGrid()
+        // Phone layouts are named after their sites ("Wikipedia + Apple"), not a timestamp.
+        let name = (isPhoneLayouts && (name ?? "").isEmpty)
+            ? LayoutNaming.suggestedName(addresses: grid.urls, existingNames: model.presets.map(\.name))
+            : name
         model.savePreset(named: name, rows: grid.rows, cols: grid.cols, urls: grid.urls, refreshIntervals: grid.refreshIntervals, paneCount: grid.paneCount, paneRatios: grid.paneRatios)
+    }
+
+    private func updatePhoneLayout(_ preset: Preset) {
+        let grid = currentGrid()
+        model.overwritePreset(preset, rows: grid.rows, cols: grid.cols, urls: grid.urls, refreshIntervals: grid.refreshIntervals, paneCount: grid.paneCount, paneRatios: grid.paneRatios)
     }
 
     private func overwritePreset(_ preset: Preset) {

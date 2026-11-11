@@ -27,6 +27,21 @@ nonisolated public enum PresetShare {
 
 public extension PresetShare {
     static func text(for preset: Preset) -> String {
-        text(name: preset.name, id: preset.id, rows: preset.rows, cols: preset.cols, urls: preset.urls)
+        guard preset.paneCount > 0 else {
+            return text(name: preset.name, id: preset.id, rows: preset.rows, cols: preset.cols, urls: preset.urls)
+        }
+        // A layout saved on iPhone or iPhone Duo: panes, not a grid.
+        var lines: [String] = []
+        let title = preset.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let panes = preset.paneCount == 1 ? "1 pane" : "\(preset.paneCount) panes"
+        lines.append(title.isEmpty ? "Waffle layout (\(panes))" : "\(title) (\(panes))")
+        lines.append(DeepLink.openPreset(preset.id).url.absoluteString)
+        let pages = preset.urls.prefix(preset.paneCount)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+        if !pages.isEmpty {
+            lines.append("")
+            lines.append(contentsOf: pages)
+        }
+        return lines.joined(separator: "\n")
     }
 }
