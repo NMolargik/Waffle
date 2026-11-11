@@ -186,17 +186,8 @@ public final class SessionController {
 
     // MARK: - Phone workspace (iPhone and iPhone Duo)
 
-    /// Auto-refresh is free on iPad; on iPhone and Duo it is part of Syrup.
-    public var canUsePaneAutoRefresh: Bool { isSyrupEnabled }
     /// Desk mode (half-folded laptop pose) is part of Syrup.
     public var canUseDeskMode: Bool { isSyrupEnabled }
-
-    /// iPhone/Duo only: refuse new auto-refresh timers without Syrup and show the paywall.
-    /// (iPad leaves the grid's policy unset, so auto-refresh stays free there.)
-    public func configurePhoneAutoRefreshGate() {
-        grid.autoRefreshPolicy = { [weak self] in self?.canUsePaneAutoRefresh ?? false }
-        grid.onAutoRefreshDenied = { [weak self] in self?.requestSyrup(for: .autoRefresh) }
-    }
 
     /// Panes the user may have right now on a display.
     public func paneLimit(for mode: PaneMode) -> Int {
@@ -270,7 +261,7 @@ public final class SessionController {
     /// panes and says so.
     @discardableResult
     public func applyPaneLayout(_ preset: Preset, mode: PaneMode) -> Bool {
-        let result = grid.apply(preset: preset, maxPanes: paneLimit(for: mode), keepsAutoRefresh: canUsePaneAutoRefresh)
+        let result = grid.apply(preset: preset, maxPanes: paneLimit(for: mode))
         presetDonator?.donateOpenPreset(preset)
         if result.wasTruncated {
             errorHandler.showToast(String(localized: "Opened the first \(result.opened) of \(result.saved) panes"))

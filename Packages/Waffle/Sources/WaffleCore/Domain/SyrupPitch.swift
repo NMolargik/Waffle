@@ -10,11 +10,11 @@ import Foundation
 
 /// What the user was doing when the paywall appeared.
 nonisolated public enum SyrupTrigger: Equatable, Sendable {
-    case general, thirdPane, secondLayout, autoRefresh, deskMode
+    case general, thirdPane, secondLayout, deskMode
 }
 
 nonisolated public enum SyrupFeature: CaseIterable, Equatable, Sendable {
-    case morePanes, unlimitedLayouts, autoRefresh, deskMode
+    case morePanes, unlimitedLayouts, deskMode
 }
 
 nonisolated public struct SyrupPitch: Equatable, Sendable {
@@ -34,7 +34,6 @@ nonisolated public struct SyrupPitch: Equatable, Sendable {
         case .general: nil
         case .thirdPane: .morePanes
         case .secondLayout: .unlimitedLayouts
-        case .autoRefresh: .autoRefresh
         case .deskMode: .deskMode
         }
     }

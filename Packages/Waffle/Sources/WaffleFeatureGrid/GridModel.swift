@@ -62,10 +62,6 @@ public final class GridModel {
     @ObservationIgnored
     private var refreshTasks: [UUID: Task<Void, Never>] = [:]
 
-    /// When set, decides whether a cell may start auto-refreshing (turning it off is always allowed).
-    public var autoRefreshPolicy: (() -> Bool)?
-    /// Called instead of applying an interval the policy refused (the session shows the paywall).
-    public var onAutoRefreshDenied: (() -> Void)?
 
     // MARK: - Content blocking
 
@@ -112,11 +108,6 @@ public final class GridModel {
 
     /// Sets a cell's auto-refresh cadence, restarts its timer and persists the grid.
     public func setRefreshInterval(_ interval: RefreshInterval, for cell: WaffleCell) {
-        // iPhone and Duo gate auto-refresh behind Syrup (iPad leaves the policy unset).
-        if interval != .off, let policy = autoRefreshPolicy, !policy() {
-            onAutoRefreshDenied?()
-            return
-        }
         cell.refreshInterval = interval
         restartRefreshTimer(for: cell)
         persistDebounced()
@@ -486,12 +477,12 @@ public extension GridModel {
     /// Opens a saved layout in the phone workspace: its first `maxPanes` panes, with its
     /// saved ratios. An iPad grid preset opens its first cells in row-major order.
     @discardableResult
-    func apply(preset: Preset, maxPanes: Int, keepsAutoRefresh: Bool) -> PaneApplyResult {
+    func apply(preset: Preset, maxPanes: Int) -> PaneApplyResult {
         let saved = PaneLimits.savedSlotCount(paneCount: preset.paneCount, rows: preset.rows, cols: preset.cols)
         let opened = max(1, min(saved, maxPanes))
         let urls = GridLayout.rowMajorURLs(preset.urls, rows: preset.rows, cols: preset.cols, fill: AppConfiguration.fallbackURL)
             .flatMap { $0 }
-        let intervals = keepsAutoRefresh ? Array(preset.refreshIntervals.prefix(opened)) : []
+        let intervals = Array(preset.refreshIntervals.prefix(opened))
         applyPaneLayout(urls: Array(urls.prefix(opened)), refreshIntervals: intervals, ratios: PaneRatios(array: preset.paneRatios))
         return PaneApplyResult(opened: opened, saved: saved)
     }

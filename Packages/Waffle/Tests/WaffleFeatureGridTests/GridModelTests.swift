@@ -343,7 +343,7 @@ struct GridModelPaneTests {
     @Test func presetFromAnIPadOpensItsFirstPanes() {
         let model = makeModel(panes: 1)
         let preset = Preset(name: "Big", rows: 3, cols: 3, urls: (0..<9).map { "https://big.example/\($0)" })
-        let result = model.apply(preset: preset, maxPanes: 2, keepsAutoRefresh: false)
+        let result = model.apply(preset: preset, maxPanes: 2)
         #expect(result == PaneApplyResult(opened: 2, saved: 9))
         #expect(result.wasTruncated)
         #expect(model.panes.map(\.address) == ["https://big.example/0", "https://big.example/1"])
@@ -352,19 +352,17 @@ struct GridModelPaneTests {
     @Test func paneLayoutRestoresRatiosAndURLs() {
         let model = makeModel(panes: 1)
         let preset = Preset(name: "Three", rows: 2, cols: 2, urls: ["https://a.example", "https://b.example", "https://c.example"], paneCount: 3, paneRatios: [0.4, 0.5, 0.65])
-        let result = model.apply(preset: preset, maxPanes: 4, keepsAutoRefresh: true)
+        let result = model.apply(preset: preset, maxPanes: 4)
         #expect(!result.wasTruncated)
         #expect(model.paneCount == 3)
         #expect(model.paneRatios == PaneRatios(primary: 0.4, stackA: 0.5, stackB: 0.65))
         #expect(model.panes.map(\.address) == ["https://a.example", "https://b.example", "https://c.example"])
     }
 
-    @Test func freeUsersDoNotGetSavedRefreshTimers() {
+    @Test func savedRefreshTimersComeBackWithTheLayout() {
         let model = makeModel(panes: 1)
         let preset = Preset(name: "Timed", rows: 1, cols: 2, urls: ["https://a.example", "https://b.example"], refreshIntervals: [30, 60], paneCount: 2)
-        model.apply(preset: preset, maxPanes: 2, keepsAutoRefresh: false)
-        #expect(model.flattenedRefreshIntervals() == [0, 0])
-        model.apply(preset: preset, maxPanes: 2, keepsAutoRefresh: true)
+        model.apply(preset: preset, maxPanes: 2)
         #expect(model.flattenedRefreshIntervals() == [30, 60])
     }
 

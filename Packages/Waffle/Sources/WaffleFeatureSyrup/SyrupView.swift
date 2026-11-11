@@ -144,7 +144,6 @@ public struct SyrupView: View {
         case .general: "Get more from Waffle on iPhone"
         case .thirdPane: "Add a third pane with Syrup"
         case .secondLayout: "Save more layouts with Syrup"
-        case .autoRefresh: "Keep every pane fresh with Syrup"
         case .deskMode: "Use Desk Mode with Syrup"
         }
     }
@@ -175,8 +174,6 @@ public struct SyrupView: View {
             }
         case .unlimitedLayouts:
             Label("Unlimited saved layouts", systemImage: "square.and.arrow.down")
-        case .autoRefresh:
-            Label("Auto-refresh timers for each pane", systemImage: "timer")
         case .deskMode:
             Label("Desk Mode when your iPhone Duo is half-folded", systemImage: "laptopcomputer")
         }

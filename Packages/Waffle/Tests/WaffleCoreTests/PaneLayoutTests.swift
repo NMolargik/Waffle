@@ -320,15 +320,15 @@ struct SyrupPitchTests {
     @Test func theTriggerLeadsThePhonePitch() {
         #expect(SyrupPitch(trigger: .thirdPane, isInnerDisplay: true).features.first == .morePanes)
         #expect(SyrupPitch(trigger: .secondLayout, isInnerDisplay: false).features.first == .unlimitedLayouts)
-        #expect(SyrupPitch(trigger: .autoRefresh, isInnerDisplay: false).features.first == .autoRefresh)
         #expect(SyrupPitch(trigger: .deskMode, isInnerDisplay: true).features.first == .deskMode)
     }
 
     @Test func everyFeatureIsListedExactlyOnce() {
-        for trigger in [SyrupTrigger.general, .thirdPane, .secondLayout, .autoRefresh, .deskMode] {
+        for trigger in [SyrupTrigger.general, .thirdPane, .secondLayout, .deskMode] {
             let features = SyrupPitch(trigger: trigger, isInnerDisplay: false).features
-            #expect(features.count == 4)
-            #expect(Set(features).count == 4)
+            #expect(features.count == 3)
+            #expect(Set(features).count == 3)
+            #expect(!features.map { "\($0)" }.contains("autoRefresh"), "auto-refresh is free on every device")
         }
     }
 

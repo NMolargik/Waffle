@@ -320,11 +320,19 @@ struct SessionControllerTests {
         #expect(session.grid.paneCount == 2)
     }
 
-    @Test func freeUserAutoRefreshAndDeskModeAreSyrup() throws {
+    @Test func freeUserDeskModeIsSyrup() throws {
         let free = try makeSession(purchased: false)
-        #expect(!free.canUsePaneAutoRefresh && !free.canUseDeskMode)
+        #expect(!free.canUseDeskMode)
         let paid = try makeSession(purchased: true)
-        #expect(paid.canUsePaneAutoRefresh && paid.canUseDeskMode)
+        #expect(paid.canUseDeskMode)
+    }
+
+    @Test func autoRefreshIsFreeOnPhones() throws {
+        let free = try makeSession(purchased: false)
+        free.grid.makeInitialItem()
+        free.grid.setRefreshInterval(.oneMinute, for: free.grid.panes[0])
+        #expect(free.grid.panes[0].refreshInterval == .oneMinute)
+        #expect(!free.presentSyrupSheet, "starting a timer never shows the paywall")
     }
 
     @Test func lapsedEntitlementTrimsRestoredPanesToTwo() throws {
@@ -354,11 +362,6 @@ struct SessionControllerTests {
         session.savePaneLayout()
         session.savePaneLayout()
         #expect(session.syrupTrigger == .secondLayout)
-
-        session.configurePhoneAutoRefreshGate()
-        session.grid.setRefreshInterval(.oneMinute, for: session.grid.panes[0])
-        #expect(session.syrupTrigger == .autoRefresh)
-        #expect(session.grid.panes[0].refreshInterval == .off)
 
         session.requestSyrup()
         #expect(session.syrupTrigger == .general, "iPad and settings callers keep the general pitch")

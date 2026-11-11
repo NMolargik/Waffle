@@ -154,7 +154,6 @@ public struct PhoneMainView: View {
                 grid.makeInitialItem()
             }
             session.adaptWorkspaceToEntitlement()
-            session.configurePhoneAutoRefreshGate()
             #if DEBUG
             DebugPaneSeeding.applyIfRequested(to: grid)
             let defaults = UserDefaults.standard
@@ -355,16 +354,10 @@ public struct PhoneMainView: View {
     @ViewBuilder
     private var autoRefreshItem: some View {
         if let cell = grid.selectedCell {
-            if session.canUsePaneAutoRefresh {
-                AutoRefreshMenu(
-                    selection: cell.refreshInterval,
-                    onSelect: { grid.setRefreshInterval($0, for: cell) }
-                )
-            } else {
-                Button { session.requestSyrup(for: .autoRefresh) } label: {
-                    Label("Auto-Refresh", systemImage: "drop.fill")
-                }
-            }
+            AutoRefreshMenu(
+                selection: cell.refreshInterval,
+                onSelect: { grid.setRefreshInterval($0, for: cell) }
+            )
         }
     }
 
