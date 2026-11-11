@@ -8,6 +8,17 @@ import SwiftUI
 import WaffleCore
 import WaffleDesignSystem
 
+/// Which device the tour is written for. The iPad tour describes the grid, toolbar and
+/// sidebar; the phone tours describe stacked panes and the bottom bar.
+public enum OnboardingVariant: Sendable, Equatable {
+    case iPad
+    case iPhone
+    /// iPhone Duo: the iPhone tour plus a page on the inner display and Desk Mode.
+    case iPhoneDuo
+
+    var isPhone: Bool { self != .iPad }
+}
+
 /// First-run tour. Every page mirrors the real main window — the same
 /// toolbar controls, grid selection glow, sidebar sections, and Syrup gates
 /// the user will see immediately after finishing.
@@ -16,12 +27,16 @@ public struct OnboardingView: View {
 
     @State private var pageIndex: Int = 0
 
-    private let pages: [OnboardingPage] = OnboardingPage.all
+    private let variant: OnboardingVariant
+    private let pages: [OnboardingPage]
 
-    /// Invoked once the tour ends (the session presents the Syrup sheet).
+    /// Invoked once the tour ends (the iPad session then presents the Syrup sheet; the
+    /// phone session does not, since the user has not used the app yet).
     private let onFinished: () -> Void
 
-    public init(onFinished: @escaping () -> Void) {
+    public init(variant: OnboardingVariant = .iPad, onFinished: @escaping () -> Void) {
+        self.variant = variant
+        self.pages = OnboardingPage.pages(for: variant)
         self.onFinished = onFinished
     }
 
@@ -44,12 +59,13 @@ public struct OnboardingView: View {
                     ProgressPips(count: pages.count, index: pageIndex)
                     Spacer()
                     Button(String(localized: "Skip")) {
-                        finishAndShowSyrup()
+                        finish()
                     }
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(.white.opacity(0.9))
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
+                    .frame(minHeight: variant.isPhone ? 44 : nil)
                     .background(.ultraThinMaterial, in: Capsule())
                     .accessibilityHint(Text("Skips the tour"))
                 }
@@ -93,6 +109,8 @@ public struct OnboardingView: View {
                         }
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(.white.opacity(pageIndex == 0 ? 0.4 : 0.9))
+                        .frame(minHeight: variant.isPhone ? 44 : nil)
+                        .contentShape(Rectangle())
                     }
                     .disabled(pageIndex == 0)
 
@@ -103,7 +121,7 @@ public struct OnboardingView: View {
                             if pageIndex < pages.count - 1 {
                                 pageIndex += 1
                             } else {
-                                finishAndShowSyrup()
+                                finish()
                             }
                         }
                     } label: {
@@ -124,7 +142,7 @@ public struct OnboardingView: View {
         }
     }
 
-    private func finishAndShowSyrup() {
+    private func finish() {
         done = true
         onFinished()
     }
@@ -144,6 +162,18 @@ public struct OnboardingView: View {
             LibraryCard()
         case .syrup:
             SyrupCard()
+        case .phoneWelcome:
+            PhoneWelcomeCard()
+        case .phoneBar:
+            PhoneBarCard()
+        case .phoneDivider:
+            PhoneDividerCard()
+        case .phoneLayouts:
+            PhoneLayoutsCard()
+        case .phoneUnfold:
+            PhoneUnfoldCard()
+        case .phoneSyrup:
+            PhoneSyrupCard(isDuo: variant == .iPhoneDuo)
         }
     }
 }
@@ -158,6 +188,13 @@ private struct OnboardingPage: Identifiable {
         case gridMenu
         case library
         case syrup
+        // iPhone and iPhone Duo
+        case phoneWelcome
+        case phoneBar
+        case phoneDivider
+        case phoneLayouts
+        case phoneUnfold
+        case phoneSyrup
     }
     let id = UUID()
     let kind: Kind
@@ -170,6 +207,32 @@ private struct OnboardingPage: Identifiable {
         .init(kind: .library),
         .init(kind: .syrup)
     ]
+
+    /// Five pages on iPhone; the Duo adds a sixth about unfolding and Desk Mode.
+    static let phone: [OnboardingPage] = [
+        .init(kind: .phoneWelcome),
+        .init(kind: .phoneBar),
+        .init(kind: .phoneDivider),
+        .init(kind: .phoneLayouts),
+        .init(kind: .phoneSyrup)
+    ]
+
+    static let phoneDuo: [OnboardingPage] = [
+        .init(kind: .phoneWelcome),
+        .init(kind: .phoneBar),
+        .init(kind: .phoneDivider),
+        .init(kind: .phoneLayouts),
+        .init(kind: .phoneUnfold),
+        .init(kind: .phoneSyrup)
+    ]
+
+    static func pages(for variant: OnboardingVariant) -> [OnboardingPage] {
+        switch variant {
+        case .iPad: all
+        case .iPhone: phone
+        case .iPhoneDuo: phoneDuo
+        }
+    }
 }
 
 // MARK: - Progress Indicator
@@ -307,30 +370,37 @@ private struct DemoSite {
 
 // MARK: - Card 1: Welcome
 
+private struct WelcomeLogo: View {
+    let animate: Bool
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 24)
+                .fill(LinearGradient(
+                    colors: [Color.wafflePrimary, Color.waffleSecondary],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                ))
+                .frame(width: 100, height: 100)
+                .shadow(color: Color.waffleSecondary.opacity(0.5), radius: 20)
+
+            Image("waffleImage")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 72, height: 72)
+                .foregroundStyle(Color.waffleTertiary)
+                .symbolEffect(.bounce, value: animate)
+        }
+        .padding(.top, 12)
+    }
+}
+
 private struct WelcomeCard: View {
     @State private var animate = false
 
     var body: some View {
         VStack(spacing: 24) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(LinearGradient(
-                        colors: [Color.wafflePrimary, Color.waffleSecondary],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ))
-                    .frame(width: 100, height: 100)
-                    .shadow(color: Color.waffleSecondary.opacity(0.5), radius: 20)
-
-                Image("waffleImage")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 72, height: 72)
-                    .foregroundStyle(Color.waffleTertiary)
-                    .symbolEffect(.bounce, value: animate)
-            }
-            .padding(.top, 12)
-
+            WelcomeLogo(animate: animate)
             VStack(spacing: 12) {
                 Text("Welcome to Waffle")
                     .font(.system(size: 32, weight: .bold, design: .rounded))
@@ -792,6 +862,439 @@ private struct PremiumFeatureRow: View {
             Image(systemName: "drop.fill")
                 .font(.caption)
                 .foregroundStyle(Color.waffleTertiary.opacity(0.6))
+        }
+    }
+}
+
+// MARK: - iPhone and iPhone Duo
+
+/// The phone bottom bar in miniature: back, address, maximize, reload and the ••• menu.
+private struct MockPhoneBar: View {
+    let address: String
+
+    var body: some View {
+        HStack(spacing: 6) {
+            circle("chevron.backward")
+
+            HStack(spacing: 0) {
+                Text(verbatim: address)
+                    .font(.footnote)
+                    .lineLimit(1)
+                    .contentTransition(.numericText())
+                Spacer(minLength: 0)
+            }
+            .padding(.vertical, 8)
+            .padding(.horizontal, 12)
+            .background(.thinMaterial, in: Capsule())
+
+            circle("arrow.up.left.and.arrow.down.right")
+            circle("arrow.clockwise")
+            circle("ellipsis")
+        }
+        .padding(8)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
+        .accessibilityHidden(true)
+    }
+
+    private func circle(_ systemImage: String) -> some View {
+        Image(systemName: systemImage)
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            .frame(width: 32, height: 32)
+            .background(.thinMaterial, in: Circle())
+    }
+}
+
+/// Two stacked panes with the real divider between them. With `isAdjustable` the divider
+/// can be dragged and double tapped, exactly like the app.
+private struct MockStackedPanes: View {
+    @Binding var selectedIndex: Int
+    @Binding var ratio: Double
+    var isAdjustable = false
+    var height: CGFloat = 200
+
+    @State private var dragStartRatio: Double?
+
+    private var dividerHeight: CGFloat { isAdjustable ? 24 : 8 }
+
+    var body: some View {
+        let usable = max(height - dividerHeight, 1)
+        VStack(spacing: 0) {
+            pane(0)
+                .frame(height: usable * ratio)
+            divider(usable: usable)
+            pane(1)
+                .frame(height: usable * (1 - ratio))
+        }
+        .frame(height: height)
+    }
+
+    private func pane(_ index: Int) -> some View {
+        MockCell(
+            site: DemoSite.samples[index].address,
+            icon: DemoSite.samples[index].icon,
+            tint: DemoSite.samples[index].tint,
+            isSelected: selectedIndex == index,
+            onTap: { selectedIndex = index }
+        )
+    }
+
+    @ViewBuilder
+    private func divider(usable: CGFloat) -> some View {
+        if isAdjustable {
+            Capsule()
+                .fill(Color.secondary.opacity(0.55))
+                .frame(width: 44, height: 5)
+                .frame(maxWidth: .infinity, minHeight: dividerHeight, maxHeight: dividerHeight)
+                .contentShape(Rectangle())
+                .gesture(
+                    DragGesture(minimumDistance: 2)
+                        .onChanged { value in
+                            let start = dragStartRatio ?? ratio
+                            dragStartRatio = start
+                            ratio = PaneRatios.clamp(start + Double(value.translation.height / usable))
+                        }
+                        .onEnded { _ in dragStartRatio = nil }
+                )
+                .onTapGesture(count: 2) {
+                    withAnimation(.snappy) { ratio = 0.5 }
+                }
+                .accessibilityLabel(Text("Pane divider"))
+        } else {
+            Color.clear.frame(height: dividerHeight)
+        }
+    }
+}
+
+private struct PhoneWelcomeCard: View {
+    @State private var animate = false
+
+    var body: some View {
+        VStack(spacing: 24) {
+            WelcomeLogo(animate: animate)
+
+            VStack(spacing: 12) {
+                Text("Welcome to Waffle")
+                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .multilineTextAlignment(.center)
+
+                Text("Two live pages on one screen")
+                    .font(.title3)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+
+            Text("Waffle shows two webpages at once, one above the other, and both stay live. Follow your mail and the news, or the score and the stream, without switching tabs.")
+                .font(.body)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+
+            // A taste of what is coming: two stacked panes and the bottom bar.
+            VStack(spacing: 8) {
+                VStack(spacing: 4) {
+                    ForEach(0..<2, id: \.self) { i in
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.waffleSecondary.opacity(0.3))
+                            .frame(height: 34)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(i == 0 ? Color.accentColor : .clear, lineWidth: 2)
+                            )
+                    }
+                }
+                Capsule()
+                    .fill(Color.waffleSecondary.opacity(0.3))
+                    .frame(height: 14)
+            }
+            .frame(width: 120)
+            .padding(.bottom, 8)
+            .accessibilityHidden(true)
+        }
+        .onAppear { animate = true }
+    }
+}
+
+private struct PhoneBarCard: View {
+    @State private var selectedIndex = 0
+    @State private var ratio = 0.5
+
+    var body: some View {
+        VStack(spacing: 20) {
+            CardHeader(
+                icon: "magnifyingglass",
+                title: "Search and Navigate",
+                subtitle: "The bar at the bottom controls the selected pane. Tap a pane below to select it."
+            )
+
+            VStack(spacing: 10) {
+                MockStackedPanes(selectedIndex: $selectedIndex, ratio: $ratio, height: 190)
+                MockPhoneBar(address: DemoSite.samples[selectedIndex].address)
+            }
+            .padding(12)
+            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
+
+            VStack(alignment: .leading, spacing: 14) {
+                ToolbarTip(
+                    icon: "keyboard",
+                    text: "Type a web address, or anything else, and Waffle searches for it"
+                )
+                ToolbarTip(
+                    icon: "chevron.backward",
+                    text: "Back steps through the selected pane's history"
+                )
+                ToolbarTip(
+                    icon: "arrow.clockwise",
+                    text: "Reload refreshes the selected pane. Touch and hold it to refresh on a timer"
+                )
+                ToolbarTip(
+                    icon: "ellipsis",
+                    text: "The ••• menu adds panes, saves layouts and opens Settings"
+                )
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+        }
+    }
+}
+
+private struct PhoneDividerCard: View {
+    @State private var selectedIndex = 0
+    @State private var ratio = 0.5
+
+    var body: some View {
+        VStack(spacing: 20) {
+            CardHeader(
+                icon: "rectangle.split.1x2.fill",
+                title: "Size Your Panes",
+                subtitle: "Drag the divider between the panes to give one page more room. Try it here."
+            )
+
+            VStack(spacing: 10) {
+                MockStackedPanes(selectedIndex: $selectedIndex, ratio: $ratio, isAdjustable: true, height: 230)
+                MockPhoneBar(address: DemoSite.samples[selectedIndex].address)
+            }
+            .padding(12)
+            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
+
+            VStack(alignment: .leading, spacing: 12) {
+                ConceptPoint(number: "1", text: "Double tap the divider to split the screen evenly")
+                ConceptPoint(number: "2", text: "Maximize fills the screen with one pane. Tap it again to bring the other back")
+                ConceptPoint(number: "3", text: "Turn your iPhone sideways to put the panes side by side")
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+        }
+    }
+}
+
+private struct PhoneLayoutsCard: View {
+    var body: some View {
+        VStack(spacing: 20) {
+            CardHeader(
+                icon: "rectangle.split.2x1.fill",
+                title: "Save Your Layouts",
+                subtitle: "A layout remembers your open panes: the page in each one and how much room each has"
+            )
+
+            // The Layouts list, in miniature.
+            VStack(spacing: 0) {
+                layoutRow(name: "Apple + News", detail: "apple.com, news.com")
+                Divider().padding(.horizontal)
+                layoutRow(name: "Mail + Video", detail: "mail.com, video.com")
+            }
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+            .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 14) {
+                LibraryPoint(
+                    icon: "square.and.arrow.down.fill",
+                    text: "Open ••• and choose Save Layout to keep your panes. Waffle names it after the sites"
+                )
+                LibraryPoint(
+                    icon: "arrow.right",
+                    text: "Tap a saved layout in Layouts & Bookmarks to bring it all back at once"
+                )
+                LibraryPoint(
+                    icon: "icloud.fill",
+                    text: "Layouts and bookmarks sync with iCloud across your devices"
+                )
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+        }
+    }
+
+    private func layoutRow(name: String, detail: String) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: "rectangle.split.2x1.fill")
+                .foregroundStyle(Color.waffleSecondary)
+                .frame(width: 28)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: name)
+                    .font(.subheadline.bold())
+                Text(verbatim: detail)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            Image(systemName: "arrow.right")
+                .font(.footnote.bold())
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+    }
+}
+
+/// iPhone Duo only: the inner display with the fold, and the half-folded Desk Mode pose.
+private struct PhoneUnfoldCard: View {
+    var body: some View {
+        VStack(spacing: 20) {
+            CardHeader(
+                icon: "rectangle.split.2x2.fill",
+                title: "Unfold for More",
+                subtitle: "Your iPhone Duo has a second, larger display inside"
+            )
+
+            HStack(alignment: .top, spacing: 12) {
+                VStack(spacing: 8) {
+                    unfolded
+                    Text("Unfolded")
+                        .font(.caption.bold())
+                        .foregroundStyle(.secondary)
+                }
+                VStack(spacing: 8) {
+                    halfFolded
+                    Text("Half-folded")
+                        .font(.caption.bold())
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(12)
+            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
+            .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 14) {
+                ToolbarTip(
+                    icon: "rectangle.split.2x2",
+                    text: "Unfolded, there is room for four panes at any size, kept clear of the fold"
+                )
+                ToolbarTip(
+                    icon: "laptopcomputer",
+                    text: "Half-folded like a laptop, Desk Mode puts the pages on the upright half and the controls on the flat half"
+                )
+                ToolbarTip(
+                    icon: "1.circle",
+                    text: "Folded shut, a button on the bar such as “1 of 3” switches between the panes you have open"
+                )
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+        }
+    }
+
+    private func miniPane(selected: Bool = false) -> some View {
+        RoundedRectangle(cornerRadius: 5)
+            .fill(Color.waffleSecondary.opacity(0.3))
+            .overlay(
+                RoundedRectangle(cornerRadius: 5)
+                    .stroke(selected ? Color.accentColor : Color.waffleSecondary.opacity(0.5), lineWidth: selected ? 2 : 1)
+            )
+    }
+
+    /// Inner display: two columns of two panes with the fold between them.
+    private var unfolded: some View {
+        HStack(spacing: 0) {
+            VStack(spacing: 4) { miniPane(selected: true); miniPane() }
+            Rectangle()
+                .fill(Color.secondary.opacity(0.35))
+                .frame(width: 6)
+                .padding(.horizontal, 2)
+            VStack(spacing: 4) { miniPane(); miniPane() }
+        }
+        .padding(6)
+        .frame(height: 120)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10))
+    }
+
+    /// Desk Mode: pages on the upright half, a control deck on the flat half.
+    private var halfFolded: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 4) { miniPane(selected: true); miniPane() }
+                .padding(6)
+                .frame(maxHeight: .infinity)
+            Rectangle()
+                .fill(Color.secondary.opacity(0.35))
+                .frame(height: 4)
+            HStack(spacing: 4) {
+                ForEach(0..<3, id: \.self) { _ in
+                    Capsule().fill(Color.waffleSecondary.opacity(0.35)).frame(height: 10)
+                }
+            }
+            .padding(8)
+            .frame(maxHeight: .infinity)
+        }
+        .frame(height: 120)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10))
+    }
+}
+
+private struct PhoneSyrupCard: View {
+    let isDuo: Bool
+
+    var body: some View {
+        VStack(spacing: 20) {
+            VStack(spacing: 8) {
+                HStack(spacing: 8) {
+                    Image(systemName: "drop.fill")
+                        .font(.title2)
+                        .foregroundStyle(Color.waffleTertiary)
+                    Text("Pour On the Syrup")
+                        .font(.title2.bold())
+                }
+
+                Text("Free: two panes, one saved layout, auto-refresh and content blocking. A one-time Syrup purchase adds more.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+
+            VStack(spacing: 12) {
+                PremiumFeatureRow(
+                    icon: "rectangle.split.2x1",
+                    title: "Unlimited Layouts",
+                    description: "Save as many layouts as you like"
+                )
+                if isDuo {
+                    PremiumFeatureRow(
+                        icon: "rectangle.split.2x2",
+                        title: "More Panes",
+                        description: "A third and fourth pane when you unfold your iPhone Duo"
+                    )
+                    PremiumFeatureRow(
+                        icon: "laptopcomputer",
+                        title: "Desk Mode",
+                        description: "Half-fold your iPhone Duo for pages on top and controls below"
+                    )
+                }
+            }
+            .padding()
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+
+            Text(isDuo
+                 ? "Syrup also unlocks Waffle on iPad: bigger grids, pop-out, fullscreen and rearranging."
+                 : "Syrup also unlocks Waffle on iPad and iPhone Duo: bigger grids, a third and fourth pane, Desk Mode.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+
+            Text("You never have to buy it. Get Syrup anytime from Settings, or when you reach a limit.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
         }
     }
 }

@@ -63,7 +63,15 @@ public struct RootView: View {
                     MainView(session: session)
                 }
             } else {
-                OnboardingView(onFinished: { session.presentSyrupSheet = true })
+                if Self.usesPhoneWorkspace {
+                    // The user has not used the app yet: no paywall after the tour on a phone.
+                    OnboardingView(
+                        variant: PhoneMainView.isFoldableDevice ? .iPhoneDuo : .iPhone,
+                        onFinished: {}
+                    )
+                } else {
+                    OnboardingView(onFinished: { session.presentSyrupSheet = true })
+                }
             }
         }
         .onAppear {
