@@ -85,7 +85,10 @@ public struct SidebarView: View {
                 onDelete: { model.deletePreset($0) }
             )
         }
-        .searchable(text: $model.searchText, prompt: Text("Search bookmarks & presets"))
+        .searchable(
+            text: $model.searchText,
+            prompt: isPhoneLayouts ? Text("Search bookmarks & layouts") : Text("Search bookmarks & presets")
+        )
         .alert(presetToRename == nil ? Text("Save Preset") : Text("Rename Preset"), isPresented: $showingPresetNamePrompt) {
             TextField(String(localized: "Name"), text: $newPresetName)
             Button(String(localized: "Cancel"), role: .cancel) { resetPresetPrompt() }

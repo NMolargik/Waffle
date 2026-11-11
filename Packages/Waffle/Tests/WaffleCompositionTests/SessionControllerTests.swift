@@ -342,4 +342,25 @@ struct SessionControllerTests {
         #expect(paid.maxRows == 4 && paid.maxCols == 4)
         #expect(paid.canMakePresets)
     }
+
+    @Test func paywallRemembersWhatTheUserTried() throws {
+        let session = try makeSession(purchased: false)
+        session.grid.makeInitialItem()
+        session.addPane(mode: .inner)
+        session.addPane(mode: .inner)
+        #expect(session.syrupTrigger == .thirdPane)
+
+        session.presentSyrupSheet = false
+        session.savePaneLayout()
+        session.savePaneLayout()
+        #expect(session.syrupTrigger == .secondLayout)
+
+        session.configurePhoneAutoRefreshGate()
+        session.grid.setRefreshInterval(.oneMinute, for: session.grid.panes[0])
+        #expect(session.syrupTrigger == .autoRefresh)
+        #expect(session.grid.panes[0].refreshInterval == .off)
+
+        session.requestSyrup()
+        #expect(session.syrupTrigger == .general, "iPad and settings callers keep the general pitch")
+    }
 }

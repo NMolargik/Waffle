@@ -10,7 +10,12 @@ import SwiftUI
 import WaffleDesignSystem
 
 public struct EmptyCellView: View {
-    public init() {}
+    /// iPhone and Duo call their slots panes and have no sidebar menu.
+    private let isPane: Bool
+
+    public init(isPane: Bool = false) { self.isPane = isPane }
+
+    private var title: LocalizedStringKey { isPane ? "Empty Pane" : "Empty Cell" }
 
     public var body: some View {
         ZStack {
@@ -32,15 +37,21 @@ public struct EmptyCellView: View {
 
     private var fullContent: some View {
         VStack(spacing: 16) {
-            Text("Empty Cell")
+            Text(title)
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundStyle(.primary)
 
             VStack(spacing: 8) {
-                instructionRow("Tap a **cell** to activate it")
-                instructionRow("Use the address bar to search or navigate")
-                instructionRow("Open the menu for Presets & Bookmarks")
+                if isPane {
+                    instructionRow("Tap a **pane** to activate it")
+                    instructionRow("Use the address bar below to search or navigate")
+                    instructionRow("Tap ••• for Layouts & Bookmarks")
+                } else {
+                    instructionRow("Tap a **cell** to activate it")
+                    instructionRow("Use the address bar to search or navigate")
+                    instructionRow("Open the menu for Presets & Bookmarks")
+                }
             }
             .padding()
             .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
@@ -52,7 +63,7 @@ public struct EmptyCellView: View {
     }
 
     private var compactContent: some View {
-        Text("Empty Cell")
+        Text(title)
             .font(.title2)
             .fontWeight(.bold)
             .foregroundStyle(.primary)
@@ -63,7 +74,7 @@ public struct EmptyCellView: View {
     }
 
     private var minimalContent: some View {
-        Text("Empty Cell")
+        Text(title)
             .font(.headline)
             .fontWeight(.bold)
             .foregroundStyle(.primary)

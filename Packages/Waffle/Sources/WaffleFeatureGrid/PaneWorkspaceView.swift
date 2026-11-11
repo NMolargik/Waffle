@@ -63,7 +63,7 @@ public struct PaneWorkspaceView: View {
                         model: model,
                         cornerRadius: cornerRadius,
                         requestPopBack: {},
-                        keepsAddressWhenURLClears: true
+                        isPhonePane: true
                     )
                     .frame(width: max(frame.width, 1), height: max(frame.height, 1))
                     .offset(x: frame.minX, y: frame.minY)

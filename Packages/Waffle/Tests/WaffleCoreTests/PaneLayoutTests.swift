@@ -314,3 +314,26 @@ struct PhoneScreenLayoutTests {
         #expect(layout.deck == nil)
     }
 }
+
+@Suite("SyrupPitch")
+struct SyrupPitchTests {
+    @Test func theTriggerLeadsThePhonePitch() {
+        #expect(SyrupPitch(trigger: .thirdPane, isInnerDisplay: true).features.first == .morePanes)
+        #expect(SyrupPitch(trigger: .secondLayout, isInnerDisplay: false).features.first == .unlimitedLayouts)
+        #expect(SyrupPitch(trigger: .autoRefresh, isInnerDisplay: false).features.first == .autoRefresh)
+        #expect(SyrupPitch(trigger: .deskMode, isInnerDisplay: true).features.first == .deskMode)
+    }
+
+    @Test func everyFeatureIsListedExactlyOnce() {
+        for trigger in [SyrupTrigger.general, .thirdPane, .secondLayout, .autoRefresh, .deskMode] {
+            let features = SyrupPitch(trigger: trigger, isInnerDisplay: false).features
+            #expect(features.count == 4)
+            #expect(Set(features).count == 4)
+        }
+    }
+
+    @Test func generalKeepsTheDefaultOrder() {
+        #expect(SyrupPitch(trigger: .general, isInnerDisplay: false).features == SyrupFeature.allCases)
+        #expect(SyrupPitch(trigger: .general, isInnerDisplay: false).leadFeature == nil)
+    }
+}

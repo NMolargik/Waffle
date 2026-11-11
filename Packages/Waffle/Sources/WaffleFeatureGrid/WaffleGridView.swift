@@ -80,9 +80,10 @@ struct WaffleCellContainer: View {
     let model: GridModel
     let cornerRadius: CGFloat
     let requestPopBack: () -> Void
-    /// Phone panes keep their address when the page's URL momentarily clears (a layout
-    /// change re-creating the web view), so a pane never falls back to "empty".
-    var keepsAddressWhenURLClears = false
+    /// iPhone and Duo panes: keep the address when the page's URL momentarily clears (a layout
+    /// change re-creating the web view) so a pane never falls back to "empty", and use
+    /// pane wording in the empty state.
+    var isPhonePane = false
 
     @State private var isHovered = false
 
@@ -93,7 +94,7 @@ struct WaffleCellContainer: View {
     var body: some View {
         Group {
             if isEmpty {
-                EmptyCellView()
+                EmptyCellView(isPane: isPhonePane)
             } else {
                 WebView(waffleCell.page)
                     .webViewBackForwardNavigationGestures(.enabled)
@@ -103,7 +104,7 @@ struct WaffleCellContainer: View {
                         waffleCell.loadURL(urlString: waffleCell.address)
                     }
                     .onChange(of: waffleCell.page.url) {
-                        if keepsAddressWhenURLClears, waffleCell.page.url == nil { return }
+                        if isPhonePane, waffleCell.page.url == nil { return }
                         waffleCell.address = waffleCell.page.url?.absoluteString ?? ""
                         model.noteAddressChange(for: waffleCell)
                     }

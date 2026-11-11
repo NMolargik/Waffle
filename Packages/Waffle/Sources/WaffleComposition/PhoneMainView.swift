@@ -158,6 +158,14 @@ public struct PhoneMainView: View {
             case "settings": showSettingsSheet = true
             default: break
             }
+            if defaults.string(forKey: "WaffleDebugAction") == "saveLayoutTwice" {
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(1500))
+                    session.savePaneLayout()
+                    try? await Task.sleep(for: .milliseconds(500))
+                    session.savePaneLayout()
+                }
+            }
             if defaults.string(forKey: "WaffleDebugAction") == "addPane" {
                 Task { @MainActor in
                     try? await Task.sleep(for: .milliseconds(1500))
@@ -184,6 +192,7 @@ public struct PhoneMainView: View {
         .sheet(isPresented: $session.presentSyrupSheet) {
             SyrupView(
                 store: session.store,
+                phonePitch: SyrupPitch(trigger: session.syrupTrigger, isInnerDisplay: mode == .inner),
                 onPurchased: { self.session.presentSyrupSheet = false },
                 onClose: { self.session.presentSyrupSheet = false }
             )
@@ -315,7 +324,7 @@ public struct PhoneMainView: View {
                     onSelect: { grid.setRefreshInterval($0, for: cell) }
                 )
             } else {
-                Button { session.requestSyrup() } label: {
+                Button { session.requestSyrup(for: .autoRefresh) } label: {
                     Label("Auto-Refresh", systemImage: "drop.fill")
                 }
             }
@@ -388,7 +397,7 @@ public struct PhoneMainView: View {
     }
 
     private var deskModeOffer: some View {
-        Button { session.requestSyrup() } label: {
+        Button { session.requestSyrup(for: .deskMode) } label: {
             Label("Desk Mode", systemImage: "drop.fill")
                 .font(.subheadline.weight(.semibold))
                 .padding(.horizontal, 14)
@@ -435,7 +444,7 @@ public struct PhoneMainView: View {
                     showLayoutsSheet = false
                     Task { @MainActor in
                         try? await Task.sleep(for: .milliseconds(450))
-                        session.requestSyrup()
+                        session.requestSyrup(for: .secondLayout)
                     }
                 },
                 isPhoneLayouts: true
@@ -482,24 +491,29 @@ private struct DeskDeck: View {
     var body: some View {
         @Bindable var grid = grid
 
-        VStack(spacing: 10) {
-            HStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: 14) {
+            // Panes: tall tiles with the page title and the refresh timer on the tile.
+            sectionTitle("Panes")
+            HStack(spacing: 10) {
                 ForEach(Array(grid.panes.enumerated()), id: \.element.id) { index, pane in
-                    paneCard(pane, index: index)
+                    paneTile(pane, index: index)
                 }
                 if grid.paneCount < PaneLimits.maxInnerPanes {
                     Button { session.addPane(mode: mode) } label: {
                         Image(systemName: "plus")
-                            .font(.title3.weight(.semibold))
-                            .frame(width: 56, height: 64)
+                            .font(.title2.weight(.semibold))
+                            .frame(width: 64)
+                            .frame(maxHeight: .infinity)
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 16))
+                    .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 18))
                     .accessibilityLabel(Text("Add Pane"))
                 }
             }
+            .frame(height: 168)
 
+            // Address row.
             HStack(spacing: 8) {
                 if !isEditingAddress {
                     deckButton("Back", systemImage: "chevron.backward") { grid.selectedCell?.goBack() }
@@ -518,54 +532,50 @@ private struct DeskDeck: View {
                 .frame(maxWidth: .infinity)
                 if !isEditingAddress {
                     deckButton("Reload", systemImage: "arrow.clockwise") { grid.selectedCell?.reloadCell() }
+                    deckButton("Settings", systemImage: "gearshape", action: openSettings)
                 }
             }
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    Button { session.savePaneLayout() } label: {
-                        Label("Save Layout", systemImage: "plus")
-                            .font(.subheadline.weight(.semibold))
-                            .padding(.horizontal, 14)
-                            .frame(minHeight: 44)
-                    }
-                    .buttonStyle(.plain)
-                    .glassEffect(.regular.interactive(), in: .capsule)
-
-                    ForEach(sidebarModel.presets) { preset in
-                        Button { session.applyPaneLayout(preset, mode: mode) } label: {
-                            Text(preset.name.isEmpty ? String(localized: "Untitled Preset") : preset.name)
+            // Layouts: one tap restores a saved arrangement.
+            sectionTitle("Layouts")
+            HStack(spacing: 8) {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        Button { session.savePaneLayout() } label: {
+                            Label("Save Layout", systemImage: "plus")
                                 .font(.subheadline.weight(.semibold))
-                                .lineLimit(1)
                                 .padding(.horizontal, 14)
-                                .frame(minHeight: 44)
+                                .frame(minHeight: 48)
                         }
                         .buttonStyle(.plain)
                         .glassEffect(.regular.interactive(), in: .capsule)
-                    }
 
-                    Button(action: openLayouts) {
-                        Image(systemName: "ellipsis")
-                            .frame(width: 44, height: 44)
-                            .contentShape(Circle())
+                        ForEach(sidebarModel.presets) { preset in
+                            Button { session.applyPaneLayout(preset, mode: mode) } label: {
+                                Text(preset.name.isEmpty ? String(localized: "Untitled Preset") : preset.name)
+                                    .font(.subheadline.weight(.semibold))
+                                    .lineLimit(1)
+                                    .padding(.horizontal, 16)
+                                    .frame(minHeight: 48)
+                            }
+                            .buttonStyle(.plain)
+                            .glassEffect(.regular.interactive(), in: .capsule)
+                        }
                     }
-                    .buttonStyle(.plain)
-                    .glassEffect(.regular.interactive(), in: .circle)
-                    .accessibilityLabel(Text("Layouts & Bookmarks"))
-
-                    Button(action: openSettings) {
-                        Image(systemName: "gearshape")
-                            .frame(width: 44, height: 44)
-                            .contentShape(Circle())
-                    }
-                    .buttonStyle(.plain)
-                    .glassEffect(.regular.interactive(), in: .circle)
-                    .accessibilityLabel(Text("Settings"))
                 }
+                deckButton("Layouts & Bookmarks", systemImage: "ellipsis", action: openLayouts)
             }
         }
         .padding(.horizontal, 6)
         .frame(maxHeight: .infinity, alignment: .top)
+    }
+
+    private func sectionTitle(_ title: LocalizedStringKey) -> some View {
+        Text(title)
+            .font(.footnote.weight(.semibold))
+            .foregroundStyle(.secondary)
+            .textCase(.uppercase)
+            .padding(.leading, 6)
     }
 
     private func deckButton(_ title: LocalizedStringKey, systemImage: String, action: @escaping () -> Void) -> some View {
@@ -579,43 +589,71 @@ private struct DeskDeck: View {
         .accessibilityLabel(Text(title))
     }
 
-    private func paneCard(_ pane: WaffleCell, index: Int) -> some View {
+    /// A pane's tile: tap anywhere above the timer row to select it; the timer row is its own
+    /// 44-point control (also holds Close Pane).
+    private func paneTile(_ pane: WaffleCell, index: Int) -> some View {
         let isSelected = grid.selectedCell == pane
-        return Menu {
-            AutoRefreshMenu(
-                selection: pane.refreshInterval,
-                onSelect: { grid.setRefreshInterval($0, for: pane) }
-            )
-            if grid.paneCount > 1 {
-                Button(role: .destructive) { session.removePane(pane) } label: {
-                    Label("Close Pane", systemImage: "xmark.rectangle")
-                }
-            }
-        } label: {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 6) {
+        return VStack(alignment: .leading, spacing: 0) {
+            Button { grid.select(pane) } label: {
+                VStack(alignment: .leading, spacing: 6) {
                     Text("\(index + 1)")
                         .font(.caption.weight(.bold))
-                        .frame(width: 20, height: 20)
+                        .frame(width: 24, height: 24)
                         .background(isSelected ? Color.waffleTertiary : Color.secondary.opacity(0.3), in: Circle())
                         .foregroundStyle(isSelected ? Color.white : Color.primary)
-                    if pane.refreshInterval != .off {
-                        Image(systemName: "timer").font(.caption)
+                    Text(tileTitle(pane))
+                        .font(.subheadline.weight(.semibold))
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                    if !pane.address.isEmpty {
+                        Text(URLDisplayFormatter.compact(pane.address))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                    Spacer(minLength: 0)
+                }
+                .padding(.horizontal, 12)
+                .padding(.top, 12)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            Menu {
+                AutoRefreshMenu(
+                    selection: pane.refreshInterval,
+                    onSelect: { grid.setRefreshInterval($0, for: pane) }
+                )
+                if grid.paneCount > 1 {
+                    Button(role: .destructive) { session.removePane(pane) } label: {
+                        Label("Close Pane", systemImage: "xmark.rectangle")
                     }
                 }
-                Text(pane.address.isEmpty ? String(localized: "Empty Pane") : URLDisplayFormatter.compact(pane.address))
-                    .font(.subheadline.weight(.semibold))
-                    .lineLimit(1)
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: pane.refreshInterval == .off ? "timer" : "timer.circle.fill")
+                    Text(pane.refreshInterval.title)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                }
+                .font(.caption.weight(.semibold))
+                .padding(.horizontal, 12)
+                .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
+                .contentShape(Rectangle())
             }
-            .padding(.horizontal, 12)
-            .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
-            .contentShape(Rectangle())
-        } primaryAction: {
-            grid.select(pane)
+            .buttonStyle(.plain)
+            .accessibilityLabel(Text("Auto-Refresh"))
         }
-        .buttonStyle(.plain)
-        .glassEffect(isSelected ? .regular.tint(Color.accentColor.opacity(0.25)).interactive() : .regular.interactive(), in: .rect(cornerRadius: 16))
+        .glassEffect(isSelected ? .regular.tint(Color.accentColor.opacity(0.25)).interactive() : .regular.interactive(), in: .rect(cornerRadius: 18))
+        .accessibilityElement(children: .contain)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private func tileTitle(_ pane: WaffleCell) -> String {
+        if !pane.page.title.isEmpty { return pane.page.title }
+        if !pane.address.isEmpty { return URLDisplayFormatter.compact(pane.address) }
+        return String(localized: "Empty Pane")
     }
 }
 #endif

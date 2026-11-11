@@ -150,7 +150,11 @@ public final class SessionController {
     public var maxRows: Int { isSyrupEnabled ? AppConfiguration.maxPremiumRows : AppConfiguration.maxFreeRows }
     public var maxCols: Int { isSyrupEnabled ? AppConfiguration.maxPremiumCols : AppConfiguration.maxFreeCols }
 
-    public func requestSyrup() {
+    /// What the user was doing when the paywall appeared (leads the phone pitch).
+    public private(set) var syrupTrigger: SyrupTrigger = .general
+
+    public func requestSyrup(for trigger: SyrupTrigger = .general) {
+        syrupTrigger = trigger
         presentSyrupSheet = true
     }
 
@@ -191,7 +195,7 @@ public final class SessionController {
     /// (iPad leaves the grid's policy unset, so auto-refresh stays free there.)
     public func configurePhoneAutoRefreshGate() {
         grid.autoRefreshPolicy = { [weak self] in self?.canUsePaneAutoRefresh ?? false }
-        grid.onAutoRefreshDenied = { [weak self] in self?.requestSyrup() }
+        grid.onAutoRefreshDenied = { [weak self] in self?.requestSyrup(for: .autoRefresh) }
     }
 
     /// Panes the user may have right now on a display.
@@ -214,7 +218,7 @@ public final class SessionController {
         case .allowed:
             return grid.addPane() != nil
         case .needsSyrup:
-            requestSyrup()
+            requestSyrup(for: .thirdPane)
             return false
         case .atDeviceLimit:
             errorHandler.showToast(String(localized: "This display fits \(PaneLimits.deviceMax(for: mode)) panes"))
@@ -238,7 +242,7 @@ public final class SessionController {
     @discardableResult
     public func savePaneLayout(named name: String? = nil) -> Bool {
         guard canSaveAnotherLayout() else {
-            requestSyrup()
+            requestSyrup(for: .secondLayout)
             return false
         }
         let count = grid.paneCount

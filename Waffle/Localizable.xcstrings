@@ -198,6 +198,30 @@
       },
       "shouldGenerateSymbol": false
     },
+    "A third and fourth pane on iPhone Duo's inner display": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un tercer y cuarto panel en la pantalla interior del iPhone Duo"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un troisième et un quatrième volet sur l’écran intérieur de l’iPhone Duo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iPhone Duo の内側ディスプレイで 3 つ目と 4 つ目のペイン"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "About": {
       "extractionState": "manual",
       "localizations": {
@@ -313,6 +337,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "行を追加"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Add a third pane with Syrup": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añade un tercer panel con Syrup"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajoutez un troisième volet avec Syrup"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Syrup で 3 つ目のペインを追加"
           }
         }
       },
@@ -599,6 +647,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "自動更新"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Auto-refresh timers for each pane": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Temporizadores de actualización automática para cada panel"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minuteries d’actualisation automatique pour chaque volet"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ペインごとの自動更新タイマー"
           }
         }
       },
@@ -1479,6 +1551,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "デスクモード"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Desk Mode when your iPhone Duo is half-folded": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modo escritorio cuando tu iPhone Duo está medio plegado"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mode bureau quand votre iPhone Duo est à moitié plié"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iPhone Duo を半分折りにしたときのデスクモード"
           }
         }
       },
@@ -2376,6 +2472,30 @@
       },
       "shouldGenerateSymbol": false
     },
+    "Get more from Waffle on iPhone": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saca más partido a Waffle en el iPhone"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tirez plus de Waffle sur iPhone"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iPhone で Waffle をもっと活用"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "Goes back a page": {
       "extractionState": "manual",
       "localizations": {
@@ -2592,6 +2712,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "ワッフルを最大%1$lld×%2$lldセルまで拡大"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Keep every pane fresh with Syrup": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantén cada panel actualizado con Syrup"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gardez chaque volet à jour avec Syrup"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Syrup ですべてのペインを最新に保つ"
           }
         }
       },
@@ -3610,6 +3754,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "ペインとレイアウト"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Panes three and four on iPhone Duo's inner display and on iPad": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paneles tercero y cuarto en la pantalla interior del iPhone Duo y en el iPad"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Troisième et quatrième volets sur l’écran intérieur de l’iPhone Duo et sur iPad"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iPhone Duo の内側ディスプレイと iPad で 3 つ目と 4 つ目のペイン"
           }
         }
       },
@@ -4825,6 +4993,30 @@
       },
       "shouldGenerateSymbol": false
     },
+    "Save more layouts with Syrup": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guarda más diseños con Syrup"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrez plus de dispositions avec Syrup"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Syrup でレイアウトをもっと保存"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "Save your current grid layout as a preset to quickly restore it later.": {
       "extractionState": "manual",
       "localizations": {
@@ -4986,6 +5178,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "サイドバー上部の検索でブックマークやプリセットをすぐに見つけられます"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Search bookmarks & layouts": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar marcadores y diseños"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechercher des favoris et des dispositions"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ブックマークとレイアウトを検索"
           }
         }
       },
@@ -5451,6 +5667,30 @@
       },
       "shouldGenerateSymbol": false
     },
+    "Tap a **pane** to activate it": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toca un **panel** para activarlo"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Touchez un **volet** pour l’activer"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "**ペイン**をタップして選択します"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "Tap a bookmark to open it in the selected cell": {
       "extractionState": "manual",
       "localizations": {
@@ -5541,6 +5781,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "2つのセルをタップして入れ替えます"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Tap ••• for Layouts & Bookmarks": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toca ••• para ver Diseños y marcadores"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Touchez ••• pour les dispositions et les favoris"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "••• をタップしてレイアウトとブックマークを開きます"
           }
         }
       },
@@ -6022,6 +6286,30 @@
       },
       "shouldGenerateSymbol": false
     },
+    "Unlimited saved layouts": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diseños guardados ilimitados"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dispositions enregistrées illimitées"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存できるレイアウトが無制限"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "Unlock the full Waffle experience": {
       "extractionState": "manual",
       "localizations": {
@@ -6113,6 +6401,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "更新"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Use Desk Mode with Syrup": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usa el modo escritorio con Syrup"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utilisez le mode bureau avec Syrup"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Syrup でデスクモードを使う"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Use the address bar below to search or navigate": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usa la barra de direcciones de abajo para buscar o navegar"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utilisez la barre d’adresse ci-dessous pour rechercher ou naviguer"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下のアドレスバーで検索または移動します"
           }
         }
       },
