@@ -9,6 +9,7 @@ import SwiftUI
 
 /// Primary button style for main CTAs - uses brand colors with hover feedback
 public struct WafflePrimaryButtonStyle: ButtonStyle {
+    @Environment(\.colorScheme) private var colorScheme
     @State private var isHovered = false
 
     public init() {}
@@ -20,10 +21,12 @@ public struct WafflePrimaryButtonStyle: ButtonStyle {
             .padding(.vertical, 12)
             .background(
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.waffleTertiary)
+                    // Dark brown on near-black disappears in dark mode: use the brand gold
+                    // there, with the dark brown as its label.
+                    .fill(colorScheme == .dark ? Color.wafflePrimary : Color.waffleTertiary)
                     .opacity(configuration.isPressed ? 0.8 : (isHovered ? 0.9 : 1.0))
             )
-            .foregroundStyle(.white)
+            .foregroundStyle(colorScheme == .dark ? Color.waffleTertiary : Color.white)
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
             .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
             .animation(.easeInOut(duration: 0.15), value: isHovered)
@@ -35,6 +38,7 @@ public struct WafflePrimaryButtonStyle: ButtonStyle {
 
 /// Secondary button style for less prominent actions
 public struct WaffleSecondaryButtonStyle: ButtonStyle {
+    @Environment(\.colorScheme) private var colorScheme
     @State private var isHovered = false
 
     public init() {}
@@ -48,10 +52,11 @@ public struct WaffleSecondaryButtonStyle: ButtonStyle {
                 RoundedRectangle(cornerRadius: 8)
                     .fill(Color.waffleSecondary.opacity(isHovered ? 0.25 : 0.15))
             )
-            .foregroundStyle(Color.waffleTertiary)
+            // Dark mode: the brand gold reads on near-black where the dark brown does not.
+            .foregroundStyle(colorScheme == .dark ? Color.wafflePrimary : Color.waffleTertiary)
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color.waffleSecondary.opacity(isHovered ? 0.6 : 0.3), lineWidth: 1)
+                    .stroke(Color.waffleSecondary.opacity(isHovered ? 0.6 : (colorScheme == .dark ? 0.6 : 0.3)), lineWidth: 1)
             )
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
             .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
