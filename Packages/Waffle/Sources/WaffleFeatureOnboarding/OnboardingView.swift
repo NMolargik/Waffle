@@ -26,6 +26,7 @@ public struct OnboardingView: View {
     @AppStorage("hasCompletedOnboarding") private var done = false
 
     @State private var pageIndex: Int = 0
+    @State private var cardHeight: CGFloat = 640
 
     private let variant: OnboardingVariant
     private let pages: [OnboardingPage]
@@ -89,11 +90,14 @@ public struct OnboardingView: View {
                         )
                         .shadow(color: .black.opacity(0.1), radius: 20, y: 10)
 
+                    let compact = variant.isPhone && cardHeight < Self.compactCardHeight
                     ScrollView {
                         contentForPage(pages[pageIndex].kind)
-                            .padding(24)
+                            .padding(compact ? 16 : 24)
                     }
                     .scrollBounceBehavior(.basedOnSize)
+                    .environment(\.onboardingCompact, compact)
+                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { cardHeight = $0 }
                 }
                 .padding(.horizontal, 20)
                 .frame(maxWidth: 700, maxHeight: 640)
@@ -146,6 +150,9 @@ public struct OnboardingView: View {
             }
         }
     }
+
+    /// Cards shorter than this (the Duo's outer display) get the tighter phone pages.
+    private static let compactCardHeight: CGFloat = 600
 
     private func finish() {
         done = true
@@ -255,6 +262,21 @@ private struct ProgressPips: View {
             }
         }
         .animation(.spring(response: 0.4), value: index)
+    }
+}
+
+// MARK: - Short displays
+
+private struct OnboardingCompactKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    /// True when the tour card is too short for the roomy spacing (the iPhone Duo's outer
+    /// display): the phone pages use tighter spacing and smaller illustrations.
+    fileprivate var onboardingCompact: Bool {
+        get { self[OnboardingCompactKey.self] }
+        set { self[OnboardingCompactKey.self] = newValue }
     }
 }
 
@@ -1020,11 +1042,12 @@ private struct PhoneWelcomeCard: View {
 }
 
 private struct PhoneBarCard: View {
+    @Environment(\.onboardingCompact) private var compact
     @State private var selectedIndex = 0
     @State private var ratio = 0.5
 
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: compact ? 10 : 20) {
             CardHeader(
                 icon: "magnifyingglass",
                 title: "Search and Navigate",
@@ -1032,13 +1055,13 @@ private struct PhoneBarCard: View {
             )
 
             VStack(spacing: 10) {
-                MockStackedPanes(selectedIndex: $selectedIndex, ratio: $ratio, height: 130)
+                MockStackedPanes(selectedIndex: $selectedIndex, ratio: $ratio, height: compact ? 84 : 130)
                 MockPhoneBar(address: DemoSite.samples[selectedIndex].address)
             }
             .padding(12)
             .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
 
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: compact ? 8 : 14) {
                 ToolbarTip(
                     icon: "keyboard",
                     text: "Type a web address, or anything else, and Waffle searches for it"
@@ -1052,7 +1075,7 @@ private struct PhoneBarCard: View {
                     text: "The ••• menu adds panes, saves layouts and opens Settings"
                 )
             }
-            .padding()
+            .padding(compact ? 10 : 16)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
         }
@@ -1060,11 +1083,12 @@ private struct PhoneBarCard: View {
 }
 
 private struct PhoneDividerCard: View {
+    @Environment(\.onboardingCompact) private var compact
     @State private var selectedIndex = 0
     @State private var ratio = 0.5
 
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: compact ? 10 : 20) {
             CardHeader(
                 icon: "rectangle.split.1x2.fill",
                 title: "Size Your Panes",
@@ -1072,18 +1096,18 @@ private struct PhoneDividerCard: View {
             )
 
             VStack(spacing: 10) {
-                MockStackedPanes(selectedIndex: $selectedIndex, ratio: $ratio, isAdjustable: true, height: 160)
+                MockStackedPanes(selectedIndex: $selectedIndex, ratio: $ratio, isAdjustable: true, height: compact ? 100 : 160)
                 MockPhoneBar(address: DemoSite.samples[selectedIndex].address)
             }
             .padding(12)
             .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
 
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: compact ? 8 : 12) {
                 ConceptPoint(number: "1", text: "Double tap the divider to split the screen evenly")
                 ConceptPoint(number: "2", text: "Maximize fills the screen with one pane. Tap it again to bring the other back")
                 ConceptPoint(number: "3", text: "Turn your iPhone sideways to put the panes side by side")
             }
-            .padding()
+            .padding(compact ? 10 : 16)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
         }
@@ -1091,8 +1115,9 @@ private struct PhoneDividerCard: View {
 }
 
 private struct PhoneLayoutsCard: View {
+    @Environment(\.onboardingCompact) private var compact
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: compact ? 10 : 20) {
             CardHeader(
                 icon: "rectangle.split.2x1.fill",
                 title: "Save Your Layouts",
@@ -1108,7 +1133,7 @@ private struct PhoneLayoutsCard: View {
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
             .accessibilityHidden(true)
 
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: compact ? 8 : 14) {
                 LibraryPoint(
                     icon: "square.and.arrow.down.fill",
                     text: "Open ••• and choose Save Layout to keep your panes. Waffle names it after the sites"
@@ -1122,7 +1147,7 @@ private struct PhoneLayoutsCard: View {
                     text: "Layouts and bookmarks sync with iCloud across your devices"
                 )
             }
-            .padding()
+            .padding(compact ? 10 : 16)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
         }
@@ -1145,14 +1170,15 @@ private struct PhoneLayoutsCard: View {
                 .font(.footnote.bold())
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.vertical, compact ? 8 : 12)
     }
 }
 
 /// iPhone Duo only: the inner display with the fold, and the half-folded Desk Mode pose.
 private struct PhoneUnfoldCard: View {
+    @Environment(\.onboardingCompact) private var compact
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: compact ? 10 : 20) {
             CardHeader(
                 icon: "rectangle.split.2x2.fill",
                 title: "Unfold for More",
@@ -1177,7 +1203,7 @@ private struct PhoneUnfoldCard: View {
             .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
             .accessibilityHidden(true)
 
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: compact ? 8 : 14) {
                 ToolbarTip(
                     icon: "rectangle.split.2x2",
                     text: "Unfolded, there is room for four panes at any size, kept clear of the fold"
@@ -1191,7 +1217,7 @@ private struct PhoneUnfoldCard: View {
                     text: "Folded shut, a button on the bar such as “1 of 3” switches between the panes you have open"
                 )
             }
-            .padding()
+            .padding(compact ? 10 : 16)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
         }
@@ -1217,7 +1243,7 @@ private struct PhoneUnfoldCard: View {
             VStack(spacing: 4) { miniPane(); miniPane() }
         }
         .padding(6)
-        .frame(height: 120)
+        .frame(height: compact ? 84 : 120)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10))
     }
 
@@ -1238,16 +1264,17 @@ private struct PhoneUnfoldCard: View {
             .padding(8)
             .frame(maxHeight: .infinity)
         }
-        .frame(height: 120)
+        .frame(height: compact ? 84 : 120)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10))
     }
 }
 
 private struct PhoneSyrupCard: View {
+    @Environment(\.onboardingCompact) private var compact
     let isDuo: Bool
 
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: compact ? 10 : 20) {
             VStack(spacing: 8) {
                 HStack(spacing: 8) {
                     Image(systemName: "drop.fill")
@@ -1282,7 +1309,7 @@ private struct PhoneSyrupCard: View {
                     )
                 }
             }
-            .padding()
+            .padding(compact ? 10 : 16)
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
 
             Text(LocalizedStringKey(isDuo
