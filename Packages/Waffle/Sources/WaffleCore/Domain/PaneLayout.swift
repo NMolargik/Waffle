@@ -90,6 +90,13 @@ nonisolated public enum PaneFocus {
         return PaneFrameCalculator.focusIndex(selected: selected, count: count)
     }
 
+    /// Whether Maximize / Show All Panes is offered. Not when the display itself forces the
+    /// one-pane view (more panes open than a compact display holds: the pane chip and Go to
+    /// Pane are the way around), not with a single pane, and not in desk mode.
+    public static func offersMaximize(count: Int, mode: PaneMode, isDeskMode: Bool) -> Bool {
+        count > 1 && !isDeskMode && !(mode == .compact && count > PaneLimits.maxCompactPanes)
+    }
+
     /// The user's maximize flag after the arrangement changed: it means nothing with a single
     /// pane (a pane added later must not open alone) and is cleared on entering desk mode,
     /// whose deck has no control to undo it.

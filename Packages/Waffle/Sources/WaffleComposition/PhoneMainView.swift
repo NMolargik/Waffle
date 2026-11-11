@@ -318,7 +318,7 @@ public struct PhoneMainView: View {
 
     private func controlBar(width: CGFloat) -> some View {
         @Bindable var grid = grid
-        let showsMaximize = grid.paneCount > 1 && !(mode == .compact && grid.paneCount > PaneLimits.maxCompactPanes)
+        let showsMaximize = PaneFocus.offersMaximize(count: grid.paneCount, mode: mode, isDeskMode: inDeskMode)
         let buttonCount = (showsMaximize ? 4 : 3)
         let reserved = CGFloat(buttonCount) * 44 + CGFloat(buttonCount) * 8 + 16 + (showsSwitcher ? Self.switcherWidth + 8 : 0)
 
@@ -500,7 +500,7 @@ public struct PhoneMainView: View {
             }
             .disabled(atLimit)
 
-            if grid.paneCount > 1 {
+            if PaneFocus.offersMaximize(count: grid.paneCount, mode: mode, isDeskMode: inDeskMode) {
                 Button { toggleMaximize() } label: {
                     Label(
                         focusedPaneID == nil ? "Maximize Pane" : "Show All Panes",

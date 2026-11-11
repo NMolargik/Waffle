@@ -366,6 +366,18 @@ struct PaneFocusTests {
         #expect(PaneFocus.focusedIndex(count: 1, mode: .compact, isDeskMode: false, isMaximized: true, selected: 0) == nil)
     }
 
+    @Test func maximizeIsOnlyOfferedWhenTheUserChoseTheOnePaneView() {
+        // Forced by the display (3 or 4 panes on a compact display): no Maximize / Show All Panes.
+        #expect(!PaneFocus.offersMaximize(count: 3, mode: .compact, isDeskMode: false))
+        #expect(!PaneFocus.offersMaximize(count: 4, mode: .compact, isDeskMode: false))
+        // Two panes fit a compact display, so maximizing is a real choice; so it is on the inner display.
+        #expect(PaneFocus.offersMaximize(count: 2, mode: .compact, isDeskMode: false))
+        #expect(PaneFocus.offersMaximize(count: 4, mode: .inner, isDeskMode: false))
+        // Nothing to maximize with one pane; the desk deck has no such control.
+        #expect(!PaneFocus.offersMaximize(count: 1, mode: .inner, isDeskMode: false))
+        #expect(!PaneFocus.offersMaximize(count: 3, mode: .inner, isDeskMode: true))
+    }
+
     @Test func deskModeAlwaysShowsEveryPane() {
         #expect(PaneFocus.focusedIndex(count: 4, mode: .inner, isDeskMode: true, isMaximized: true, selected: 1) == nil)
     }
