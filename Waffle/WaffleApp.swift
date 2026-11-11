@@ -10,6 +10,7 @@
 import AppIntents
 import SwiftData
 import SwiftUI
+import UIKit
 import WaffleComposition
 import WaffleCore
 import WaffleData
@@ -39,7 +40,11 @@ struct WaffleApp: App {
     var body: some Scene {
         WindowGroup(id: "main") {
             RootView(session: session)
-                .frame(minWidth: 820, minHeight: 520)
+                // iPad/Mac keep their minimum window; an iPhone screen is smaller than it.
+                .frame(
+                    minWidth: RootView.usesPhoneWorkspace ? 0 : 820,
+                    minHeight: RootView.usesPhoneWorkspace ? 0 : 520
+                )
                 .modelContainer(session.container)
                 .onOpenURL { url in
                     guard let link = DeepLink(url: url) else { return }

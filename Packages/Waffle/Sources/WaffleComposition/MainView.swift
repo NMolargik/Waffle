@@ -63,7 +63,7 @@ public struct MainView: View {
                 applyPreset: { self.session.applyPreset($0) },
                 applyBookmark: { grid.loadInSelectedCell($0) },
                 currentGrid: {
-                    (rows: grid.rowCount, cols: grid.colCount, urls: grid.flattenedAddresses(), refreshIntervals: grid.flattenedRefreshIntervals())
+                    (rows: grid.rowCount, cols: grid.colCount, urls: grid.flattenedAddresses(), refreshIntervals: grid.flattenedRefreshIntervals(), paneCount: 0, paneRatios: [])
                 },
                 currentCell: {
                     guard let cell = grid.selectedCell, !cell.address.isEmpty else { return nil }

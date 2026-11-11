@@ -134,7 +134,13 @@ public final class SessionController {
 
     // MARK: - Entitlements
 
-    public var isSyrupEnabled: Bool { entitlements.isPurchased }
+    public var isSyrupEnabled: Bool {
+        #if DEBUG
+        // Simulator screenshots of Syrup-only layouts: `-WaffleDebugSyrup YES`. Debug builds only.
+        if UserDefaults.standard.bool(forKey: "WaffleDebugSyrup") { return true }
+        #endif
+        return entitlements.isPurchased
+    }
 
     public var canUseRearrange: Bool { isSyrupEnabled }
     public var canUsePopout: Bool { isSyrupEnabled }
@@ -180,6 +186,13 @@ public final class SessionController {
     public var canUsePaneAutoRefresh: Bool { isSyrupEnabled }
     /// Desk mode (half-folded laptop pose) is part of Syrup.
     public var canUseDeskMode: Bool { isSyrupEnabled }
+
+    /// iPhone/Duo only: refuse new auto-refresh timers without Syrup and show the paywall.
+    /// (iPad leaves the grid's policy unset, so auto-refresh stays free there.)
+    public func configurePhoneAutoRefreshGate() {
+        grid.autoRefreshPolicy = { [weak self] in self?.canUsePaneAutoRefresh ?? false }
+        grid.onAutoRefreshDenied = { [weak self] in self?.requestSyrup() }
+    }
 
     /// Panes the user may have right now on a display.
     public func paneLimit(for mode: PaneMode) -> Int {

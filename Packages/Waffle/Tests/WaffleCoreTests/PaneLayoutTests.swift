@@ -244,3 +244,73 @@ struct PaneLayoutTests {
         #expect(PaneFrameCalculator.focusIndex(selected: nil, count: 3) == 0)
     }
 }
+
+@Suite("PhoneScreenLayout")
+struct PhoneScreenLayoutTests {
+    private let safe = (top: CGFloat(20), leading: CGFloat(0), bottom: CGFloat(20), trailing: CGFloat(0))
+
+    @Test func compactPortraitStacksAndKeepsTheBarOutOfTheWebContent() {
+        let layout = PhoneScreenLayout.compute(size: CGSize(width: 402, height: 874), safe: (59, 0, 34, 0), fold: nil, mode: .compact, deskMode: false)
+        #expect(!layout.primaryIsHorizontal)
+        let bar = layout.bar!
+        #expect(layout.workspace.maxY <= bar.minY)
+        #expect(bar.height >= 44)
+        #expect(layout.fold == nil)
+        #expect(layout.deck == nil)
+    }
+
+    @Test func compactLandscapeSitsSideBySide() {
+        let layout = PhoneScreenLayout.compute(size: CGSize(width: 874, height: 402), safe: (0, 59, 21, 59), fold: nil, mode: .compact, deskMode: false)
+        #expect(layout.primaryIsHorizontal)
+        #expect(layout.workspace.width > 600)
+    }
+
+    @Test func innerDisplayBarStaysOnOneSideOfAVerticalFold() {
+        let size = CGSize(width: 1000, height: 750)
+        let fold = FoldGutter(primaryIsHorizontal: true, position: 500, thickness: 20, isActive: true)
+        for farSide in [false, true] {
+            let layout = PhoneScreenLayout.compute(size: size, safe: safe, fold: fold, mode: .inner, deskMode: false, barOnFarSide: farSide)
+            let foldRect = CGRect(x: 490, y: 0, width: 20, height: 750)
+            #expect(!layout.bar!.intersects(foldRect))
+            #expect(layout.primaryIsHorizontal)
+            #expect(layout.workspace.maxY <= layout.bar!.minY)
+        }
+    }
+
+    @Test func foldIsTranslatedIntoWorkspaceCoordinates() {
+        let fold = FoldGutter(primaryIsHorizontal: true, position: 500, thickness: 20, isActive: true)
+        let layout = PhoneScreenLayout.compute(size: CGSize(width: 1000, height: 750), safe: (20, 10, 20, 10), fold: fold, mode: .inner, deskMode: false)
+        #expect(layout.fold?.position == 500 - layout.workspace.minX)
+    }
+
+    @Test func innerDisplayWithoutAReportedFoldFallsBackToTheMiddle() {
+        let landscape = PhoneScreenLayout.compute(size: CGSize(width: 1000, height: 750), safe: safe, fold: nil, mode: .inner, deskMode: false)
+        #expect(landscape.primaryIsHorizontal)
+        #expect(landscape.fold?.isActive == false)
+        let portrait = PhoneScreenLayout.compute(size: CGSize(width: 750, height: 1000), safe: safe, fold: nil, mode: .inner, deskMode: false)
+        #expect(!portrait.primaryIsHorizontal)
+    }
+
+    @Test func deskModePutsPanesAboveTheFoldAndControlsBelow() {
+        let fold = FoldGutter(primaryIsHorizontal: false, position: 500, thickness: 16, isActive: true)
+        let layout = PhoneScreenLayout.compute(size: CGSize(width: 1000, height: 1000), safe: safe, fold: fold, mode: .inner, deskMode: true)
+        let deck = layout.deck!
+        #expect(layout.workspace.maxY <= 492)
+        #expect(deck.minY >= 508)
+        #expect(layout.bar == nil)
+        #expect(layout.fold == nil, "panes sit wholly on the upright half")
+    }
+
+    @Test func deskModeNeedsAHorizontalFold() {
+        let vertical = FoldGutter(primaryIsHorizontal: true, position: 500, thickness: 16, isActive: true)
+        let layout = PhoneScreenLayout.compute(size: CGSize(width: 1000, height: 750), safe: safe, fold: vertical, mode: .inner, deskMode: true)
+        #expect(layout.deck == nil)
+        #expect(layout.bar != nil)
+    }
+
+    @Test func deskModeIsInnerDisplayOnly() {
+        let fold = FoldGutter(primaryIsHorizontal: false, position: 300, thickness: 8, isActive: true)
+        let layout = PhoneScreenLayout.compute(size: CGSize(width: 402, height: 600), safe: safe, fold: fold, mode: .compact, deskMode: true)
+        #expect(layout.deck == nil)
+    }
+}

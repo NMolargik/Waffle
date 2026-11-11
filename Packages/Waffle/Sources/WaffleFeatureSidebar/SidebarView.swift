@@ -19,12 +19,15 @@ public struct SidebarView: View {
     /// Loads a URL into the selected grid cell.
     let applyBookmark: (String) -> Void
     /// The live grid layout, captured when saving/overwriting a preset.
-    let currentGrid: () -> (rows: Int, cols: Int, urls: [String], refreshIntervals: [Int])
+    let currentGrid: () -> (rows: Int, cols: Int, urls: [String], refreshIntervals: [Int], paneCount: Int, paneRatios: [Double])
     /// The selected cell's address/title, captured when quick-saving a bookmark.
     let currentCell: () -> (address: String, title: String)?
     let isSyrupEnabled: Bool
     let canMakePresets: Bool
     let requestSyrup: () -> Void
+    /// iPhone and Duo: saved layouts are free to open, and the free plan may save one.
+    /// (iPad presets stay entirely Syrup.)
+    let isPhoneLayouts: Bool
 
     @State private var showingPresetNamePrompt = false
     @State private var newPresetName: String = ""
@@ -38,11 +41,12 @@ public struct SidebarView: View {
         model: SidebarModel,
         applyPreset: @escaping (Preset) -> Void,
         applyBookmark: @escaping (String) -> Void,
-        currentGrid: @escaping () -> (rows: Int, cols: Int, urls: [String], refreshIntervals: [Int]),
+        currentGrid: @escaping () -> (rows: Int, cols: Int, urls: [String], refreshIntervals: [Int], paneCount: Int, paneRatios: [Double]),
         currentCell: @escaping () -> (address: String, title: String)?,
         isSyrupEnabled: Bool,
         canMakePresets: Bool,
-        requestSyrup: @escaping () -> Void
+        requestSyrup: @escaping () -> Void,
+        isPhoneLayouts: Bool = false
     ) {
         self.model = model
         self.applyPreset = applyPreset
@@ -52,6 +56,7 @@ public struct SidebarView: View {
         self.isSyrupEnabled = isSyrupEnabled
         self.canMakePresets = canMakePresets
         self.requestSyrup = requestSyrup
+        self.isPhoneLayouts = isPhoneLayouts
     }
 
     public var body: some View {
@@ -63,6 +68,7 @@ public struct SidebarView: View {
             bookmarksListView
 
             PresetsHeaderView(
+                isPhoneLayouts: isPhoneLayouts,
                 onQuickSave: { savePreset(named: nil) },
                 onSaveAs: { beginPresetNaming() }
             )
@@ -70,6 +76,8 @@ public struct SidebarView: View {
             PresetsListView(
                 presets: model.filteredPresets,
                 isSyrupEnabled: isSyrupEnabled,
+                isPhoneLayouts: isPhoneLayouts,
+                canMakePresets: canMakePresets,
                 requestSyrup: requestSyrup,
                 applyPreset: { applyPreset($0) },
                 overwritePreset: { overwritePreset($0) },
@@ -150,7 +158,7 @@ public struct SidebarView: View {
             return
         }
         let grid = currentGrid()
-        model.savePreset(named: name, rows: grid.rows, cols: grid.cols, urls: grid.urls, refreshIntervals: grid.refreshIntervals)
+        model.savePreset(named: name, rows: grid.rows, cols: grid.cols, urls: grid.urls, refreshIntervals: grid.refreshIntervals, paneCount: grid.paneCount, paneRatios: grid.paneRatios)
     }
 
     private func overwritePreset(_ preset: Preset) {
@@ -159,7 +167,7 @@ public struct SidebarView: View {
             return
         }
         let grid = currentGrid()
-        model.overwritePreset(preset, rows: grid.rows, cols: grid.cols, urls: grid.urls, refreshIntervals: grid.refreshIntervals)
+        model.overwritePreset(preset, rows: grid.rows, cols: grid.cols, urls: grid.urls, refreshIntervals: grid.refreshIntervals, paneCount: grid.paneCount, paneRatios: grid.paneRatios)
     }
 
     // MARK: - Preset Prompt

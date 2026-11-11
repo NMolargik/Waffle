@@ -67,12 +67,13 @@ struct BookmarksHeaderView: View {
 }
 
 struct PresetsHeaderView: View {
+    var isPhoneLayouts: Bool = false
     var onQuickSave: () -> Void
     var onSaveAs: () -> Void
 
     var body: some View {
         SidebarSectionHeader(
-            title: "Presets",
+            title: isPhoneLayouts ? "Layouts" : "Presets",
             icon: "square.grid.3x3.fill",
             iconGradient: [Color.wafflePrimary, Color.waffleSecondary],
             primaryAction: (label: "Quick Save", icon: "square.and.arrow.down.fill", action: onQuickSave),

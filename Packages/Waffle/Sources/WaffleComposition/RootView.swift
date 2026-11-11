@@ -5,6 +5,7 @@
 
 #if os(iOS)
 import SwiftUI
+import UIKit
 import WaffleDesignSystem
 import WaffleFeatureOnboarding
 
@@ -18,6 +19,15 @@ public struct RootView: View {
     /// WebViews — so exactly one main scene may claim the grid at a time.
     @State private var isPrimaryWindow = false
 
+    /// iPhone and iPhone Duo get the pane workspace. Debug builds can force it on an iPad
+    /// simulator (`-WaffleForcePhoneUI YES`) as a stand-in for the Duo's inner display.
+    public static var usesPhoneWorkspace: Bool {
+        #if DEBUG
+        if UserDefaults.standard.bool(forKey: "WaffleForcePhoneUI") { return true }
+        #endif
+        return UIDevice.current.userInterfaceIdiom == .phone
+    }
+
     public init(session: SessionController) {
         self.session = session
     }
@@ -27,12 +37,26 @@ public struct RootView: View {
             if !isPrimaryWindow {
                 ExtraWindowView()
             } else if hasCompletedOnboarding {
-                MainView(session: session)
+                if Self.usesPhoneWorkspace {
+                    // iPhone and iPhone Duo get the pane workspace; iPad keeps the grid.
+                    PhoneMainView(session: session)
+                } else {
+                    MainView(session: session)
+                }
             } else {
                 OnboardingView(onFinished: { session.presentSyrupSheet = true })
             }
         }
-        .onAppear { claimPrimaryIfAvailable() }
+        .onAppear {
+            claimPrimaryIfAvailable()
+            #if DEBUG
+            // Simulators can't rotate from the command line: `-WaffleDebugOrientation landscape`.
+            if UserDefaults.standard.string(forKey: "WaffleDebugOrientation") == "landscape",
+               let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                scene.requestGeometryUpdate(.iOS(interfaceOrientations: .landscapeRight))
+            }
+            #endif
+        }
         .onDisappear { releasePrimary() }
         .onChange(of: session.mainWindowCount) { _, newCount in
             // Promote this window when the primary one closes.

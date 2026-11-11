@@ -14,6 +14,9 @@ import WaffleDesignSystem
 struct PresetsListView: View {
     var presets: [Preset]
     var isSyrupEnabled: Bool
+    /// iPhone/Duo layouts: free to open; the free plan saves one (`canMakePresets`).
+    var isPhoneLayouts: Bool = false
+    var canMakePresets: Bool = true
     var requestSyrup: () -> Void
     var applyPreset: (Preset) -> Void
     var overwritePreset: (Preset) -> Void
@@ -22,7 +25,41 @@ struct PresetsListView: View {
 
     var body: some View {
         List {
-            if !isSyrupEnabled {
+            if isPhoneLayouts {
+                if !canMakePresets {
+                    Section {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Label("One Free Layout", systemImage: "drop.fill")
+                                .font(.headline)
+                                .tint(.waffleTertiary)
+                            Text("Your free layout is saved. Syrup lets you save as many as you like.")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                            Button("Get Syrup") { requestSyrup() }
+                                .buttonStyle(.wafflePrimary)
+                                .frame(maxWidth: .infinity)
+                        }
+                        .padding(.vertical, 6)
+                    }
+                }
+                if presets.isEmpty {
+                    Section {
+                        VStack(spacing: 10) {
+                            Image(systemName: "rectangle.split.2x1")
+                                .font(.system(size: 32, weight: .regular))
+                                .foregroundStyle(.secondary)
+                            Text("No saved layouts yet")
+                                .font(.headline)
+                            Text("Save your open panes as a layout to bring them all back with one tap.")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.vertical, 24)
+                    }
+                }
+            } else if !isSyrupEnabled {
                 Section {
                     VStack(alignment: .leading, spacing: 8) {
                         Label("Syrup Required", systemImage: "drop.fill")
@@ -83,8 +120,13 @@ struct PresetsListView: View {
                             Text(preset.name.isEmpty ? String(localized: "Untitled Preset") : preset.name)
                                 .font(.headline)
                             HStack {
-                                Image(systemName: "square.grid.3x3.fill")
-                                Text("\(preset.rows)x\(preset.cols)")
+                                if preset.paneCount > 0 {
+                                    Image(systemName: "rectangle.split.2x1.fill")
+                                    Text("\(preset.paneCount) panes")
+                                } else {
+                                    Image(systemName: "square.grid.3x3.fill")
+                                    Text("\(preset.rows)x\(preset.cols)")
+                                }
                             }
                             .font(.caption)
                             .padding(.vertical, 8)

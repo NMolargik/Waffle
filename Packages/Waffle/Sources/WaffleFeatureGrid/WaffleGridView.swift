@@ -75,7 +75,7 @@ public struct WaffleGridView: View {
 }
 
 /// Separate container view to enable @State for hover tracking
-private struct WaffleCellContainer: View {
+struct WaffleCellContainer: View {
     let waffleCell: WaffleCell
     let model: GridModel
     let cornerRadius: CGFloat
