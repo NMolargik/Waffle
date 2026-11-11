@@ -599,8 +599,11 @@ public struct PhoneMainView: View {
     private func paneName(_ pane: WaffleCell) -> String {
         if !pane.address.isEmpty {
             let host = URLDisplayFormatter.phoneDisplay(pane.address)
-            if let slash = host.firstIndex(of: "/") { return String(host[..<slash]) }
-            return host
+            let bare = host.firstIndex(of: "/").map { String(host[..<$0]) } ?? host
+            // The short host the address pill falls back to ("wikipedia.org", not
+            // "en.wikipedia.org"), so a menu title does not wrap inside the name.
+            let short = URLDisplayFormatter.registrableDomain(of: bare)
+            return short.count > 20 ? String(short.prefix(19)) + "…" : short
         }
         let index = (grid.panes.firstIndex(of: pane) ?? 0) + 1
         return String(localized: "Pane \(index)")
@@ -680,6 +683,7 @@ public struct PhoneMainView: View {
 /// The flat half of a half-folded Duo: pane switcher, refresh timers and layouts, so the
 /// upright half is all web content.
 private struct DeskDeck: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let session: SessionController
     let sidebarModel: SidebarModel
     let mode: PaneMode
@@ -824,12 +828,15 @@ private struct DeskDeck: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("\(index + 1)")
                         .font(.caption.weight(.bold))
-                        .frame(width: 24, height: 24)
-                        .background(isSelected ? Color.waffleTertiary : Color.secondary.opacity(0.3), in: Circle())
+                        .lineLimit(1)
+                        .padding(.horizontal, 6)
+                        .frame(minWidth: 24, minHeight: 24)
+                        .background(isSelected ? Color.waffleTertiary : Color.secondary.opacity(0.3), in: Capsule())
                         .foregroundStyle(isSelected ? Color.white : Color.primary)
                     Text(tileTitle(pane))
                         .font(.subheadline.weight(.semibold))
-                        .lineLimit(2)
+                        // Narrow tiles at accessibility sizes truncate; they never hyphenate.
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? 1 : 2)
                         .multilineTextAlignment(.leading)
                     // A page that never loaded has no title, so the host is already the title.
                     if !pane.address.isEmpty, URLDisplayFormatter.phoneDisplay(pane.address) != tileTitle(pane) {
