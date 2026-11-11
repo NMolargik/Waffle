@@ -23,6 +23,8 @@ public struct PaneWorkspaceView: View {
     /// When set, this pane fills the workspace and the others are tucked away (not unloaded).
     let focusedPaneID: UUID?
     var cornerRadius: CGFloat = 14
+    /// Starts another pane (the empty-pane card offers it while only one is open).
+    var onAddPane: (() -> Void)?
 
     @State private var isDragging = false
 
@@ -31,13 +33,15 @@ public struct PaneWorkspaceView: View {
         primaryIsHorizontal: Bool,
         fold: FoldGutter?,
         focusedPaneID: UUID? = nil,
-        cornerRadius: CGFloat = 14
+        cornerRadius: CGFloat = 14,
+        onAddPane: (() -> Void)? = nil
     ) {
         self.model = model
         self.primaryIsHorizontal = primaryIsHorizontal
         self.fold = fold
         self.focusedPaneID = focusedPaneID
         self.cornerRadius = cornerRadius
+        self.onAddPane = onAddPane
     }
 
     public var body: some View {
@@ -63,7 +67,9 @@ public struct PaneWorkspaceView: View {
                         model: model,
                         cornerRadius: cornerRadius,
                         requestPopBack: {},
-                        isPhonePane: true
+                        isPhonePane: true,
+                        paneCount: panes.count,
+                        onAddPane: onAddPane
                     )
                     .frame(width: max(frame.width, 1), height: max(frame.height, 1))
                     .offset(x: frame.minX, y: frame.minY)

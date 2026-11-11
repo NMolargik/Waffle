@@ -130,7 +130,8 @@ public struct PhoneMainView: View {
                     model: grid,
                     primaryIsHorizontal: layout.primaryIsHorizontal,
                     fold: layout.fold,
-                    focusedPaneID: focusedPaneID
+                    focusedPaneID: focusedPaneID,
+                    onAddPane: { session.addPane(mode: mode, isFoldable: Self.isFoldableDevice) }
                 )
                 .frame(width: layout.workspace.width, height: layout.workspace.height)
                 .offset(x: layout.workspace.minX - origin.x, y: layout.workspace.minY - origin.y)

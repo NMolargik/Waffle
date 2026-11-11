@@ -12,8 +12,16 @@ import WaffleDesignSystem
 public struct EmptyCellView: View {
     /// iPhone and Duo call their slots panes and have no sidebar menu.
     private let isPane: Bool
+    /// Phone panes: this is the only pane, so there is nothing to "tap" to select.
+    private let isOnlyPane: Bool
+    /// Phone panes: starts a second pane (offered while only one is open).
+    private let onAddPane: (() -> Void)?
 
-    public init(isPane: Bool = false) { self.isPane = isPane }
+    public init(isPane: Bool = false, isOnlyPane: Bool = false, onAddPane: (() -> Void)? = nil) {
+        self.isPane = isPane
+        self.isOnlyPane = isOnlyPane
+        self.onAddPane = onAddPane
+    }
 
     private var title: LocalizedStringKey { isPane ? "Empty Pane" : "Empty Cell" }
 
@@ -44,8 +52,11 @@ public struct EmptyCellView: View {
 
             VStack(spacing: 8) {
                 if isPane {
-                    instructionRow("Tap a **pane** to activate it")
-                    instructionRow("Use the address bar below to search or navigate")
+                    if isOnlyPane {
+                        instructionRow("Type an address below to open a page")
+                    } else {
+                        instructionRow("Tap this pane, then type an address below")
+                    }
                     instructionRow("Tap ••• for Layouts & Bookmarks")
                 } else {
                     instructionRow("Tap a **cell** to activate it")
@@ -55,6 +66,13 @@ public struct EmptyCellView: View {
             }
             .padding()
             .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+
+            if isPane, isOnlyPane, let onAddPane {
+                Button(action: onAddPane) {
+                    Label("Add a second pane", systemImage: "plus.rectangle.on.rectangle")
+                }
+                .buttonStyle(.wafflePrimary)
+            }
         }
         .padding(24)
         .background(.thickMaterial, in: RoundedRectangle(cornerRadius: 20))

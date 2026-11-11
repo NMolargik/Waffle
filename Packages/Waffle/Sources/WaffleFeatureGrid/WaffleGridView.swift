@@ -84,6 +84,10 @@ struct WaffleCellContainer: View {
     /// change re-creating the web view) so a pane never falls back to "empty", and use
     /// pane wording in the empty state.
     var isPhonePane = false
+    /// Phone panes: how many panes are open, and how to add another (the empty-pane card
+    /// offers "Add a second pane" while only one is open).
+    var paneCount = 0
+    var onAddPane: (() -> Void)? = nil
 
     @State private var isHovered = false
 
@@ -94,7 +98,7 @@ struct WaffleCellContainer: View {
     var body: some View {
         Group {
             if isEmpty {
-                EmptyCellView(isPane: isPhonePane)
+                EmptyCellView(isPane: isPhonePane, isOnlyPane: paneCount == 1, onAddPane: onAddPane)
             } else {
                 WebView(waffleCell.page)
                     .webViewBackForwardNavigationGestures(.enabled)
