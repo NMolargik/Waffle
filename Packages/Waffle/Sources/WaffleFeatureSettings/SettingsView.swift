@@ -12,6 +12,7 @@ import WaffleCore
 import WaffleDesignSystem
 
 public struct SettingsView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.dismiss) private var dismiss
 
     private let model: SettingsModel
@@ -65,11 +66,15 @@ public struct SettingsView: View {
                     .foregroundStyle(.green)
                 Text("Purchased. Thank you!")
                     .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.6)
             } else {
                 Image(systemName: "cart")
                     .foregroundStyle(.waffleTertiary)
                 Text("Not Purchased")
                     .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.6)
             }
         }
         return Group {
@@ -110,10 +115,7 @@ public struct SettingsView: View {
                     } label: {
                         // At accessibility text sizes the status drops under the name
                         // instead of wrapping letter by letter.
-                        ViewThatFits(in: .horizontal) {
-                            syrupRow(stacked: false)
-                            syrupRow(stacked: true)
-                        }
+                        syrupRow(stacked: dynamicTypeSize.isAccessibilitySize)
                     }
                     .buttonStyle(.plain)
                     .disabled(isSyrupEnabled) // Prevent interaction when already purchased
