@@ -491,7 +491,7 @@ private struct DeskDeck: View {
     var body: some View {
         @Bindable var grid = grid
 
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 20) {
             // Panes: tall tiles with the page title and the refresh timer on the tile.
             sectionTitle("Panes")
             HStack(spacing: 10) {
@@ -511,7 +511,7 @@ private struct DeskDeck: View {
                     .accessibilityLabel(Text("Add Pane"))
                 }
             }
-            .frame(height: 168)
+            .frame(minHeight: 168, maxHeight: 260)
 
             // Address row.
             HStack(spacing: 8) {
