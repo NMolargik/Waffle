@@ -448,7 +448,7 @@ public struct PhoneMainView: View {
                 }
             }
         }
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.large])
     }
 
     // MARK: - Actions
