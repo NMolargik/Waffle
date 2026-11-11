@@ -89,24 +89,33 @@ struct PhoneLayoutsView: View {
         icon: String,
         @ViewBuilder menu: () -> MenuItems
     ) -> some View {
-        HStack {
-            Label {
-                Text(title)
-                    .font(.title3.bold())
-                    .foregroundStyle(.primary)
-            } icon: {
-                Image(systemName: icon)
-                    .foregroundStyle(Color.waffleSecondary)
+        let titleLabel = Label {
+            Text(title)
+                .font(.title3.bold())
+                .foregroundStyle(.primary)
+        } icon: {
+            Image(systemName: icon)
+                .foregroundStyle(Color.waffleSecondary)
+        }
+        let newMenu = Menu {
+            menu()
+        } label: {
+            Label("New", systemImage: "plus")
+                .font(.subheadline.weight(.semibold))
+                .padding(.horizontal, 12)
+                .frame(minHeight: 44)
+                .contentShape(Capsule())
+        }
+        // At accessibility text sizes the title and New stack instead of wrapping per character.
+        return ViewThatFits(in: .horizontal) {
+            HStack {
+                titleLabel
+                Spacer()
+                newMenu
             }
-            Spacer()
-            Menu {
-                menu()
-            } label: {
-                Label("New", systemImage: "plus")
-                    .font(.subheadline.weight(.semibold))
-                    .padding(.horizontal, 12)
-                    .frame(minHeight: 44)
-                    .contentShape(Capsule())
+            VStack(alignment: .leading, spacing: 0) {
+                titleLabel
+                newMenu
             }
         }
         .textCase(nil)

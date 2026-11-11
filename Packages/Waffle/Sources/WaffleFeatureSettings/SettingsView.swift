@@ -56,6 +56,49 @@ public struct SettingsView: View {
         return String(localized: "Version \(version) (\(build))")
     }
 
+    private func syrupRow(stacked: Bool) -> some View {
+        let name = Label(String(localized: "Syrup"), systemImage: "drop.fill")
+            .foregroundStyle(.primary)
+        let status = HStack(spacing: 6) {
+            if isSyrupEnabled {
+                Image(systemName: "checkmark.seal.fill")
+                    .foregroundStyle(.green)
+                Text("Purchased. Thank you!")
+                    .foregroundStyle(.secondary)
+            } else {
+                Image(systemName: "cart")
+                    .foregroundStyle(.waffleTertiary)
+                Text("Not Purchased")
+                    .foregroundStyle(.secondary)
+            }
+        }
+        return Group {
+            if stacked {
+                VStack(alignment: .leading, spacing: 6) {
+                    name
+                    HStack {
+                        status
+                        Spacer(minLength: 0)
+                        if !isSyrupEnabled {
+                            Image(systemName: "chevron.right")
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
+                }
+            } else {
+                HStack {
+                    name
+                    Spacer()
+                    status
+                    if !isSyrupEnabled {
+                        Image(systemName: "chevron.right")
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+            }
+        }
+    }
+
     public var body: some View {
         NavigationStack {
             Form {
@@ -65,28 +108,11 @@ public struct SettingsView: View {
                             requestSyrup()
                         }
                     } label: {
-                        HStack {
-                            Label(String(localized: "Syrup"), systemImage: "drop.fill")
-                                .foregroundStyle(.primary)
-                            Spacer()
-                            if isSyrupEnabled {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "checkmark.seal.fill")
-                                        .foregroundStyle(.green)
-                                    Text("Purchased. Thank you!")
-                                        .foregroundStyle(.secondary)
-                                }
-                            } else {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "cart")
-                                        .foregroundStyle(.waffleTertiary)
-                                    Text("Not Purchased")
-                                        .foregroundStyle(.secondary)
-                                }
-
-                                Image(systemName: "chevron.right")
-                                    .foregroundStyle(.tertiary)
-                            }
+                        // At accessibility text sizes the status drops under the name
+                        // instead of wrapping letter by letter.
+                        ViewThatFits(in: .horizontal) {
+                            syrupRow(stacked: false)
+                            syrupRow(stacked: true)
                         }
                     }
                     .buttonStyle(.plain)
