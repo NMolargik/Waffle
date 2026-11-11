@@ -40,12 +40,20 @@ public final class WaffleCell: Identifiable, Hashable, Codable {
         page.estimatedProgress
     }
 
+    /// The back/forward list changes after the navigation has already been reported, so a
+    /// view reading only the list showed the state from one navigation ago. Also reading the
+    /// page's URL and loading flag makes any view that asks re-evaluate when a navigation
+    /// commits and again when it finishes, by which time the list is current.
     public var canGoBack: Bool {
-        page.backForwardList.backList.last != nil
+        _ = page.url
+        _ = page.isLoading
+        return page.backForwardList.backList.last != nil
     }
 
     public var canGoForward: Bool {
-        page.backForwardList.forwardList.first != nil
+        _ = page.url
+        _ = page.isLoading
+        return page.backForwardList.forwardList.first != nil
     }
 
     // MARK: Initializer
