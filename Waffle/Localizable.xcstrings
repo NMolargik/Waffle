@@ -964,25 +964,25 @@
       },
       "shouldGenerateSymbol": false
     },
-    "Back steps through the selected pane's history": {
+    "Back and Reload act on the selected pane. Touch and hold Reload for a refresh timer": {
       "extractionState": "manual",
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Atrás recorre el historial del panel seleccionado"
+            "value": "Atrás y Recargar actúan sobre el panel seleccionado. Mantén pulsado Recargar para usar un temporizador"
           }
         },
         "fr-CA": {
           "stringUnit": {
             "state": "translated",
-            "value": "Précédent parcourt l’historique du volet sélectionné"
+            "value": "Précédent et Recharger agissent sur le volet sélectionné. Maintenez le doigt sur Recharger pour une minuterie d’actualisation"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "「戻る」は選択中のペインの履歴をたどります"
+            "value": "「戻る」と「再読み込み」は選択中のペインに作用します。「再読み込み」を長押しすると更新タイマーを設定できます"
           }
         }
       },
@@ -5288,30 +5288,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "再読み込みは選択中のセルだけを更新します"
-          }
-        }
-      },
-      "shouldGenerateSymbol": false
-    },
-    "Reload refreshes the selected pane. Touch and hold it to refresh on a timer": {
-      "extractionState": "manual",
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recargar actualiza el panel seleccionado. Mantén pulsado para actualizar con un temporizador"
-          }
-        },
-        "fr-CA": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recharger actualise le volet sélectionné. Maintenez le doigt pour actualiser avec une minuterie"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "再読み込みは選択中のペインを更新します。長押しするとタイマーで自動更新できます"
           }
         }
       },

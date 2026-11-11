@@ -18,6 +18,8 @@ public struct SyrupView: View {
     private let onClose: (() -> Void)?
     /// Set on iPhone and iPhone Duo: lists what Syrup unlocks there instead of the iPad grid features.
     private let phonePitch: SyrupPitch?
+    @State private var scrollHeight: CGFloat = 0
+    @Environment(\.colorScheme) private var colorScheme
 
     public init(store: StoreManager, phonePitch: SyrupPitch? = nil, onPurchased: (() -> Void)? = nil, onClose: (() -> Void)? = nil) {
         self.store = store
@@ -28,6 +30,7 @@ public struct SyrupView: View {
 
     public var body: some View {
         ScrollView {
+          VStack {
             VStack(spacing: 20) {
                 HStack {
                     Spacer()
@@ -46,7 +49,8 @@ public struct SyrupView: View {
 
                 Image(systemName: "drop.fill")
                     .font(.system(size: 48))
-                    .foregroundStyle(Color.waffleTertiary)
+                    // Dark brown vanishes on a dark sheet: the brand gold there.
+                    .foregroundStyle(colorScheme == .dark ? Color.wafflePrimary : Color.waffleTertiary)
 
                 Text(verbatim: "Syrup")
                     .font(.largeTitle).bold()
@@ -83,6 +87,10 @@ public struct SyrupView: View {
                 .cornerRadius(12)
                 }
             }
+
+            // Phone: the price and the buttons sit at the bottom of the sheet, so a short
+            // pitch does not leave the lower part of the sheet empty.
+            if phonePitch != nil { Spacer(minLength: 12) }
 
             if phonePitch != nil {
                 // Never a hardcoded price: the live StoreKit price, or neutral wording.
@@ -146,7 +154,10 @@ public struct SyrupView: View {
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding([.horizontal, .bottom])
+          }
+          .frame(minHeight: phonePitch == nil ? nil : scrollHeight)
         }
+        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { scrollHeight = $0 }
         .padding()
         .frame(minWidth: phonePitch == nil ? 420 : nil, minHeight: phonePitch == nil ? 520 : nil)
     }

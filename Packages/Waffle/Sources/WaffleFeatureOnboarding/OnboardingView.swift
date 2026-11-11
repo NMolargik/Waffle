@@ -1027,7 +1027,7 @@ private struct PhoneBarCard: View {
             )
 
             VStack(spacing: 10) {
-                MockStackedPanes(selectedIndex: $selectedIndex, ratio: $ratio, height: 190)
+                MockStackedPanes(selectedIndex: $selectedIndex, ratio: $ratio, height: 130)
                 MockPhoneBar(address: DemoSite.samples[selectedIndex].address)
             }
             .padding(12)
@@ -1039,12 +1039,8 @@ private struct PhoneBarCard: View {
                     text: "Type a web address, or anything else, and Waffle searches for it"
                 )
                 ToolbarTip(
-                    icon: "chevron.backward",
-                    text: "Back steps through the selected pane's history"
-                )
-                ToolbarTip(
                     icon: "arrow.clockwise",
-                    text: "Reload refreshes the selected pane. Touch and hold it to refresh on a timer"
+                    text: "Back and Reload act on the selected pane. Touch and hold Reload for a refresh timer"
                 )
                 ToolbarTip(
                     icon: "ellipsis",
@@ -1071,7 +1067,7 @@ private struct PhoneDividerCard: View {
             )
 
             VStack(spacing: 10) {
-                MockStackedPanes(selectedIndex: $selectedIndex, ratio: $ratio, isAdjustable: true, height: 230)
+                MockStackedPanes(selectedIndex: $selectedIndex, ratio: $ratio, isAdjustable: true, height: 160)
                 MockPhoneBar(address: DemoSite.samples[selectedIndex].address)
             }
             .padding(12)
