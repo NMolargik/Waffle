@@ -40,9 +40,8 @@ public struct PhoneMainView: View {
     @State private var showLayoutsSheet = false
     /// The user maximized the selected pane.
     @State private var isMaximized = false
-    /// The Duo was closed: its outer display shows the focused pane alone. Cleared on open,
-    /// so the full arrangement returns exactly as it was.
-    @State private var foldCollapsed = false
+    /// The half-folded laptop pose is showing the desk deck (mirrors the geometry-derived value).
+    @State private var inDeskMode = false
     @State private var isEditingAddress = false
     /// The pane whose address is being edited; a submit navigates only this pane.
     @State private var editingPaneID: UUID?
@@ -71,11 +70,17 @@ public struct PhoneMainView: View {
     /// The pane shown alone, if any. Compact displays can't hold more than two panes, so
     /// a three- or four-pane arrangement (opened on the inner display) shows the focused pane.
     private var focusedPaneID: UUID? {
-        guard grid.paneCount > 1 else { return nil }
-        let forced = mode == .compact && (foldCollapsed || grid.paneCount > PaneLimits.maxCompactPanes)
-        guard isMaximized || forced else { return nil }
-        let index = PaneFrameCalculator.focusIndex(selected: grid.selectedPaneIndex, count: grid.paneCount)
+        guard let index = PaneFocus.focusedIndex(
+            count: grid.paneCount, mode: mode, isDeskMode: inDeskMode,
+            isMaximized: isMaximized, selected: grid.selectedPaneIndex
+        ) else { return nil }
         return grid.panes[index].id
+    }
+
+    /// Panes tucked away behind the focused one; their auto-refresh timers pause.
+    private var hiddenPaneIDs: Set<UUID> {
+        guard let focused = focusedPaneID else { return [] }
+        return Set(grid.panes.map(\.id)).subtracting([focused])
     }
 
     private var effectiveHinge: HingeSummary {
@@ -115,6 +120,12 @@ public struct PhoneMainView: View {
                 )
                 .frame(width: layout.workspace.width, height: layout.workspace.height)
                 .offset(x: layout.workspace.minX, y: layout.workspace.minY)
+
+                Color.clear.frame(width: 0, height: 0)
+                    .onChange(of: isDesk, initial: true) { _, now in
+                        inDeskMode = now
+                        isMaximized = PaneFocus.reconciledMaximized(isMaximized, count: grid.paneCount, isDeskMode: now)
+                    }
 
                 if let bar = layout.bar {
                     controlBar(width: bar.width)
@@ -186,14 +197,11 @@ public struct PhoneMainView: View {
         .onChange(of: grid.paneTouchCount) { _, _ in
             if isEditingAddress { dismissEditingToken += 1 }
         }
-        .onChange(of: mode, initial: true) { old, new in
-            // Closing the Duo: the outer display keeps the focused pane. Opening it again
-            // restores the arrangement because nothing about it was changed or reloaded.
-            if old == .inner && new == .compact {
-                foldCollapsed = true
-            } else if new == .inner {
-                foldCollapsed = false
-            }
+        .onChange(of: hiddenPaneIDs, initial: true) { _, hidden in
+            grid.setHiddenCells(hidden)
+        }
+        .onChange(of: grid.paneCount) { _, count in
+            isMaximized = PaneFocus.reconciledMaximized(isMaximized, count: count, isDeskMode: inDeskMode)
         }
         .onChange(of: scenePhase, initial: true) { _, newPhase in
             if newPhase == .inactive || newPhase == .background {
@@ -495,7 +503,6 @@ public struct PhoneMainView: View {
     private func toggleMaximize() {
         if focusedPaneID != nil {
             isMaximized = false
-            if grid.paneCount <= PaneLimits.maxCompactPanes { foldCollapsed = false }
         } else {
             isMaximized = true
         }

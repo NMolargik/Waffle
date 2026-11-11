@@ -59,6 +59,10 @@ public final class GridModel {
     /// `MainView` drives this from `scenePhase`.
     public private(set) var isAppActive = true
 
+    /// Cells the user can't see right now (tucked away behind a focused or maximized pane).
+    /// Their timers are paused and restart, counting from zero, when they are shown again.
+    public private(set) var hiddenCellIDs: Set<UUID> = []
+
     @ObservationIgnored
     private var refreshTasks: [UUID: Task<Void, Never>] = [:]
 
@@ -121,6 +125,13 @@ public final class GridModel {
         restartAllRefreshTimers()
     }
 
+    /// Tells the model which cells are not on screen. Only changes restart timers.
+    public func setHiddenCells(_ ids: Set<UUID>) {
+        guard ids != hiddenCellIDs else { return }
+        hiddenCellIDs = ids
+        restartAllRefreshTimers()
+    }
+
     /// Row-major seconds per cell, for snapshots and presets.
     public func flattenedRefreshIntervals() -> [Int] {
         waffleRows.flatMap { row in row.map(\.refreshInterval.rawValue) }
@@ -146,7 +157,7 @@ public final class GridModel {
         refreshTasks[cell.id]?.cancel()
         refreshTasks[cell.id] = nil
 
-        var scheduler = AutoRefreshScheduler(interval: cell.refreshInterval, isAppActive: isAppActive, now: Date())
+        var scheduler = AutoRefreshScheduler(interval: cell.refreshInterval, isAppActive: isAppActive && !hiddenCellIDs.contains(cell.id), now: Date())
         guard scheduler.isEnabled else { return }
 
         refreshTasks[cell.id] = Task { @MainActor [weak self, weak cell] in
@@ -155,7 +166,7 @@ public final class GridModel {
                 let delay = max(0, next.timeIntervalSinceNow)
                 try? await Task.sleep(for: .seconds(delay))
                 guard !Task.isCancelled, let self, let cell else { return }
-                guard self.isAppActive else {
+                guard self.isAppActive, !self.hiddenCellIDs.contains(cell.id) else {
                     // Timers are cancelled on deactivation; this is a safety net.
                     scheduler.appDidResignActive()
                     return

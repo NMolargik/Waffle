@@ -337,3 +337,48 @@ struct SyrupPitchTests {
         #expect(SyrupPitch(trigger: .general, isInnerDisplay: false).leadFeature == nil)
     }
 }
+
+@Suite("PaneFocus")
+struct PaneFocusTests {
+    @Test func twoPanesStayVisibleWhenTheDuoCloses() {
+        // A7c: two panes fit the outer display, so closing the Duo changes nothing.
+        #expect(PaneFocus.focusedIndex(count: 2, mode: .compact, isDeskMode: false, isMaximized: false, selected: 1) == nil)
+        #expect(PaneFocus.focusedIndex(count: 2, mode: .inner, isDeskMode: false, isMaximized: false, selected: 1) == nil)
+    }
+
+    @Test func threeOrFourPanesShowTheSelectedOneOnACompactDisplay() {
+        #expect(PaneFocus.focusedIndex(count: 3, mode: .compact, isDeskMode: false, isMaximized: false, selected: 2) == 2)
+        #expect(PaneFocus.focusedIndex(count: 4, mode: .compact, isDeskMode: false, isMaximized: false, selected: nil) == 0)
+        #expect(PaneFocus.focusedIndex(count: 4, mode: .inner, isDeskMode: false, isMaximized: false, selected: 2) == nil)
+    }
+
+    @Test func maximizeFocusesTheSelectedPaneAnywhere() {
+        #expect(PaneFocus.focusedIndex(count: 2, mode: .compact, isDeskMode: false, isMaximized: true, selected: 1) == 1)
+        #expect(PaneFocus.focusedIndex(count: 4, mode: .inner, isDeskMode: false, isMaximized: true, selected: 3) == 3)
+        #expect(PaneFocus.focusedIndex(count: 1, mode: .compact, isDeskMode: false, isMaximized: true, selected: 0) == nil)
+    }
+
+    @Test func deskModeAlwaysShowsEveryPane() {
+        #expect(PaneFocus.focusedIndex(count: 4, mode: .inner, isDeskMode: true, isMaximized: true, selected: 1) == nil)
+    }
+
+    @Test func maximizeIsClearedWhenItCanNoLongerBeUndone() {
+        // A7a: entering desk mode while maximized.
+        #expect(!PaneFocus.reconciledMaximized(true, count: 3, isDeskMode: true))
+        // A7b: the pane count drops to one, so a pane added later does not open alone.
+        #expect(!PaneFocus.reconciledMaximized(true, count: 1, isDeskMode: false))
+        #expect(PaneFocus.reconciledMaximized(true, count: 2, isDeskMode: false))
+        #expect(!PaneFocus.reconciledMaximized(false, count: 2, isDeskMode: false))
+    }
+
+    @Test func aSinglePaneSpansTheFoldByDesign() {
+        // A18: one page is full screen on the inner display; only multi-pane layouts avoid the fold.
+        let size = CGSize(width: 700, height: 600)
+        let fold = FoldGutter(primaryIsHorizontal: true, position: 350, thickness: 16, isActive: true)
+        let single = PaneFrameCalculator.frames(count: 1, ratios: .default, size: size, primaryIsHorizontal: true, fold: fold)
+        #expect(single.panes == [CGRect(origin: .zero, size: size)])
+        #expect(single.dividers.isEmpty)
+        let two = PaneFrameCalculator.frames(count: 2, ratios: .default, size: size, primaryIsHorizontal: true, fold: fold)
+        #expect(two.panes[0].maxX <= 342 && two.panes[1].minX >= 358)
+    }
+}

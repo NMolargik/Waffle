@@ -72,6 +72,32 @@ nonisolated public struct PaneRatios: Equatable, Sendable, Codable {
     }
 }
 
+// MARK: - Focus
+
+/// Which pane (if any) a phone shows alone, and when the user's "maximize" still applies.
+/// Pure so the rules that were once scattered through the view are host-tested.
+nonisolated public enum PaneFocus {
+    /// The index of the pane shown alone, or nil when every pane is shown.
+    /// - Compact displays hold two panes: with three or four open they show the selected
+    ///   one (a regular iPhone or the Duo's outer display; unfolding shows them all).
+    ///   Closing the Duo with one or two panes open changes nothing: both fit.
+    /// - Maximize focuses the selected pane on any display.
+    /// - Desk mode shows every pane on the upright half; there is no maximize there.
+    public static func focusedIndex(count: Int, mode: PaneMode, isDeskMode: Bool, isMaximized: Bool, selected: Int?) -> Int? {
+        guard count > 1, !isDeskMode else { return nil }
+        let forced = mode == .compact && count > PaneLimits.maxCompactPanes
+        guard isMaximized || forced else { return nil }
+        return PaneFrameCalculator.focusIndex(selected: selected, count: count)
+    }
+
+    /// The user's maximize flag after the arrangement changed: it means nothing with a single
+    /// pane (a pane added later must not open alone) and is cleared on entering desk mode,
+    /// whose deck has no control to undo it.
+    public static func reconciledMaximized(_ isMaximized: Bool, count: Int, isDeskMode: Bool) -> Bool {
+        isMaximized && count > 1 && !isDeskMode
+    }
+}
+
 // MARK: - Limits & gating
 
 /// Which divider a drag adjusts.
@@ -239,6 +265,8 @@ nonisolated public enum PaneFrameCalculator {
         let count = max(1, min(count, PaneLimits.maxInnerPanes))
         let bounds = CGRect(origin: .zero, size: size)
         let groups = slots(count: count, primaryIsHorizontal: primaryIsHorizontal)
+        // A single pane deliberately spans the fold: on the inner display one page is shown
+        // full screen, like any other app. Only multi-pane layouts keep panes off the fold.
         guard count > 1 else { return PaneFrames(panes: [bounds], dividers: []) }
 
         let total = primaryIsHorizontal ? size.width : size.height

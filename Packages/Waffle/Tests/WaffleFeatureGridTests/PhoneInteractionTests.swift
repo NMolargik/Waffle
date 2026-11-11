@@ -19,6 +19,42 @@ struct PhoneInteractionTests {
         return model
     }
 
+    // MARK: A5: hidden panes do not auto-refresh
+
+    @Test func hiddenPanesPauseTheirTimersAndResumeWhenShown() {
+        let model = makeModel(panes: 3)
+        let panes = model.panes
+        for pane in panes { model.setRefreshInterval(.thirtySeconds, for: pane) }
+        #expect(model.autoRefreshingCellIDs == Set(panes.map(\.id)))
+
+        // Pane 2 is focused alone (outer display / maximized): the other two are hidden.
+        model.setHiddenCells([panes[0].id, panes[2].id])
+        #expect(model.autoRefreshingCellIDs == [panes[1].id])
+
+        model.setHiddenCells([])
+        #expect(model.autoRefreshingCellIDs == Set(panes.map(\.id)))
+    }
+
+    @Test func hiddenStateSurvivesBackgroundingAndNeverResurrectsTimers() {
+        let model = makeModel(panes: 2)
+        let panes = model.panes
+        model.setRefreshInterval(.oneMinute, for: panes[0])
+        model.setHiddenCells([panes[0].id])
+        model.setAppActive(false)
+        model.setAppActive(true)
+        #expect(model.autoRefreshingCellIDs.isEmpty, "a hidden pane stays paused after the app returns to the foreground")
+    }
+
+    @Test func aTimerSetOnAHiddenPaneWaitsUntilItIsShown() {
+        let model = makeModel(panes: 2)
+        let panes = model.panes
+        model.setHiddenCells([panes[1].id])
+        model.setRefreshInterval(.thirtySeconds, for: panes[1])
+        #expect(model.autoRefreshingCellIDs.isEmpty)
+        model.setHiddenCells([])
+        #expect(model.autoRefreshingCellIDs == [panes[1].id])
+    }
+
     // MARK: A1: a submit only navigates the pane being edited
 
     @Test func submitNavigatesTheEditedPaneEvenAfterTheSelectionMoved() {
