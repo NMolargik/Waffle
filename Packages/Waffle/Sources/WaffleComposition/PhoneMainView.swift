@@ -184,6 +184,8 @@ public struct PhoneMainView: View {
             switch defaults.string(forKey: "WaffleDebugSheet") {
             case "layouts": showLayoutsSheet = true
             case "settings": showSettingsSheet = true
+            case "paywallDeskMode": session.requestSyrup(for: .deskMode)
+            case "paywallGeneral": session.requestSyrup()
             default: break
             }
             if defaults.string(forKey: "WaffleDebugAction") == "saveLayoutTwice" {

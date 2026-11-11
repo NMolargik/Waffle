@@ -366,4 +366,15 @@ struct SessionControllerTests {
         session.requestSyrup()
         #expect(session.syrupTrigger == .general, "iPad and settings callers keep the general pitch")
     }
+
+    @Test func savedLayoutsAreNamedFromTheirSitesAndConfirmed() throws {
+        let session = try makeSession(purchased: true)
+        session.grid.applyPaneLayout(urls: ["https://en.wikipedia.org/wiki/Waffle", "https://www.apple.com"], ratios: .default)
+
+        #expect(session.savePaneLayout())
+        #expect(session.errorHandler.toastMessage == "Saved as “Wikipedia + Apple”")
+        #expect(session.savePaneLayout())
+        let names = try session.loadPresets().map(\.name)
+        #expect(Set(names) == ["Wikipedia + Apple", "Wikipedia + Apple 2"])
+    }
 }

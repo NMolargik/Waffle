@@ -38,6 +38,11 @@ public struct OnboardingView: View {
         self.variant = variant
         self.pages = OnboardingPage.pages(for: variant)
         self.onFinished = onFinished
+        #if DEBUG
+        // Simulator screenshots without taps: `-WaffleDebugOnboardingPage 3` opens the fourth page.
+        let start = UserDefaults.standard.integer(forKey: "WaffleDebugOnboardingPage")
+        _pageIndex = State(initialValue: min(max(start, 0), pages.count - 1))
+        #endif
     }
 
     public var body: some View {
