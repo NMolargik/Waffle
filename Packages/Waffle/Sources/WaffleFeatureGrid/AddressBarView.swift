@@ -27,6 +27,8 @@ public struct AddressBarView: View {
     var onEditingChanged: ((Bool) -> Void)?
     /// Changing this value ends editing without submitting and restores the page's address.
     var dismissEditingToken: Int = 0
+    /// Phones: no trailing slash, and the registrable domain when the host would not fit.
+    var phoneStyle = false
 
     /// Driven by the UIKit field's delegate — `@FocusState` doesn't track a
     /// field hosted in a toolbar item.
@@ -43,7 +45,8 @@ public struct AddressBarView: View {
         reservedControlWidth: CGFloat = 430,
         onSubmit: @escaping () -> Void = {},
         onEditingChanged: ((Bool) -> Void)? = nil,
-        dismissEditingToken: Int = 0
+        dismissEditingToken: Int = 0,
+        phoneStyle: Bool = false
     ) {
         self._text = text
         self.placeholder = placeholder
@@ -52,6 +55,16 @@ public struct AddressBarView: View {
         self.onSubmit = onSubmit
         self.onEditingChanged = onEditingChanged
         self.dismissEditingToken = dismissEditingToken
+        self.phoneStyle = phoneStyle
+    }
+
+    /// What the idle field shows for an address.
+    private func idleDisplay(_ address: String) -> String {
+        guard phoneStyle else { return URLDisplayFormatter.compact(address) }
+        let room = barWidth - 24 - 8
+        return URLDisplayFormatter.phoneDisplay(address) { candidate in
+            (candidate as NSString).size(withAttributes: [.font: AddressTextField.font]).width <= room
+        }
     }
 
     /// Idle: share the toolbar with the surrounding controls. Editing: the
@@ -77,21 +90,24 @@ public struct AddressBarView: View {
             resignToken: dismissEditingToken
         )
         .onAppear {
-            displayText = URLDisplayFormatter.compact(text)
+            displayText = idleDisplay(text)
+        }
+        .onChange(of: barWidth) { _, _ in
+            if !isEditing { displayText = idleDisplay(text) }
         }
         .onChange(of: isEditing) { _, editing in
             if editing {
                 // Show the full address; the field selects it all once it lands.
                 displayText = text
             } else {
-                displayText = URLDisplayFormatter.compact(text)
+                displayText = idleDisplay(text)
             }
             onEditingChanged?(editing)
         }
         .onChange(of: text) { _, newValue in
             // Page navigations update the idle display; never while editing.
             if !isEditing {
-                displayText = URLDisplayFormatter.compact(newValue)
+                displayText = idleDisplay(newValue)
             }
         }
         .padding(.horizontal, 12)

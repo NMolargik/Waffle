@@ -204,7 +204,7 @@ public final class SessionController {
     /// Adds a pane, presenting the Syrup paywall for panes three and four.
     /// - Returns: true when a pane was added.
     @discardableResult
-    public func addPane(mode: PaneMode) -> Bool {
+    public func addPane(mode: PaneMode, isFoldable: Bool = false) -> Bool {
         switch PaneLimits.addPane(currentCount: grid.paneCount, mode: mode, isSyrupEnabled: isSyrupEnabled) {
         case .allowed:
             return grid.addPane() != nil
@@ -212,7 +212,11 @@ public final class SessionController {
             requestSyrup(for: .thirdPane)
             return false
         case .atDeviceLimit:
-            errorHandler.showToast(String(localized: "This display fits \(PaneLimits.deviceMax(for: mode)) panes"))
+            switch FoldableDevice.limitMessage(mode: mode, isFoldable: isFoldable) {
+            case .unfoldToAddMore: errorHandler.showToast(String(localized: "Unfold your iPhone Duo to add more panes"))
+            case .phoneFitsTwo: errorHandler.showToast(String(localized: "This iPhone fits two panes"))
+            case .displayFits(let count): errorHandler.showToast(String(localized: "This display fits \(count) panes"))
+            }
             return false
         }
     }

@@ -447,3 +447,18 @@ struct FoldGeometryTests {
         #expect(!folded.bar!.intersects(foldOnScreen))
     }
 }
+
+@Suite("FoldableDevice")
+struct FoldableDeviceTests {
+    @Test func theDuoIsRecognisedByModelIdentifier() {
+        #expect(FoldableDevice.isFoldable(modelIdentifier: "iPhone19,4"))
+        #expect(!FoldableDevice.isFoldable(modelIdentifier: "iPhone18,1"))
+        #expect(!FoldableDevice.isFoldable(modelIdentifier: ""))
+    }
+
+    @Test func limitMessageDependsOnTheDevice() {
+        #expect(FoldableDevice.limitMessage(mode: .compact, isFoldable: true) == .unfoldToAddMore)
+        #expect(FoldableDevice.limitMessage(mode: .compact, isFoldable: false) == .phoneFitsTwo)
+        #expect(FoldableDevice.limitMessage(mode: .inner, isFoldable: true) == .displayFits(4))
+    }
+}

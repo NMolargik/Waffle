@@ -22,11 +22,16 @@ struct AddressTextField: UIViewRepresentable {
     /// pane being edited stops being the selected one, and by a Cancel button.
     var resignToken: Int = 0
 
+    /// Body text that stops growing at a size that still fits the 44-point bar.
+    static var font: UIFont {
+        UIFontMetrics(forTextStyle: .body).scaledFont(for: .systemFont(ofSize: 17), maximumPointSize: 26)
+    }
+
     func makeUIView(context: Context) -> UITextField {
         let field = UITextField()
         field.delegate = context.coordinator
         field.placeholder = placeholder
-        field.font = .preferredFont(forTextStyle: .body)
+        field.font = Self.font
         field.adjustsFontForContentSizeCategory = true
         field.borderStyle = .none
         field.backgroundColor = .clear

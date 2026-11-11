@@ -79,3 +79,28 @@ struct URLDisplayFormatterTests {
         #expect(URLDisplayFormatter.compact(input) == expected)
     }
 }
+
+@Suite("URLDisplayFormatter phone display")
+struct PhoneDisplayTests {
+    @Test func dropsABareTrailingSlashOnly() {
+        #expect(URLDisplayFormatter.phoneDisplay("https://www.weather.gov/") == "weather.gov")
+        #expect(URLDisplayFormatter.phoneDisplay("https://en.wikipedia.org") == "en.wikipedia.org")
+        #expect(URLDisplayFormatter.phoneDisplay("https://apple.com/store/") == "apple.com/store")
+        // The iPad's formatter is unchanged.
+        #expect(URLDisplayFormatter.compact("https://www.weather.gov/") == "weather.gov/")
+    }
+
+    @Test func registrableDomains() {
+        #expect(URLDisplayFormatter.registrableDomain(of: "en.wikipedia.org") == "wikipedia.org")
+        #expect(URLDisplayFormatter.registrableDomain(of: "news.bbc.co.uk") == "bbc.co.uk")
+        #expect(URLDisplayFormatter.registrableDomain(of: "weather.gov") == "weather.gov")
+        #expect(URLDisplayFormatter.registrableDomain(of: "192.168.0.10") == "192.168.0.10")
+    }
+
+    @Test func prefersTheRegistrableDomainOverATruncatedHost() {
+        let url = "https://en.wikipedia.org/wiki/Waffle"
+        #expect(URLDisplayFormatter.phoneDisplay(url) { _ in true } == "en.wikipedia.org")
+        #expect(URLDisplayFormatter.phoneDisplay(url) { $0.count <= 14 } == "wikipedia.org")
+        #expect(URLDisplayFormatter.phoneDisplay(url) { _ in false } == "wikipedia.org")
+    }
+}

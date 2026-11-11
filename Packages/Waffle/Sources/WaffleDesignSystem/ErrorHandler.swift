@@ -75,6 +75,7 @@ public final class ErrorHandler {
 
 struct ToastModifier: ViewModifier {
     let message: String?
+    let bottomInset: CGFloat
     let onDismiss: () -> Void
 
     func body(content: Content) -> some View {
@@ -91,7 +92,7 @@ struct ToastModifier: ViewModifier {
                             .fill(Color.waffleTertiary.opacity(0.9))
                             .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
                     )
-                    .padding(.bottom, 20)
+                    .padding(.bottom, bottomInset)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                     .onTapGesture {
                         onDismiss()
@@ -103,8 +104,10 @@ struct ToastModifier: ViewModifier {
 }
 
 public extension View {
-    func toast(message: String?, onDismiss: @escaping () -> Void) -> some View {
-        modifier(ToastModifier(message: message, onDismiss: onDismiss))
+    /// - Parameter bottomInset: how far above the bottom edge the toast floats; phones raise it
+    ///   above the control bar so it never covers the bar.
+    func toast(message: String?, bottomInset: CGFloat = 20, onDismiss: @escaping () -> Void) -> some View {
+        modifier(ToastModifier(message: message, bottomInset: bottomInset, onDismiss: onDismiss))
     }
 }
 
