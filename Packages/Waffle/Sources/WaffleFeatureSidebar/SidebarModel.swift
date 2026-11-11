@@ -159,10 +159,15 @@ public final class SidebarModel {
         }
     }
 
-    public func overwritePreset(_ preset: Preset, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int] = [], paneCount: Int = 0, paneRatios: [Double] = []) {
+    /// - Parameter announce: show an "Updated “name”" toast on success (the phone layouts list; the iPad stays quiet).
+    public func overwritePreset(_ preset: Preset, rows: Int, cols: Int, urls: [String], refreshIntervals: [Int] = [], paneCount: Int = 0, paneRatios: [Double] = [], announce: Bool = false) {
         do {
             try overwritePresetUseCase(preset, rows: rows, cols: cols, urls: urls, refreshIntervals: refreshIntervals, paneCount: paneCount, paneRatios: paneRatios)
             load()
+            if announce {
+                let name = preset.name.isEmpty ? String(localized: "Untitled Layout") : preset.name
+                errorHandler.showToast(String(localized: "Updated “\(name)”"))
+            }
         } catch {
             errorHandler.showPersistenceError(error)
         }

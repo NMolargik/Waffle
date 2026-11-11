@@ -196,6 +196,21 @@ struct SidebarModelTests {
         #expect(model.filteredBookmarks.count == 1)  // URL matches too
     }
 
+    @Test("updating a layout with announce shows an Updated toast; the quiet default does not")
+    func updateAnnouncesOnlyWhenAsked() {
+        let lib = FakeLibrary()
+        let preset = Preset(name: "Wikipedia + Apple", rows: 1, cols: 2, urls: [])
+        lib.presets = [preset]
+        let errorHandler = ErrorHandler()
+        let model = lib.makeModel(errorHandler: errorHandler)
+
+        model.overwritePreset(preset, rows: 1, cols: 2, urls: ["https://apple.com"])
+        #expect(errorHandler.toastMessage == nil)
+
+        model.overwritePreset(preset, rows: 1, cols: 2, urls: ["https://apple.com"], announce: true)
+        #expect(errorHandler.toastMessage?.contains("Wikipedia + Apple") == true)
+    }
+
     @Test("adding an invalid bookmark shows the 'nothing to bookmark' toast")
     func addInvalidBookmarkToasts() {
         let lib = FakeLibrary()

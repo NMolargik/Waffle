@@ -658,6 +658,10 @@ public struct PhoneMainView: View {
             )
             .navigationTitle(Text("Layouts & Bookmarks"))
             .navigationBarTitleDisplayMode(.inline)
+            // The sheet covers the screen's own toast, so it carries one ("Updated “…”").
+            .toast(message: session.errorHandler.toastMessage) {
+                self.session.errorHandler.dismissToast()
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(String(localized: "Done")) { showLayoutsSheet = false }

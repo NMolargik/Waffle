@@ -8062,6 +8062,30 @@
       },
       "shouldGenerateSymbol": false
     },
+    "Updated “%@”": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actualizado «%@»"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "« %@ » mis à jour"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「%@」を更新しました"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "Use Desk Mode with Syrup": {
       "extractionState": "manual",
       "localizations": {

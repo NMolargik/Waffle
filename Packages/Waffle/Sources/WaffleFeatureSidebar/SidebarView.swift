@@ -203,7 +203,7 @@ public struct SidebarView: View {
 
     private func updatePhoneLayout(_ preset: Preset) {
         let grid = currentGrid()
-        model.overwritePreset(preset, rows: grid.rows, cols: grid.cols, urls: grid.urls, refreshIntervals: grid.refreshIntervals, paneCount: grid.paneCount, paneRatios: grid.paneRatios)
+        model.overwritePreset(preset, rows: grid.rows, cols: grid.cols, urls: grid.urls, refreshIntervals: grid.refreshIntervals, paneCount: grid.paneCount, paneRatios: grid.paneRatios, announce: true)
     }
 
     private func overwritePreset(_ preset: Preset) {
