@@ -206,6 +206,9 @@ public struct SyrupView: View {
                 purchaseButtons
             }
             .multilineTextAlignment(.center)
+            // The pinned part stays at control size (like the bar): at the accessibility
+            // sizes the pitch above grows and scrolls, and Buy never shrinks the room for it.
+            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
             .padding(.top, 10)
         }
         .padding(.horizontal)
