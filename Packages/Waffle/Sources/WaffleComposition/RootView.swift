@@ -33,6 +33,25 @@ public struct RootView: View {
     }
 
     public var body: some View {
+        #if DEBUG
+        if UserDefaults.standard.bool(forKey: "WaffleDebugRotatedCanvas") {
+            // iPad simulators stay portrait under simctl: lay the UI out landscape inside a
+            // rotated canvas (screenshots are then rotated back). Layout checks only.
+            GeometryReader { proxy in
+                content
+                    .frame(width: proxy.size.height, height: proxy.size.width)
+                    .rotationEffect(.degrees(-90))
+                    .frame(width: proxy.size.width, height: proxy.size.height)
+            }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+
+    private var content: some View {
         Group {
             if !isPrimaryWindow {
                 ExtraWindowView()
@@ -51,9 +70,13 @@ public struct RootView: View {
             claimPrimaryIfAvailable()
             #if DEBUG
             // Simulators can't rotate from the command line: `-WaffleDebugOrientation landscape`.
-            if UserDefaults.standard.string(forKey: "WaffleDebugOrientation") == "landscape",
-               let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                scene.requestGeometryUpdate(.iOS(interfaceOrientations: .landscapeRight))
+            if UserDefaults.standard.string(forKey: "WaffleDebugOrientation") == "landscape" {
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(800))
+                    for case let scene as UIWindowScene in UIApplication.shared.connectedScenes {
+                        scene.requestGeometryUpdate(.iOS(interfaceOrientations: .landscapeRight))
+                    }
+                }
             }
             #endif
         }

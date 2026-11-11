@@ -62,7 +62,8 @@ public struct PaneWorkspaceView: View {
                         waffleCell: cell,
                         model: model,
                         cornerRadius: cornerRadius,
-                        requestPopBack: {}
+                        requestPopBack: {},
+                        keepsAddressWhenURLClears: true
                     )
                     .frame(width: max(frame.width, 1), height: max(frame.height, 1))
                     .offset(x: frame.minX, y: frame.minY)

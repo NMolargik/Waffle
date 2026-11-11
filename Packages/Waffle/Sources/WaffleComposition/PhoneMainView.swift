@@ -565,6 +565,7 @@ private struct DeskDeck: View {
             }
         }
         .padding(.horizontal, 6)
+        .frame(maxHeight: .infinity, alignment: .top)
     }
 
     private func deckButton(_ title: LocalizedStringKey, systemImage: String, action: @escaping () -> Void) -> some View {
