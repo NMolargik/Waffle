@@ -120,6 +120,11 @@ struct WaffleCellContainer: View {
                     .stroke(Color.accentColor, lineWidth: 3)
                     .shadow(color: Color.accentColor.opacity(0.5), radius: 8)
                     .padding(1)
+                    .allowsHitTesting(!isPhonePane)
+            } else if isPhonePane {
+                // Phone panes take touches directly (see `selectsOnTouch`): nothing sits over
+                // the page, so an unselected pane scrolls and follows links like any other.
+                EmptyView()
             } else {
                 // Hover highlight for non-selected cells
                 RoundedRectangle(cornerRadius: cornerRadius)
@@ -192,6 +197,10 @@ struct WaffleCellContainer: View {
                 try? await Task.sleep(for: .seconds(1.5))
             }
         }
+        .modifier(PhoneTouchSelection(isEnabled: isPhonePane && !isPoppedOut) {
+            if model.selectedCell != waffleCell { model.select(waffleCell) }
+            model.notePaneTouched()
+        })
         .onHover { hovering in
             isHovered = hovering
         }
@@ -216,6 +225,32 @@ struct WaffleCellContainer: View {
             return Text(waffleCell.page.title)
         }
         return Text(URLDisplayFormatter.compact(waffleCell.address))
+    }
+}
+
+/// Phone panes: the first touch inside a pane selects it and still reaches the page, so a
+/// pane that isn't selected yet can be scrolled, tapped and pinched straight away.
+/// (The iPad's unselected cells keep their tap-to-select overlay instead.) The drag gesture
+/// is recognized alongside the web view's own recognizers and never claims the touch.
+private struct PhoneTouchSelection: ViewModifier {
+    let isEnabled: Bool
+    let onTouchDown: () -> Void
+    @State private var isTouching = false
+
+    func body(content: Content) -> some View {
+        if isEnabled {
+            content.simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in
+                        guard !isTouching else { return }
+                        isTouching = true
+                        onTouchDown()
+                    }
+                    .onEnded { _ in isTouching = false }
+            )
+        } else {
+            content
+        }
     }
 }
 

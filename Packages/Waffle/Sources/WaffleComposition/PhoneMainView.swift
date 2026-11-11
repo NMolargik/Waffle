@@ -44,6 +44,10 @@ public struct PhoneMainView: View {
     /// so the full arrangement returns exactly as it was.
     @State private var foldCollapsed = false
     @State private var isEditingAddress = false
+    /// The pane whose address is being edited; a submit navigates only this pane.
+    @State private var editingPaneID: UUID?
+    /// Bumped to end address editing without submitting (Cancel, or another pane was selected).
+    @State private var dismissEditingToken = 0
     @State private var hinge: HingeSummary = .unknown
 
     public init(session: SessionController) {
@@ -126,6 +130,8 @@ public struct PhoneMainView: View {
                         width: deck.width,
                         searchProvider: searchProvider,
                         isEditingAddress: $isEditingAddress,
+                        editingPaneID: $editingPaneID,
+                        dismissEditingToken: $dismissEditingToken,
                         openLayouts: { showLayoutsSheet = true },
                         openSettings: { showSettingsSheet = true }
                     )
@@ -173,6 +179,13 @@ public struct PhoneMainView: View {
                 }
             }
             #endif
+        }
+        .onChange(of: grid.selectedCell) { _, _ in
+            // Selecting another pane ends editing: the field shows that pane's address again.
+            if isEditingAddress { dismissEditingToken += 1 }
+        }
+        .onChange(of: grid.paneTouchCount) { _, _ in
+            if isEditingAddress { dismissEditingToken += 1 }
         }
         .onChange(of: mode, initial: true) { old, new in
             // Closing the Duo: the outer display keeps the focused pane. Opening it again
@@ -262,13 +275,19 @@ public struct PhoneMainView: View {
             AddressBarView(
                 text: $grid.addressText,
                 placeholder: String(localized: "Search or enter a URL"),
-                availableWidth: width,
+                availableWidth: isEditingAddress ? width - Self.cancelButtonWidth : width,
                 reservedControlWidth: reserved,
-                onSubmit: { grid.submitAddress(using: searchProvider) },
+                onSubmit: { grid.submitAddress(using: searchProvider, toPaneID: editingPaneID) },
                 onEditingChanged: { editing in
+                    editingPaneID = editing ? grid.selectedCell?.id : nil
                     withAnimation(.snappy) { isEditingAddress = editing }
-                }
+                },
+                dismissEditingToken: dismissEditingToken
             )
+
+            if isEditingAddress {
+                cancelEditingButton
+            }
 
             if !isEditingAddress {
                 if showsMaximize {
@@ -284,6 +303,24 @@ public struct PhoneMainView: View {
             }
         }
         .padding(.horizontal, 6)
+    }
+
+    /// Room the Cancel button takes beside the expanded address field.
+    static let cancelButtonWidth: CGFloat = 84
+
+    private var cancelEditingButton: some View {
+        Button { dismissEditingToken += 1 } label: {
+            Text("Cancel")
+                .font(.body)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .padding(.horizontal, 12)
+                .frame(minWidth: 44, minHeight: AppConfiguration.barControlHeight)
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .glassEffect(.regular.interactive(), in: .capsule)
+        .accessibilityHint(Text("Stops editing the address"))
     }
 
     private func circleButton(_ title: LocalizedStringKey, systemImage: String, action: @escaping () -> Void) -> some View {
@@ -483,6 +520,8 @@ private struct DeskDeck: View {
     let width: CGFloat
     let searchProvider: SearchProvider
     @Binding var isEditingAddress: Bool
+    @Binding var editingPaneID: UUID?
+    @Binding var dismissEditingToken: Int
     let openLayouts: () -> Void
     let openSettings: () -> Void
 
@@ -522,14 +561,26 @@ private struct DeskDeck: View {
                 AddressBarView(
                     text: $grid.addressText,
                     placeholder: String(localized: "Search or enter a URL"),
-                    availableWidth: width,
+                    availableWidth: isEditingAddress ? width - PhoneMainView.cancelButtonWidth : width,
                     reservedControlWidth: 4 * 44 + 4 * 8 + 16,
-                    onSubmit: { grid.submitAddress(using: searchProvider) },
+                    onSubmit: { grid.submitAddress(using: searchProvider, toPaneID: editingPaneID) },
                     onEditingChanged: { editing in
+                        editingPaneID = editing ? grid.selectedCell?.id : nil
                         withAnimation(.snappy) { isEditingAddress = editing }
-                    }
+                    },
+                    dismissEditingToken: dismissEditingToken
                 )
                 .frame(maxWidth: .infinity)
+                if isEditingAddress {
+                    Button { dismissEditingToken += 1 } label: {
+                        Text("Cancel")
+                            .padding(.horizontal, 12)
+                            .frame(minWidth: 44, minHeight: 44)
+                            .contentShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .glassEffect(.regular.interactive(), in: .capsule)
+                }
                 if !isEditingAddress {
                     deckButton("Reload", systemImage: "arrow.clockwise") { grid.selectedCell?.reloadCell() }
                     deckButton("Settings", systemImage: "gearshape", action: openSettings)

@@ -25,6 +25,8 @@ public struct AddressBarView: View {
     /// Reports editing so the hosting toolbar can hide its other controls while
     /// the bar expands to fill the window.
     var onEditingChanged: ((Bool) -> Void)?
+    /// Changing this value ends editing without submitting and restores the page's address.
+    var dismissEditingToken: Int = 0
 
     /// Driven by the UIKit field's delegate — `@FocusState` doesn't track a
     /// field hosted in a toolbar item.
@@ -40,7 +42,8 @@ public struct AddressBarView: View {
         availableWidth: CGFloat = 0,
         reservedControlWidth: CGFloat = 430,
         onSubmit: @escaping () -> Void = {},
-        onEditingChanged: ((Bool) -> Void)? = nil
+        onEditingChanged: ((Bool) -> Void)? = nil,
+        dismissEditingToken: Int = 0
     ) {
         self._text = text
         self.placeholder = placeholder
@@ -48,6 +51,7 @@ public struct AddressBarView: View {
         self.reservedControlWidth = reservedControlWidth
         self.onSubmit = onSubmit
         self.onEditingChanged = onEditingChanged
+        self.dismissEditingToken = dismissEditingToken
     }
 
     /// Idle: share the toolbar with the surrounding controls. Editing: the
@@ -69,7 +73,8 @@ public struct AddressBarView: View {
             onSubmit: {
                 text = displayText
                 onSubmit()
-            }
+            },
+            resignToken: dismissEditingToken
         )
         .onAppear {
             displayText = URLDisplayFormatter.compact(text)

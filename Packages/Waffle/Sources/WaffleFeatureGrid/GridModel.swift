@@ -24,6 +24,12 @@ public final class GridModel {
     /// Mirrors the selected cell's address for the toolbar address bar.
     public var addressText: String = ""
 
+    /// Incremented each time the user touches a phone pane (selected or not), so the
+    /// hosting window can end address editing like Safari does when you touch the page.
+    public private(set) var paneTouchCount = 0
+
+    public func notePaneTouched() { paneTouchCount += 1 }
+
     public var canPopOut: Bool { selectedCell != nil && poppedCell == nil }
 
     /// iPhone/Duo pane ratios. Only meaningful on phones; persisted with the snapshot so a
@@ -249,8 +255,20 @@ public final class GridModel {
     }
 
     /// Normalizes raw address-bar input and loads it into the selected cell.
-    public func submitAddress(using provider: SearchProvider) {
+    ///
+    /// - Parameter paneID: the pane whose address was being edited. A submit only ever
+    ///   navigates that pane, even if the selection moved since editing began (phones
+    ///   select a pane by touching it); the address bar then shows the selected pane again.
+    public func submitAddress(using provider: SearchProvider, toPaneID paneID: UUID? = nil) {
         let final = AddressNormalizer.normalize(addressText, using: provider)
+        if let paneID, paneID != selectedCell?.id {
+            addressText = selectedCell?.address ?? ""
+            if let target = panes.first(where: { $0.id == paneID }) {
+                target.loadURL(urlString: final)
+                persistDebounced()
+            }
+            return
+        }
         loadInSelectedCell(final)
     }
 

@@ -18,6 +18,9 @@ struct AddressTextField: UIViewRepresentable {
     /// True while the field is first responder. Written by the delegate.
     @Binding var isEditing: Bool
     var onSubmit: () -> Void
+    /// Bumping this ends editing (resigns the keyboard) without submitting. Used when the
+    /// pane being edited stops being the selected one, and by a Cancel button.
+    var resignToken: Int = 0
 
     func makeUIView(context: Context) -> UITextField {
         let field = UITextField()
@@ -45,6 +48,12 @@ struct AddressTextField: UIViewRepresentable {
 
     func updateUIView(_ field: UITextField, context: Context) {
         context.coordinator.parent = self
+        if context.coordinator.lastResignToken != resignToken {
+            context.coordinator.lastResignToken = resignToken
+            // Deferred a turn: ending editing writes `isEditing` through the delegate, and SwiftUI
+            // drops state writes made while it is still applying this update.
+            DispatchQueue.main.async { if field.isFirstResponder { field.resignFirstResponder() } }
+        }
         field.placeholder = placeholder
         field.textAlignment = isEditing ? .left : .center
         if field.text != text {
@@ -70,9 +79,12 @@ struct AddressTextField: UIViewRepresentable {
     final class Coordinator: NSObject, UITextFieldDelegate {
         var parent: AddressTextField
         var needsSelectAll = false
+        var lastResignToken: Int
+
 
         init(parent: AddressTextField) {
             self.parent = parent
+            self.lastResignToken = parent.resignToken
         }
 
         @objc func textChanged(_ field: UITextField) {
