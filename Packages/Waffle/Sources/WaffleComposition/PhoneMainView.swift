@@ -238,6 +238,8 @@ public struct PhoneMainView: View {
                 isSyrupEnabled: session.isSyrupEnabled,
                 requestSyrup: { self.session.requestSyrup() },
                 openInApp: { grid.loadInSelectedCell($0) },
+                usesPaneWording: true,
+                restorePurchases: { await self.session.store.restore() },
                 contentBlocking: ContentBlockingSettingsBinding(
                     isEnabled: Binding(
                         get: { grid.contentBlocking.isGloballyEnabled },

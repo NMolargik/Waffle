@@ -20,18 +20,29 @@ public struct SettingsView: View {
     /// Loads a URL into the selected grid cell (the app browses its own links).
     private let openInApp: (String) -> Void
     private let contentBlocking: ContentBlockingSettingsBinding
+    /// iPhone and iPhone Duo: panes and layouts instead of cells and presets, "Done" to close,
+    /// and a Restore Purchases row. The iPad keeps its wording.
+    private let usesPaneWording: Bool
+    /// Phone only: restores purchases, returning whether Syrup is now owned.
+    private let restorePurchases: (() async -> Bool)?
 
     @AppStorage("searchProvider") private var searchProviderRawValue: String = SearchProvider.google.rawValue
     @State private var showDeleteBookmarksConfirm = false
     @State private var showDeletePresetsConfirm = false
+    @State private var restoreMessage: LocalizedStringKey?
+    @State private var isRestoring = false
 
     public init(
         model: SettingsModel,
         isSyrupEnabled: Bool,
         requestSyrup: @escaping () -> Void,
         openInApp: @escaping (String) -> Void,
+        usesPaneWording: Bool = false,
+        restorePurchases: (() async -> Bool)? = nil,
         contentBlocking: ContentBlockingSettingsBinding
     ) {
+        self.usesPaneWording = usesPaneWording
+        self.restorePurchases = restorePurchases
         self.contentBlocking = contentBlocking
         self.model = model
         self.isSyrupEnabled = isSyrupEnabled
@@ -81,6 +92,35 @@ public struct SettingsView: View {
                     .buttonStyle(.plain)
                     .disabled(isSyrupEnabled) // Prevent interaction when already purchased
                     .accessibilityHint(isSyrupEnabled ? Text("") : Text("Opens the Syrup purchase sheet"))
+
+                    if let restorePurchases, !isSyrupEnabled {
+                        Button {
+                            Task {
+                                isRestoring = true
+                                let restored = await restorePurchases()
+                                isRestoring = false
+                                restoreMessage = restored ? "Syrup restored. Thank you!" : "No earlier purchase was found"
+                            }
+                        } label: {
+                            HStack {
+                                Label("Restore Purchases", systemImage: "arrow.clockwise")
+                                    .foregroundStyle(.primary)
+                                if isRestoring {
+                                    Spacer()
+                                    ProgressView()
+                                }
+                            }
+                            .frame(minHeight: 44)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(isRestoring)
+                        if let restoreMessage {
+                            Text(restoreMessage)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                 }
 
                 Section(String(localized: "Search")) {
@@ -106,7 +146,11 @@ public struct SettingsView: View {
                     Text("Content Blocking")
                 } footer: {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Applies to every cell. Override it for a single cell or site from the cell's context menu. Sites listed here are never blocked.")
+                        if usesPaneWording {
+                            Text("Applies to every pane. To change it for one pane or site, open ••• then This Page then Content Blocking. Sites listed here are never blocked.")
+                        } else {
+                            Text("Applies to every cell. Override it for a single cell or site from the cell's context menu. Sites listed here are never blocked.")
+                        }
                         if !contentBlocking.listTitles.isEmpty {
                             Text("Filter lists: \(listNames) (easylist.to), licensed CC BY-SA 3.0 and CC BY 3.0.")
                         }
@@ -117,7 +161,7 @@ public struct SettingsView: View {
                     Button(role: .destructive) {
                         showDeletePresetsConfirm = true
                     } label: {
-                        Text("Delete All Presets")
+                        Text(LocalizedStringKey(usesPaneWording ? "Delete All Layouts" : "Delete All Presets"))
                     }
                     Button(role: .destructive) {
                         showDeleteBookmarksConfirm = true
@@ -172,7 +216,7 @@ public struct SettingsView: View {
             .navigationTitle(Text("Settings"))
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button(String(localized: "Close")) {
+                    Button(usesPaneWording ? String(localized: "Done") : String(localized: "Close")) {
                         dismiss()
                     }
                 }
@@ -185,13 +229,13 @@ public struct SettingsView: View {
             } message: {
                 Text("This action will permanently remove all bookmarks.")
             }
-            .alert(Text("Delete All Presets?"), isPresented: $showDeletePresetsConfirm) {
+            .alert(Text(LocalizedStringKey(usesPaneWording ? "Delete All Layouts?" : "Delete All Presets?")), isPresented: $showDeletePresetsConfirm) {
                 Button(String(localized: "Cancel"), role: .cancel) { }
                 Button(String(localized: "Delete"), role: .destructive) {
                     model.deleteAllPresets()
                 }
             } message: {
-                Text("This action will permanently remove all presets.")
+                Text(LocalizedStringKey(usesPaneWording ? "This action will permanently remove all layouts." : "This action will permanently remove all presets."))
             }
         }
     }
