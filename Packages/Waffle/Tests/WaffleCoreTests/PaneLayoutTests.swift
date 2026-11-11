@@ -520,3 +520,22 @@ struct LayoutNamingTests {
         #expect(PresetShare.text(for: grid).hasPrefix("Grid (2x2)"))
     }
 }
+
+@Suite("Divider tap target")
+struct DividerTapTargetTests {
+    private let frames = [CGRect(x: 0, y: 0, width: 100, height: 98), CGRect(x: 0, y: 102, width: 100, height: 98)]
+
+    @Test func aTapJustUnderTheDividerSelectsTheLowerPane() {
+        #expect(PaneFrameCalculator.paneIndex(nearest: CGPoint(x: 50, y: 105), in: frames) == 1)
+        #expect(PaneFrameCalculator.paneIndex(nearest: CGPoint(x: 50, y: 95), in: frames) == 0)
+    }
+
+    @Test func aTapInsideAPaneSelectsThatPane() {
+        #expect(PaneFrameCalculator.paneIndex(nearest: CGPoint(x: 10, y: 150), in: frames) == 1)
+    }
+
+    @Test func aTapOnTheSeamGoesToTheEarlierPaneAndNoFramesGivesNil() {
+        #expect(PaneFrameCalculator.paneIndex(nearest: CGPoint(x: 50, y: 100), in: frames) == 0)
+        #expect(PaneFrameCalculator.paneIndex(nearest: .zero, in: []) == nil)
+    }
+}

@@ -86,7 +86,14 @@ public struct PaneWorkspaceView: View {
                             onDrag: { position in drag(divider, to: position) },
                             onEnd: { isDragging = false },
                             onReset: { reset(divider) },
-                            onNudge: { delta in nudge(divider, by: delta) }
+                            onNudge: { delta in nudge(divider, by: delta) },
+                            onTap: { point in
+                                // The 44-point band covers the edges of both panes: a plain
+                                // tap selects the pane it is nearest to.
+                                guard let index = PaneFrameCalculator.paneIndex(nearest: point, in: frames.panes),
+                                      index < panes.count else { return }
+                                model.select(panes[index])
+                            }
                         )
                     }
                 }
@@ -147,6 +154,8 @@ private struct PaneDividerHandle: View {
     let onEnd: () -> Void
     let onReset: () -> Void
     let onNudge: (Double) -> Void
+    /// A plain tap (not a drag), in workspace coordinates.
+    let onTap: (CGPoint) -> Void
 
     private let touch: CGFloat = 44
 
@@ -178,6 +187,11 @@ private struct PaneDividerHandle: View {
                 .onEnded { _ in onEnd() }
         )
         .onTapGesture(count: 2, perform: onReset)
+        // A single tap on the band must not be swallowed: it selects the pane underneath.
+        .simultaneousGesture(
+            SpatialTapGesture(count: 1, coordinateSpace: .named("paneWorkspace"))
+                .onEnded { onTap($0.location) }
+        )
         .accessibilityElement()
         .accessibilityLabel(Text("Pane divider"))
         .accessibilityHint(Text(divider.isLocked

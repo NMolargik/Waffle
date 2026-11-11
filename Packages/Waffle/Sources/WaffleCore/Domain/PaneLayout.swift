@@ -373,6 +373,20 @@ nonisolated public enum PaneFrameCalculator {
         return ratio
     }
 
+    /// The pane a tap on a divider's touch band belongs to: the one whose frame is nearest the
+    /// point (the band straddles two panes, so the tap goes to the pane it is closest to; a
+    /// tie goes to the earlier pane). Nil when there are no frames.
+    public static func paneIndex(nearest point: CGPoint, in frames: [CGRect]) -> Int? {
+        var best: (index: Int, distance: CGFloat)?
+        for (index, frame) in frames.enumerated() {
+            let dx = max(frame.minX - point.x, 0, point.x - frame.maxX)
+            let dy = max(frame.minY - point.y, 0, point.y - frame.maxY)
+            let distance = (dx * dx + dy * dy).squareRoot()
+            if best == nil || distance < best!.distance { best = (index, distance) }
+        }
+        return best?.index
+    }
+
     /// The pane to show alone in compact mode when more panes are open than fit.
     public static func focusIndex(selected: Int?, count: Int) -> Int {
         guard count > 0 else { return 0 }
