@@ -24,7 +24,7 @@ struct AddressTextField: UIViewRepresentable {
 
     /// Body text that stops growing at a size that still fits the 44-point bar.
     static var font: UIFont {
-        UIFontMetrics(forTextStyle: .body).scaledFont(for: .systemFont(ofSize: 17), maximumPointSize: 26)
+        UIFontMetrics(forTextStyle: .body).scaledFont(for: .systemFont(ofSize: 17), maximumPointSize: 22)
     }
 
     func makeUIView(context: Context) -> UITextField {
