@@ -223,7 +223,10 @@ public struct PhoneMainView: View {
         .sheet(isPresented: $session.presentSyrupSheet) {
             SyrupView(
                 store: session.store,
-                phonePitch: SyrupPitch(trigger: session.syrupTrigger, isInnerDisplay: mode == .inner),
+                phonePitch: SyrupPitch(
+                    trigger: session.syrupTrigger,
+                    device: mode == .inner ? .iPhoneDuoInner : (Self.isFoldableDevice ? .iPhoneDuoOuter : .iPhone)
+                ),
                 onPurchased: { self.session.presentSyrupSheet = false },
                 onClose: { self.session.presentSyrupSheet = false }
             )

@@ -318,23 +318,31 @@ struct PhoneScreenLayoutTests {
 @Suite("SyrupPitch")
 struct SyrupPitchTests {
     @Test func theTriggerLeadsThePhonePitch() {
-        #expect(SyrupPitch(trigger: .thirdPane, isInnerDisplay: true).features.first == .morePanes)
-        #expect(SyrupPitch(trigger: .secondLayout, isInnerDisplay: false).features.first == .unlimitedLayouts)
-        #expect(SyrupPitch(trigger: .deskMode, isInnerDisplay: true).features.first == .deskMode)
+        #expect(SyrupPitch(trigger: .thirdPane, device: .iPhoneDuoInner).features.first == .morePanes)
+        #expect(SyrupPitch(trigger: .secondLayout, device: .iPhone).features.first == .unlimitedLayouts)
+        #expect(SyrupPitch(trigger: .deskMode, device: .iPhoneDuoInner).features.first == .deskMode)
     }
 
-    @Test func everyFeatureIsListedExactlyOnce() {
+    @Test func aRegularIPhoneSellsOnlyWhatIsGatedThere() {
         for trigger in [SyrupTrigger.general, .thirdPane, .secondLayout, .deskMode] {
-            let features = SyrupPitch(trigger: trigger, isInnerDisplay: false).features
-            #expect(features.count == 3)
-            #expect(Set(features).count == 3)
-            #expect(!features.map { "\($0)" }.contains("autoRefresh"), "auto-refresh is free on every device")
+            #expect(SyrupPitch(trigger: trigger, device: .iPhone).features == [.unlimitedLayouts])
+        }
+    }
+
+    @Test func theDuoListsEveryFeatureExactlyOnce() {
+        for device in [SyrupDevice.iPhoneDuoOuter, .iPhoneDuoInner] {
+            for trigger in [SyrupTrigger.general, .thirdPane, .secondLayout, .deskMode] {
+                let features = SyrupPitch(trigger: trigger, device: device).features
+                #expect(features.count == 3)
+                #expect(Set(features).count == 3)
+                #expect(!features.map { "\($0)" }.contains("autoRefresh"), "auto-refresh is free on every device")
+            }
         }
     }
 
     @Test func generalKeepsTheDefaultOrder() {
-        #expect(SyrupPitch(trigger: .general, isInnerDisplay: false).features == SyrupFeature.allCases)
-        #expect(SyrupPitch(trigger: .general, isInnerDisplay: false).leadFeature == nil)
+        #expect(SyrupPitch(trigger: .general, device: .iPhoneDuoOuter).features == SyrupFeature.allCases)
+        #expect(SyrupPitch(trigger: .general, device: .iPhone).leadFeature == nil)
     }
 }
 

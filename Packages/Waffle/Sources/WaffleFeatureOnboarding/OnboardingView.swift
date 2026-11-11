@@ -1284,9 +1284,9 @@ private struct PhoneSyrupCard: View {
             .padding()
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
 
-            Text(isDuo
+            Text(LocalizedStringKey(isDuo
                  ? "Syrup also unlocks Waffle on iPad: bigger grids, pop-out, fullscreen and rearranging."
-                 : "Syrup also unlocks Waffle on iPad and iPhone Duo: bigger grids, a third and fourth pane, Desk Mode.")
+                 : "Syrup also unlocks Waffle on iPad and iPhone Duo: bigger grids, a third and fourth pane, Desk Mode."))
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
