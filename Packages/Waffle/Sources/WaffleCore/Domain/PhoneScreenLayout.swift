@@ -79,8 +79,9 @@ nonisolated public struct PhoneScreenLayout: Equatable, Sendable {
                 thickness: resolved.thickness,
                 isActive: resolved.isActive
             )
-            if resolved.primaryIsHorizontal {
-                // Vertical fold: keep the bar on one side of it.
+            if resolved.primaryIsHorizontal && resolved.isActive {
+                // Vertical fold, device partially open: keep the bar on one side of it. With
+                // the fold inactive (flat, or no fold) the whole width is usable.
                 let gutterStart = resolved.position - max(resolved.thickness, PaneFrameCalculator.defaultSpacing) / 2
                 let gutterEnd = resolved.position + max(resolved.thickness, PaneFrameCalculator.defaultSpacing) / 2
                 if barOnFarSide {

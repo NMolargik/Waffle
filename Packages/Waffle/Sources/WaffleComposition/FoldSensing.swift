@@ -15,7 +15,7 @@ import WaffleCore
 
 /// What the system says about the fold right now, independent of SDK types.
 struct FoldReading: Equatable {
-    /// The fold's rectangle in the reading view's coordinates.
+    /// The fold's rectangle in screen coordinates (see `FoldGeometry`).
     var frame: CGRect
     /// True only while the device is partially open (the system's definition).
     var isActive: Bool
@@ -29,15 +29,21 @@ enum HingeSummary: Equatable {
 
 enum FoldSensing {
     /// The fold's rectangle, including while inactive (device flat), or nil on devices
-    /// without a fold or systems older than 27.1.
+    /// without a fold or systems older than 27.1, in screen coordinates (`FoldGeometry`
+    /// converts from the reader's origin).
     @MainActor
-    static func reading(in proxy: GeometryProxy) -> FoldReading? {
+    static func reading(in proxy: GeometryProxy, screenSize: CGSize) -> FoldReading? {
         #if DEBUG
-        if let simulated = DebugFoldSimulation.reading(in: proxy.size) { return simulated }
+        if let simulated = DebugFoldSimulation.reading(in: screenSize) { return simulated }
         #endif
         if #available(iOS 27.1, *) {
             guard let region = proxy.reservedRegions(kind: .division, options: .includeInactive).first else { return nil }
-            return FoldReading(frame: region.frame, isActive: region.isActive)
+            let frame = FoldGeometry.screenFrame(
+                regionFrame: region.frame,
+                viewSize: proxy.size,
+                viewOriginInScreen: proxy.frame(in: .global).origin
+            )
+            return FoldReading(frame: frame, isActive: region.isActive)
         }
         return nil
     }

@@ -382,3 +382,68 @@ struct PaneFocusTests {
         #expect(two.panes[0].maxX <= 342 && two.panes[1].minX >= 358)
     }
 }
+
+@Suite("FoldGeometry production path")
+struct FoldGeometryTests {
+    // The Duo's inner display, landscape, with a status column of 48 points on the leading
+    // side and a home indicator inset at the bottom.
+    private let screen = CGSize(width: 1000, height: 750)
+    private let safe = (top: CGFloat(0), leading: CGFloat(48), bottom: CGFloat(21), trailing: CGFloat(0))
+    // The reported fold, in screen space: a 20-point-wide band centred at x = 500, with margins.
+    private let foldOnScreen = CGRect(x: 490, y: 0, width: 20, height: 750)
+
+    private func panesInScreenSpace(layout: PhoneScreenLayout, count: Int) -> [CGRect] {
+        PaneFrameCalculator.frames(
+            count: count, ratios: .default, size: layout.workspace.size,
+            primaryIsHorizontal: layout.primaryIsHorizontal, fold: layout.fold
+        ).panes.map { $0.offsetBy(dx: layout.workspace.minX, dy: layout.workspace.minY) }
+    }
+
+    @Test func aFullScreenReaderNeedsNoConversion() {
+        let frame = FoldGeometry.screenFrame(regionFrame: foldOnScreen, viewSize: screen, viewOriginInScreen: .zero)
+        #expect(frame == foldOnScreen)
+    }
+
+    @Test func panesAvoidTheFoldWithNonZeroSafeAreaInsets() {
+        let gutter = FoldGeometry.gutter(regionFrame: foldOnScreen, isActive: true, viewSize: screen, viewOriginInScreen: .zero)
+        let layout = PhoneScreenLayout.compute(size: screen, safe: safe, fold: gutter, mode: .inner, deskMode: false)
+        #expect(layout.workspace.minX == 48 + PhoneScreenLayout.margin, "the status column is respected")
+        for count in 2...4 {
+            let panes = panesInScreenSpace(layout: layout, count: count)
+            for pane in panes { #expect(!pane.intersects(foldOnScreen), "pane \(pane) crosses the fold with \(count) panes") }
+        }
+    }
+
+    @Test func aReaderInsideTheSafeAreaIsConvertedByItsOrigin() {
+        // A reader that starts after the status column reports the fold in its own space.
+        let origin = CGPoint(x: 48, y: 0)
+        let readerSize = CGSize(width: 952, height: 729)
+        let local = foldOnScreen.offsetBy(dx: -origin.x, dy: -origin.y)
+        let converted = FoldGeometry.screenFrame(regionFrame: local, viewSize: readerSize, viewOriginInScreen: origin)
+        #expect(converted == foldOnScreen)
+    }
+
+    @Test func aWindowSpaceFrameIsRecognisedAndNotShiftedTwice() {
+        // If the SDK actually returned window space, the frame sticks out of the reader once
+        // the origin is added; the guard keeps it where it is.
+        let origin = CGPoint(x: 48, y: 0)
+        let readerSize = CGSize(width: 450, height: 729)   // local reading (470...490) would overflow the reader
+        let windowSpace = CGRect(x: 470, y: 0, width: 20, height: 729)
+        let converted = FoldGeometry.screenFrame(regionFrame: windowSpace, viewSize: readerSize, viewOriginInScreen: origin)
+        #expect(converted == windowSpace)
+    }
+
+    @Test func innerDisplayBarIsOnlyConfinedWhileTheFoldIsActive() {
+        // A9: flat (inactive) or no fold: the bar spans the display; partially open: one side.
+        let inactive = FoldGutter(primaryIsHorizontal: true, position: 500, thickness: 20, isActive: false)
+        let flat = PhoneScreenLayout.compute(size: screen, safe: safe, fold: inactive, mode: .inner, deskMode: false)
+        let none = PhoneScreenLayout.compute(size: screen, safe: safe, fold: nil, mode: .inner, deskMode: false)
+        let fullWidth = screen.width - safe.leading - safe.trailing - 2 * PhoneScreenLayout.margin
+        #expect(flat.bar!.width == min(fullWidth, PhoneScreenLayout.maxBarWidth))
+        #expect(none.bar!.width == flat.bar!.width)
+        let active = FoldGutter(primaryIsHorizontal: true, position: 500, thickness: 20, isActive: true)
+        let folded = PhoneScreenLayout.compute(size: screen, safe: safe, fold: active, mode: .inner, deskMode: false)
+        #expect(folded.bar!.width < flat.bar!.width)
+        #expect(!folded.bar!.intersects(foldOnScreen))
+    }
+}

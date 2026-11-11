@@ -96,19 +96,28 @@ public struct PhoneMainView: View {
         @Bindable var session = session
 
         GeometryReader { proxy in
-            let reading = FoldSensing.reading(in: proxy)
+            // The reader sits inside the safe area. The layout works in screen coordinates (the
+            // fold is reported in the reader's space and converted by its origin), so rebuild
+            // the screen size and shift results back into the reader's space when placing views.
+            let inset = proxy.safeAreaInsets
+            let screenSize = CGSize(
+                width: proxy.size.width + inset.leading + inset.trailing,
+                height: proxy.size.height + inset.top + inset.bottom
+            )
+            let origin = CGPoint(x: inset.leading, y: inset.top)
+            let reading = FoldSensing.reading(in: proxy, screenSize: screenSize)
             let laptopPose = mode == .inner
                 && reading?.isActive == true
                 && reading?.gutter.primaryIsHorizontal == false
                 && (effectiveHinge == .partiallyOpen || effectiveHinge == .unknown)
             let isDesk = laptopPose && session.canUseDeskMode
             let layout = PhoneScreenLayout.compute(
-                size: proxy.size,
-                safe: (0, 0, 0, 0),
+                size: screenSize,
+                safe: (inset.top, inset.leading, inset.bottom, inset.trailing),
                 fold: reading?.gutter,
                 mode: mode,
                 deskMode: isDesk,
-                barOnFarSide: selectedPaneIsOnFarSide(primaryIsHorizontal: reading?.gutter.primaryIsHorizontal ?? (proxy.size.width >= proxy.size.height))
+                barOnFarSide: selectedPaneIsOnFarSide(primaryIsHorizontal: reading?.gutter.primaryIsHorizontal ?? (screenSize.width >= screenSize.height))
             )
 
             ZStack(alignment: .topLeading) {
@@ -119,7 +128,7 @@ public struct PhoneMainView: View {
                     focusedPaneID: focusedPaneID
                 )
                 .frame(width: layout.workspace.width, height: layout.workspace.height)
-                .offset(x: layout.workspace.minX, y: layout.workspace.minY)
+                .offset(x: layout.workspace.minX - origin.x, y: layout.workspace.minY - origin.y)
 
                 Color.clear.frame(width: 0, height: 0)
                     .onChange(of: isDesk, initial: true) { _, now in
@@ -130,7 +139,7 @@ public struct PhoneMainView: View {
                 if let bar = layout.bar {
                     controlBar(width: bar.width)
                         .frame(width: bar.width, height: bar.height)
-                        .offset(x: bar.minX, y: bar.minY)
+                        .offset(x: bar.minX - origin.x, y: bar.minY - origin.y)
                 }
 
                 if let deck = layout.deck {
@@ -147,12 +156,12 @@ public struct PhoneMainView: View {
                         openSettings: { showSettingsSheet = true }
                     )
                     .frame(width: deck.width, height: deck.height)
-                    .offset(x: deck.minX, y: deck.minY)
+                    .offset(x: deck.minX - origin.x, y: deck.minY - origin.y)
                 }
 
                 if laptopPose, !session.canUseDeskMode, let bar = layout.bar {
                     deskModeOffer
-                        .offset(x: bar.minX + 4, y: bar.minY - 52)
+                        .offset(x: bar.minX + 4 - origin.x, y: bar.minY - 52 - origin.y)
                 }
             }
         }
