@@ -18,7 +18,6 @@ public struct SyrupView: View {
     private let onClose: (() -> Void)?
     /// Set on iPhone and iPhone Duo: lists what Syrup unlocks there instead of the iPad grid features.
     private let phonePitch: SyrupPitch?
-    @State private var scrollHeight: CGFloat = 0
     @Environment(\.colorScheme) private var colorScheme
 
     public init(store: StoreManager, phonePitch: SyrupPitch? = nil, onPurchased: (() -> Void)? = nil, onClose: (() -> Void)? = nil) {
@@ -29,8 +28,17 @@ public struct SyrupView: View {
     }
 
     public var body: some View {
+        if let phonePitch {
+            phoneBody(phonePitch)
+        } else {
+            padBody
+        }
+    }
+
+    // MARK: - iPad and Mac (unchanged layout)
+
+    private var padBody: some View {
         ScrollView {
-          VStack {
             VStack(spacing: 20) {
                 HStack {
                     Spacer()
@@ -39,9 +47,6 @@ public struct SyrupView: View {
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .font(.title2)
-                            // Phone: a full 44-point target (the iPad sheet keeps its size).
-                            .frame(width: phonePitch == nil ? nil : 44, height: phonePitch == nil ? nil : 44)
-                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(Text("Close"))
@@ -55,23 +60,14 @@ public struct SyrupView: View {
                 Text(verbatim: "Syrup")
                     .font(.largeTitle).bold()
 
-                if let phonePitch {
-                    Text(Self.lead(for: phonePitch.trigger))
-                        .font(.headline)
-                        .multilineTextAlignment(.center)
-                } else {
-                    Text("Waffle + Syrup, what could be better?")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
+                Text("Waffle + Syrup, what could be better?")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
 
-                    Text("Unlock the full Waffle experience")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                }
+                Text("Unlock the full Waffle experience")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
 
-                if let phonePitch {
-                    phoneFeatures(phonePitch)
-                } else {
                 VStack(alignment: .leading, spacing: 10) {
                     Label("Up to \(AppConfiguration.maxPremiumRows)x\(AppConfiguration.maxPremiumCols) waffles (double the \(AppConfiguration.maxFreeRows)x\(AppConfiguration.maxFreeCols) limit)", systemImage: "square.grid.3x3")
                     Label("Rearrange waffles", systemImage: "arrow.left.arrow.right.square")
@@ -85,23 +81,9 @@ public struct SyrupView: View {
                 .padding()
                 .background(.ultraThinMaterial)
                 .cornerRadius(12)
-                }
             }
 
-            // Phone: the price and the buttons sit at the bottom of the sheet, so a short
-            // pitch does not leave the lower part of the sheet empty.
-            if phonePitch != nil { Spacer(minLength: 12) }
-
-            if phonePitch != nil {
-                // Never a hardcoded price: the live StoreKit price, or neutral wording.
-                if let price = store.product?.displayPrice {
-                    Text("\(price), one time. No subscription.")
-                        .font(.headline)
-                } else {
-                    Text("A one-time purchase. No subscription.")
-                        .font(.headline)
-                }
-            } else if let price = store.product?.displayPrice {
+            if let price = store.product?.displayPrice {
                 Text("Only \(price). One time. No subscription!")
                     .font(.headline)
             } else {
@@ -115,51 +97,119 @@ public struct SyrupView: View {
                     .foregroundStyle(.red)
             }
 
-            VStack(spacing: 12) {
-                Button {
-                    Task {
-                        let ok = await store.purchase()
-                        if ok {
-                            onPurchased?()
-                        }
-                    }
-                } label: {
-                    HStack {
-                        if store.isLoading { ProgressView() }
-                        Text("Buy Syrup")
-                            .bold()
-                    }
-                }
-                .buttonStyle(.wafflePrimary)
-                .disabled(store.isLoading || store.product == nil)
+            purchaseButtons
 
-                Button {
-                    Task {
-                        let ok = await store.restore()
-                        if ok {
-                            onPurchased?()
-                        }
-                    }
-                } label: {
-                    Text("Restore Purchases")
-                }
-                .buttonStyle(.waffleSecondary)
-                .disabled(store.isLoading)
-            }
-
-            Text(LocalizedStringKey(phonePitch == nil
-                 ? "Syrup is a one-time purchase. Use Family Sharing to share Syrup with family.  "
-                 : "Syrup is a one-time purchase. With Family Sharing, your whole family can use it."))
+            Text("Syrup is a one-time purchase. Use Family Sharing to share Syrup with family.  ")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding([.horizontal, .bottom])
-          }
-          .frame(minHeight: phonePitch == nil ? nil : scrollHeight)
         }
-        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { scrollHeight = $0 }
         .padding()
-        .frame(minWidth: phonePitch == nil ? 420 : nil, minHeight: phonePitch == nil ? 520 : nil)
+        .frame(minWidth: 420, minHeight: 520)
+    }
+
+    private var purchaseButtons: some View {
+        VStack(spacing: 12) {
+            Button {
+                Task {
+                    let ok = await store.purchase()
+                    if ok {
+                        onPurchased?()
+                    }
+                }
+            } label: {
+                HStack {
+                    if store.isLoading { ProgressView() }
+                    Text("Buy Syrup")
+                        .bold()
+                }
+            }
+            .buttonStyle(.wafflePrimary)
+            .disabled(store.isLoading || store.product == nil)
+
+            Button {
+                Task {
+                    let ok = await store.restore()
+                    if ok {
+                        onPurchased?()
+                    }
+                }
+            } label: {
+                Text("Restore Purchases")
+            }
+            .buttonStyle(.waffleSecondary)
+            .disabled(store.isLoading)
+        }
+    }
+
+    // MARK: - iPhone and iPhone Duo sheet
+
+    /// The close button and the price and buy buttons are pinned outside the scrolling pitch,
+    /// so Buy and Restore are always reachable however short the display or large the text.
+    private func phoneBody(_ pitch: SyrupPitch) -> some View {
+        VStack(spacing: 0) {
+            HStack {
+                Spacer()
+                Button {
+                    onClose?()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title2)
+                        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("Close"))
+            }
+
+            ScrollView {
+                VStack(spacing: 16) {
+                    Image(systemName: "drop.fill")
+                        .font(.system(size: 44))
+                        // Dark brown vanishes on a dark sheet: the brand gold there.
+                        .foregroundStyle(colorScheme == .dark ? Color.wafflePrimary : Color.waffleTertiary)
+
+                    Text(verbatim: "Syrup")
+                        .font(.largeTitle).bold()
+
+                    Text(Self.lead(for: pitch.trigger))
+                        .font(.headline)
+                        .multilineTextAlignment(.center)
+
+                    phoneFeatures(pitch)
+
+                    Text(LocalizedStringKey("Syrup is a one-time purchase. With Family Sharing, your whole family can use it."))
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.bottom, 8)
+            }
+            .scrollBounceBehavior(.basedOnSize)
+
+            VStack(spacing: 10) {
+                // Never a hardcoded price: the live StoreKit price, or neutral wording.
+                if let price = store.product?.displayPrice {
+                    Text("\(price), one time. No subscription.")
+                        .font(.headline)
+                } else {
+                    Text("A one-time purchase. No subscription.")
+                        .font(.headline)
+                }
+                if let msg = store.errorMessage {
+                    Text(msg)
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                }
+                purchaseButtons
+            }
+            .multilineTextAlignment(.center)
+            .padding(.top, 10)
+        }
+        .padding(.horizontal)
+        .padding(.bottom)
     }
 
     // MARK: - iPhone and iPhone Duo
