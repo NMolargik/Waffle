@@ -81,6 +81,30 @@
       },
       "shouldGenerateSymbol": false
     },
+    "%lld of %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld de %lld"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld de %lld"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld / %lld"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "%lld panes": {
       "extractionState": "manual",
       "localizations": {
@@ -1097,6 +1121,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "ウィンドウを閉じる"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Close “%@” Pane": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerrar el panel «%@»"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fermer le volet « %@ »"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「%@」のペインを閉じる"
           }
         }
       },
@@ -2496,6 +2544,30 @@
       },
       "shouldGenerateSymbol": false
     },
+    "Go to Pane": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ir al panel"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aller au volet"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ペインへ移動"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "Goes back a page": {
       "extractionState": "manual",
       "localizations": {
@@ -2717,6 +2789,30 @@
       },
       "shouldGenerateSymbol": false
     },
+    "Hide Desk Mode Offer": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar la oferta del modo escritorio"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Masquer l’offre du mode bureau"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デスクモードの案内を隠す"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "Keep every pane fresh with Syrup": {
       "extractionState": "manual",
       "localizations": {
@@ -2833,6 +2929,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "ライブラリ"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Limit Reached": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Límite alcanzado"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limite atteinte"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上限に達しました"
           }
         }
       },
@@ -3682,6 +3802,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "ペイン %lld"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Pane %lld of %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Panel %lld de %lld"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volet %lld de %lld"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ペイン %lld / %lld"
           }
         }
       },
@@ -5373,6 +5517,30 @@
       },
       "shouldGenerateSymbol": false
     },
+    "Shows the next pane. Touch and hold to choose a pane": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Muestra el panel siguiente. Mantén pulsado para elegir un panel"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Affiche le volet suivant. Maintiens le doigt pour choisir un volet"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次のペインを表示します。長押しでペインを選べます"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "Shows the selected cell by itself": {
       "extractionState": "manual",
       "localizations": {
@@ -5440,6 +5608,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "ツアーをスキップします"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Stops editing the address": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deja de editar la dirección"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrête la modification de l’adresse"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アドレスの編集をやめます"
           }
         }
       },
@@ -6118,6 +6310,30 @@
       },
       "shouldGenerateSymbol": false
     },
+    "This Page": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta página"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette page"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このページ"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "This action will permanently remove all bookmarks.": {
       "extractionState": "manual",
       "localizations": {
@@ -6214,6 +6430,30 @@
       },
       "shouldGenerateSymbol": false
     },
+    "This iPhone fits two panes": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este iPhone admite dos paneles"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cet iPhone peut afficher deux volets"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このiPhoneには2つのペインが収まります"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "Title": {
       "extractionState": "manual",
       "localizations": {
@@ -6281,6 +6521,78 @@
           "stringUnit": {
             "state": "translated",
             "value": "URL"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Unfold for More": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Despliega para más"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déplie pour plus"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開くと増やせます"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Unfold your iPhone Duo to add more panes": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Despliega tu iPhone Duo para añadir más paneles"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déplie ton iPhone Duo pour ajouter d’autres volets"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iPhone Duoを開くとペインをさらに追加できます"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Unfold your iPhone Duo to see all %lld panes": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Despliega tu iPhone Duo para ver los %lld paneles"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déplie ton iPhone Duo pour voir les %lld volets"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iPhone Duoを開くと%lld個のペインすべてが表示されます"
           }
         }
       },
