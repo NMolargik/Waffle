@@ -81,6 +81,30 @@
       },
       "shouldGenerateSymbol": false
     },
+    "%lld panes": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld paneles"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld volets"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ペイン"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "%lldx%lld": {
       "comment": "A label displaying the number of rows and columns in a grid. The first argument is the number of rows. The second argument is the number of columns.",
       "extractionState": "manual",
@@ -246,6 +270,30 @@
       },
       "shouldGenerateSymbol": false
     },
+    "Add Pane": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadir panel"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter un volet"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ペインを追加"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "Add Row": {
       "extractionState": "manual",
       "localizations": {
@@ -265,6 +313,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "行を追加"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Add or close panes, save layouts, and open settings": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añade o cierra paneles, guarda diseños y abre los ajustes"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajoutez ou fermez des volets, enregistrez des dispositions et ouvrez les réglages"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ペインの追加や閉じる操作、レイアウトの保存、設定の表示ができます"
           }
         }
       },
@@ -337,6 +409,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "アドレスバー"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Adjust to resize panes. Double tap to reset to an even split": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajusta para cambiar el tamaño de los paneles. Toca dos veces para volver a una división equilibrada"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustez pour redimensionner les volets. Touchez deux fois pour rétablir une division égale"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "調整してペインのサイズを変更します。ダブルタップで均等な分割に戻します"
           }
         }
       },
@@ -886,6 +982,30 @@
       },
       "shouldGenerateSymbol": false
     },
+    "Close Pane": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerrar panel"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fermer le volet"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ペインを閉じる"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "Close Window": {
       "extractionState": "manual",
       "localizations": {
@@ -1340,6 +1460,54 @@
       },
       "shouldGenerateSymbol": false
     },
+    "Desk Mode": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modo escritorio"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mode bureau"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デスクモード"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Desk mode is part of Syrup": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El modo escritorio forma parte de Syrup"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le mode bureau fait partie de Syrup"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デスクモードは Syrup の機能です"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "Detach a cell into its own window, then pop it back into the grid": {
       "extractionState": "manual",
       "localizations": {
@@ -1407,6 +1575,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "このサイトではブロックしない"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Done": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listo"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terminé"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完了"
           }
         }
       },
@@ -1599,6 +1791,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "空のセル"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Empty Pane": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Panel vacío"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volet vide"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空のペイン"
           }
         }
       },
@@ -1938,6 +2154,30 @@
       },
       "shouldGenerateSymbol": false
     },
+    "Fixed at the fold": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fijo en el pliegue"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fixé sur le pli"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "折り目に固定"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "Follow Settings": {
       "extractionState": "manual",
       "localizations": {
@@ -2107,6 +2347,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "はじめる"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Get Syrup": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obtener Syrup"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obtenir Syrup"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Syrup を入手"
           }
         }
       },
@@ -2357,6 +2621,54 @@
       },
       "shouldGenerateSymbol": false
     },
+    "Layouts": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diseños"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dispositions"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "レイアウト"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Layouts & Bookmarks": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diseños y marcadores"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dispositions et favoris"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "レイアウトとブックマーク"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "Library": {
       "comment": "Menu bar title for bookmark and preset commands",
       "extractionState": "manual",
@@ -2401,6 +2713,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "価格を読み込み中…"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Maximize Pane": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximizar panel"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agrandir le volet"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ペインを最大化"
           }
         }
       },
@@ -2671,6 +3007,30 @@
       },
       "shouldGenerateSymbol": false
     },
+    "No saved layouts yet": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aún no hay diseños guardados"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune disposition enregistrée"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存したレイアウトはまだありません"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "Not Purchased": {
       "extractionState": "manual",
       "localizations": {
@@ -2837,6 +3197,30 @@
       },
       "shouldGenerateSymbol": false
     },
+    "One Free Layout": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un diseño gratis"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une disposition gratuite"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無料レイアウト 1 件"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "Only %@. One time. No subscription!": {
       "extractionState": "manual",
       "localizations": {
@@ -2995,6 +3379,30 @@
       },
       "shouldGenerateSymbol": false
     },
+    "Opened the first %lld of %lld panes": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se abrieron los primeros %1$lld de %2$lld paneles"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouverture des %1$lld premiers volets sur %2$lld"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%2$lld 個のうち最初の %1$lld 個のペインを開きました"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "Opens Waffle and applies one of your saved grid presets.": {
       "localizations": {
         "es": {
@@ -3106,6 +3514,102 @@
           "stringUnit": {
             "state": "translated",
             "value": "ブックマークを任意のセルにドラッグして開くこともできます"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Pane %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Panel %lld"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volet %lld"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ペイン %lld"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Pane divider": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Divisor de paneles"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Séparateur de volets"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ペインの区切り"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Panes": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paneles"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volets"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ペイン"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Panes and layouts": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paneles y diseños"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volets et dispositions"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ペインとレイアウト"
           }
         }
       },
@@ -3757,6 +4261,30 @@
       },
       "shouldGenerateSymbol": false
     },
+    "Reloads the selected pane. Touch and hold for auto-refresh options": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recarga el panel seleccionado. Mantén pulsado para ver las opciones de actualización automática"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recharge le volet sélectionné. Maintenez le doigt pour les options d’actualisation automatique"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択中のペインを再読み込みします。長押しで自動更新のオプションを表示します"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "Remove Column": {
       "localizations": {
         "es": {
@@ -4225,6 +4753,30 @@
         }
       }
     },
+    "Save Layout": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar diseño"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrer la disposition"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "レイアウトを保存"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "Save Preset": {
       "extractionState": "manual",
       "localizations": {
@@ -4316,6 +4868,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "お気に入りのサイトを保存して、すぐに見つけられます。"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Save your open panes as a layout to bring them all back with one tap.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guarda tus paneles abiertos como un diseño para recuperarlos todos con un toque."
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrez vos volets ouverts comme disposition pour tous les retrouver d’un seul toucher."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開いているペインをレイアウトとして保存すると、ワンタップですべて元に戻せます。"
           }
         }
       },
@@ -4557,6 +5133,30 @@
       },
       "shouldGenerateSymbol": false
     },
+    "Show All Panes": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar todos los paneles"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher tous les volets"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべてのペインを表示"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "Shows the selected cell by itself": {
       "extractionState": "manual",
       "localizations": {
@@ -4672,6 +5272,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "行を減らす"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Swap Panes": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intercambiar paneles"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permuter les volets"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ペインを入れ替える"
           }
         }
       },
@@ -5302,6 +5926,30 @@
       },
       "shouldGenerateSymbol": false
     },
+    "This display fits %lld panes": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta pantalla admite %lld paneles"
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cet écran peut afficher %lld volets"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このディスプレイには %lld 個のペインが収まります"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
     "Title": {
       "extractionState": "manual",
       "localizations": {
@@ -5735,6 +6383,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "ライブラリ"
+          }
+        }
+      },
+      "shouldGenerateSymbol": false
+    },
+    "Your free layout is saved. Syrup lets you save as many as you like.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu diseño gratuito está guardado. Con Syrup puedes guardar todos los que quieras."
+          }
+        },
+        "fr-CA": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre disposition gratuite est enregistrée. Syrup vous permet d’en enregistrer autant que vous voulez."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無料のレイアウトを保存しました。Syrup なら好きなだけ保存できます。"
           }
         }
       },
